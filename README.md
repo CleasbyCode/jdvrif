@@ -33,7 +33,7 @@ Compile and run the program under Windows or **Linux**.
 
 ```c
 
-$ g++ jdvrdt.cpp -lz -o pdvin
+$ g++ jdvrdt.cpp -lz -o jdvrdt
 $
 $ ./jdvrdt 
 
