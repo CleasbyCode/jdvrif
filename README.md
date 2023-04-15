@@ -5,16 +5,19 @@ JPG Data Vehicle for Reddit.
 jdvrdt partly derives from the ***[technique](https://www.vice.com/en/article/bj4wxm/tiny-picture-twitter-complete-works-of-shakespeare-steganography)*** discovered by security researcher ***[David Buchanan](https://www.da.vidbuchanan.co.uk/).*** 
 
 This program enables you to embed & extract arbitrary data of up to ~20MB within a single JPG image.  
-Post & share your "*file-embedded*" image on ***[reddit](https://www.reddit.com/)*** or Imgur**. 
+Post & share your "*file-embedded*" image on ***[reddit](https://www.reddit.com/)*** or Imgur. 
 
 ![Demo Image](https://github.com/CleasbyCode/jdvrdt/blob/main/demo_image/demo.jpg)  
 {***Image demo: MP3 embedded within this JPG***} 
 
-*When the embedded image size is over 5MB, the data is still retained, but Imgur will reduce the dimension size of your image.
+Imgur issue: When the embedded image size is over 5MB, the data is still retained, but Imgur will reduce the dimension size of your image.
+
 ***Note: jdvrdt file-embedded images do not work with Twitter.  For Twitter, please use [pdvzip](https://github.com/CleasbyCode/pdvzip) (PNG only).***
 
 This program can be used on Linux and Windows.
- 
+
+The file data is inserted and preserved within multiple 65KB ICC Profile chunks in the JPG image.
+
 To maximise the amount of data you can embed in your image file, I recommend first compressing your 
 data file(s) to zip/rar formats, etc.  
 
