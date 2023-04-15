@@ -2,7 +2,7 @@
 
 JPG Data Vehicle for Reddit, (jdvrdt v1.0). 
 
-This program partly derives from the technique found **[HERE](https://www.vice.com/en/article/bj4wxm/tiny-picture-twitter-complete-works-of-shakespeare-steganography)**, discovered by security researcher **[David Buchanan](https://www.da.vidbuchanan.co.uk/)** 
+jdvrdt partly derives from the technique found **[HERE](https://www.vice.com/en/article/bj4wxm/tiny-picture-twitter-complete-works-of-shakespeare-steganography)**, discovered by security researcher **[David Buchanan](https://www.da.vidbuchanan.co.uk/)** 
 
 jdvrdt enables you to embed & extract arbitrary data of up to ~20MB within a single JPG image.
 Post & share your "*file-embedded*" image on **[reddit](https://www.reddit.com/) or *Imgur**. 
