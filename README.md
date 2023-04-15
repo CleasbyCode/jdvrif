@@ -1,6 +1,6 @@
 # jdvrdt
 
-JPG Data Vehicle for Reddit, (jdvrdt v1.0). 
+JPG Data Vehicle for Reddit. 
 
 jdvrdt partly derives from the technique found **[HERE](https://www.vice.com/en/article/bj4wxm/tiny-picture-twitter-complete-works-of-shakespeare-steganography)**, discovered by security researcher **[David Buchanan](https://www.da.vidbuchanan.co.uk/)** 
 
