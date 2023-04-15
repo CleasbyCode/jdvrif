@@ -93,7 +93,7 @@ Complete!
 
 ```
 
-My other program you may find useful:-  
+My other programs you may find useful:-  
 
 * [pdvzip - PNG Data Vehicle for Twitter, ZIP Edition](https://github.com/CleasbyCode/pdvzip)  
 * [pdvrdt - PNG Data Vehicle for Reddit](https://github.com/CleasbyCode/pdvrdt)  
