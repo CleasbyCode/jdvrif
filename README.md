@@ -10,9 +10,9 @@ Post & share your "*file-embedded*" image on ***[reddit](https://www.reddit.com/
 ![Demo Image](https://github.com/CleasbyCode/jdvrdt/blob/main/demo_image/demo.jpg)  
 {***Image demo: MP3 embedded within this JPG***} 
 
-Imgur issue: When the embedded image size is over 5MB, the data is still retained, but Imgur will reduce the dimension size of your image.
+**Imgur issue:** ***When the embedded image size is over 5MB, the data is still retained, but Imgur will reduce the dimension size of your image.***
 
-***Note: jdvrdt file-embedded images do not work with Twitter.  For Twitter, please use [pdvzip](https://github.com/CleasbyCode/pdvzip) (PNG only).***
+***jdvrdt file-embedded images do not work with Twitter.  For Twitter, please use [pdvzip](https://github.com/CleasbyCode/pdvzip) (PNG only).***
 
 This program can be used on Linux and Windows.
 
