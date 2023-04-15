@@ -8,7 +8,7 @@ This program enables you to embed & extract arbitrary data of up to ~20MB within
 Post & share your "*file-embedded*" image on ***[reddit](https://www.reddit.com/)*** or Imgur**. 
 
 ![Demo Image](https://github.com/CleasbyCode/jdvrdt/blob/main/demo_image/demo.jpg)  
-{***Image demo (github): MP3 embedded within this JPG***} 
+{***Image demo: MP3 embedded within this JPG***} 
 
 *When the embedded image size is over 5MB, the data is still retained, but Imgur will reduce the dimension size of your image.
 ***Note: jdvrdt file-embedded images do not work with Twitter.  For Twitter, please use [pdvzip](https://github.com/CleasbyCode/pdvzip) (PNG only).***
