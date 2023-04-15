@@ -16,9 +16,10 @@ Post & share your "*file-embedded*" image on ***[reddit](https://www.reddit.com/
 
 This program can be used on Linux and Windows.
 
-The file data is inserted and preserved within multiple 65KB ICC Profile chunks in the JPG image.
+The file data is inserted and preserved within multiple 65KB ICC Profile chunks in the image file.
 
 ![ICC](https://github.com/CleasbyCode/jdvrdt/blob/main/demo_image/icc.png)  
+
 To maximise the amount of data you can embed in your image file, I recommend first compressing your 
 data file(s) to zip/rar formats, etc.  
 
