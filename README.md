@@ -22,6 +22,7 @@ To maximise the amount of data you can embed in your image file, I recommend fir
 data file(s) to zip/rar formats, etc.  
 
 Using jdvrdt, you can insert up to five files at a time (outputs one image per file).  
+
 You can also extract files from up to five images at a time.
 
 Compile and run the program under Windows or **Linux**.
