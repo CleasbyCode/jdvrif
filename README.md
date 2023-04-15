@@ -45,7 +45,7 @@ Created output file: "jdvimg1.jpg"
 
 Complete!  
 
-You can now post your file-embedded JPG image(s) on reddit.  
+You can now post your file-embedded JPG image (s) on reddit.  
 
 $ ./jdvrdt
 
