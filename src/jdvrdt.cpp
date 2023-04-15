@@ -30,7 +30,7 @@ const std::string READ_ERR_MSG = "\nRead Error: Unable to open/read file: ";
 int main(int argc, char** argv) {
 
 	if (argc == 2 && std::string(argv[1]) == "--info") {
-    argc = 0;
+    		argc = 0;
 		displayInfo();
 	}
 	else if (argc >= 4 && argc < 9 && std::string(argv[1]) == "-i") {
@@ -46,7 +46,7 @@ int main(int argc, char** argv) {
 	else if (argc >= 3 && argc < 8 && std::string(argv[1]) == "-x") {
 		while (argc >= 3) {
 			 processEmbeddedImage(argv++);
-			argc--;
+			 argc--;
 		}
 	}
 	else {
@@ -83,8 +83,8 @@ void processFiles(char* argv[], int argc, int sub, const std::string& IMAGE_FILE
 
 	// Open file success, now check file size requirements.
 	const int
-		MAX_JPG_SIZE_BYTES = 20971520,			  // 20MB reddit/imgur jpg image size limit.
-		MAX_DATAFILE_SIZE_BYTES = 20971520;		// 20MB data file size limit for reddit / imgur.
+		MAX_JPG_SIZE_BYTES = 20971520,		// 20MB reddit/imgur jpg image size limit.
+		MAX_DATAFILE_SIZE_BYTES = 20971520;	// 20MB data file size limit for reddit / imgur.
 
 	// Get size of files.
 	readImage.seekg(0, readImage.end),
@@ -137,9 +137,9 @@ void processEmbeddedImage(char* argv[]) {
 		PROFILE_CHECK{ ImageVec.begin() + profileSigIndex, ImageVec.begin() + profileSigIndex + PROFILE_SIG.length()};
 
 	if (PROFILE_CHECK != PROFILE_SIG) {
-			// File requirements check failure, display relevant error message and exit program.
-			std::cerr << "\nImage Error: Image file \"" << IMAGE_FILE << "\" does not appear to contain a valid iCC Profile.\n\n";
-		  std::exit(EXIT_FAILURE);
+		// File requirements check failure, display relevant error message and exit program.
+		std::cerr << "\nImage Error: Image file \"" << IMAGE_FILE << "\" does not appear to contain a valid iCC Profile.\n\n";
+		std::exit(EXIT_FAILURE);
 	}
 
 	int deflateDataIndex = 20;  // Start index location of deflate data within iCC Profile chunk.
@@ -155,11 +155,11 @@ void processEmbeddedImage(char* argv[]) {
 	std::cout << "\nSearching for embedded data file. Please wait...\n";
 
 	while (imageSize - 18 >= findProfileSigIndex) {
-			if (findProfileSigIndex > 0) {
-				ImageVec.erase(ImageVec.begin() + findProfileSigIndex, ImageVec.begin() + findProfileSigIndex + 18);
-				imageSize = ImageVec.size();
-			}
-			findProfileSigIndex = search(ImageVec.begin(), ImageVec.end(), PROFILE_SIG.begin(), PROFILE_SIG.end()) - ImageVec.begin() - 4;
+		if (findProfileSigIndex > 0) {
+			ImageVec.erase(ImageVec.begin() + findProfileSigIndex, ImageVec.begin() + findProfileSigIndex + 18);
+			imageSize = ImageVec.size();
+		}
+		findProfileSigIndex = search(ImageVec.begin(), ImageVec.end(), PROFILE_SIG.begin(), PROFILE_SIG.end()) - ImageVec.begin() - 4;
 	}
 
 	std::vector<unsigned char> DQT_SIG{ 0xFF, 0xDB, 0x00, 0x43 };
@@ -276,13 +276,13 @@ void readFilesIntoVectors(std::ifstream& readImage, std::ifstream& readFile, con
 
 	ptrdiff_t
 		profileNameLengthIndex = 12,	// Index location inside the iCC Profile to store the length value of the embedded data's filename.
-		profileNameIndex = 13,			  // Start index inside the iCC Profile to store the filename for the embedded data file.
+		profileNameIndex = 13,		// Start index inside the iCC Profile to store the filename for the embedded data file.
 		noSlashNameLength = noSlashName.length(); // Character length of filename for the embedded data file.
 
 	// Make sure character length of filename (user's data file) does not exceed set maximum.
 	if (noSlashNameLength > MAX_LENGTH_FILENAME) {
 		std::cerr << "\nFile Error: Filename length of your data file (" + std::to_string(noSlashNameLength) + " characters) is too long.\n"
-				"\nFor compatibility requirements, your filename must be under 24 characters.\nPlease try again with a shorter filename.\n\n";
+			"\nFor compatibility requirements, your filename must be under 24 characters.\nPlease try again with a shorter filename.\n\n";
 		std::exit(EXIT_FAILURE);
 	}
 
@@ -331,9 +331,7 @@ void readFilesIntoVectors(std::ifstream& readImage, std::ifstream& readFile, con
 		bool isTrue = true;
 
 		while (isTrue) {
-
 			totalChunkSize += profileChunkSize + profileChunkByteCount; // Tally...
-
 			if (profileChunkSize > ProfileVec.size() - (totalChunkSize + profileChunkByteCount)) {
 				// Data file size remaining is less than "profileChunkSize", so update profile chunk size, insert last "ProfileChunkVec" and exit the loop.
 				insertValue(ProfileChunkVec, profileChunkSizeIndex, (ProfileVec.size() + ProfileChunkVec.size()) - (totalChunkSize + profileChunkByteCount), bits);
