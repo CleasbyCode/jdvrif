@@ -36,8 +36,8 @@ $
 $ ./jdvrdt 
 
 Usage:  jdvrdt -i <jpg-image>  <file(s)>  
-	      jdvrdt -x <jpg-image(s)>  
-	      jdvrdt --info
+	jdvrdt -x <jpg-image(s)>  
+	jdvrdt --info
 
 $ ./jdvrdt -i image.jpg  document.pdf
   
@@ -50,8 +50,8 @@ You can now post your file-embedded JPG image(s) on reddit.
 $ ./jdvrdt
 
 Usage:  jdvrdt -i <jpg-image>  <file(s)>  
-	      jdvrdt -x <jpg-image(s)>  
-	      jdvrdt --info
+	jdvrdt -x <jpg-image(s)>  
+	jdvrdt --info
         
 $ ./jdvrdt -x jdvimg1.jpg
 
@@ -61,7 +61,7 @@ Extracted file: "jdv_document.pdf 1242153 Bytes"
 
 Complete!  
 
-$ ./jdvrdt -i toy.jpg  Clowns.part1.rar Clowns.part2.rar Clowns.part3.rar 
+$ ./jdvrdt -i toy.jpg  Clowns.part1.rar  Clowns.part2.rar  Clowns.part3.rar 
 
 Created output file: "jdvimg1.jpg"
 
@@ -73,7 +73,7 @@ Complete!
 
 You can now post your file-embedded JPG image(s) on reddit.  
 
-$ ./jdvrdt -x jdvimg1.jpg jdvimg2.jpg jdvimg3.jpg  
+$ ./jdvrdt -x jdvimg1.jpg  jdvimg2.jpg  jdvimg3.jpg  
 
 Searching for embedded data file. Please wait...
 
@@ -94,6 +94,7 @@ Complete!
 My other program you may find useful:-  
 
 * [pdvzip - PNG Data Vehicle for Twitter, ZIP Edition](https://github.com/CleasbyCode/pdvzip)  
+* [pdvrdt - PNG Data Vehicle for Reddit](https://github.com/CleasbyCode/pdvrdt)  
 * [pdvps - PNG Data Vehicle for Twitter, PowerShell Edition](https://github.com/CleasbyCode/pdvps)   
 
 ##
