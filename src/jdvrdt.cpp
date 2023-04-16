@@ -171,7 +171,7 @@ void processEmbeddedImage(char* argv[]) {
 		: search(ImageVec.begin(), ImageVec.end(), DQT_SIG_B.begin(), DQT_SIG_B.end()) - ImageVec.begin();
 
 	// Erase bytes starting at first occurrence of dqt until end of "ImageVec". Vector now contains just the deflate data (Basic profile + user data).
-	ImageVec.erase(ImageVec.begin() + dqtFirstPos, ImageVec.end());
+	ImageVec.erase(ImageVec.begin() + dqtIndex, ImageVec.end());
 
 	bool inflate = true;
 
