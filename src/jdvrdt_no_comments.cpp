@@ -126,23 +126,20 @@ void processEmbeddedImage(char* argv[]) {
   
 	ImageVec.erase(ImageVec.begin(), ImageVec.begin() + deflateDataIndex);
 
+	std::vector<unsigned char> DQT_SIG{ 0xFF, 0xDB, 0x00, 0x43 };
+	
 	ptrdiff_t 
-		findProfileSigIndex = 0,
-		imageSize = ImageVec.size() - 4;
-
+		findProfileSigIndex = search(ImageVec.begin(), ImageVec.end(), PROFILE_SIG.begin(), PROFILE_SIG.end()) - ImageVec.begin() - 4,
+		dqtFirstPos = search(ImageVec.begin(), ImageVec.end(), DQT_SIG.begin(), DQT_SIG.end()) - ImageVec.begin();
+	
 	std::cout << "\nSearching for embedded data file. Please wait...\n";
 
-	while (imageSize - 18 >= findProfileSigIndex) {
-		if (findProfileSigIndex > 0) {
-			ImageVec.erase(ImageVec.begin() + findProfileSigIndex, ImageVec.begin() + findProfileSigIndex + 18);
-			imageSize = ImageVec.size();
-		}
+	while (dqtFirstPos >= findProfileSigIndex) {
+		ImageVec.erase(ImageVec.begin() + findProfileSigIndex, ImageVec.begin() + findProfileSigIndex + 18);
 		findProfileSigIndex = search(ImageVec.begin(), ImageVec.end(), PROFILE_SIG.begin(), PROFILE_SIG.end()) - ImageVec.begin() - 4;
 	}
-
-	std::vector<unsigned char> DQT_SIG{ 0xFF, 0xDB, 0x00, 0x43 };
-
-	ptrdiff_t dqtFirstPos = search(ImageVec.begin(), ImageVec.end(), DQT_SIG.begin(), DQT_SIG.end()) - ImageVec.begin();
+	
+	dqtFirstPos = search(ImageVec.begin(), ImageVec.end(), DQT_SIG.begin(), DQT_SIG.end()) - ImageVec.begin();
 
 	ImageVec.erase(ImageVec.begin() + dqtFirstPos, ImageVec.end());
 
@@ -160,7 +157,7 @@ void processEmbeddedImage(char* argv[]) {
 	}
 
 	std::string fileName = { ImageVec.begin() + 13, ImageVec.begin() + 13 + ImageVec[12] };	
-	if (fileName.substr(0, 4) != "pdv_") {
+	if (fileName.substr(0, 4) != "jdv_") {
 		fileName = "jdv_" + fileName;
 	}
 
