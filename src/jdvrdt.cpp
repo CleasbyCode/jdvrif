@@ -144,26 +144,31 @@ void processEmbeddedImage(char* argv[]) {
 
 	int deflateDataIndex = 20;  // Start index location of deflate data within iCC Profile chunk.
 
-	// From "ImageVec" vector index 0, erase bytes so that start of vector is now the beginning of the deflate data (78,9C...).
+	// From "ImageVec" vector index 0, erase bytes so that start of vector is now the beginning of the deflate data (78,DA...).
 	ImageVec.erase(ImageVec.begin(), ImageVec.begin() + deflateDataIndex);
 
-	std::vector<unsigned char> DQT_SIG{ 0xFF, 0xDB, 0x00, 0x43 };
-	
-	// Within "ImageVec", find and erase all occurrences of the contents of "ProfileChunkVec".
-	// Stop the search once we get to location of dqtFirstPos.
-	ptrdiff_t 
-		findProfileSigIndex = search(ImageVec.begin(), ImageVec.end(), PROFILE_SIG.begin(), PROFILE_SIG.end()) - ImageVec.begin() - 4,
-		dqtFirstPos = search(ImageVec.begin(), ImageVec.end(), DQT_SIG.begin(), DQT_SIG.end()) - ImageVec.begin();
+	std::vector<unsigned char> DQT_SIG_A{ 0xFF, 0xDB, 0x00, 0x43 };
+	std::vector<unsigned char> DQT_SIG_B{ 0xFF, 0xDB, 0x00, 0x84 };
 	
 	std::cout << "\nSearching for embedded data file. Please wait...\n";
-
-	while (dqtFirstPos >= findProfileSigIndex) {
+	
+	// Within "ImageVec", find and erase all occurrences of the contents of "ProfileChunkVec".
+	// Stop the search once we get to location of dqtIndex.
+	ptrdiff_t 
+		findProfileSigIndex = search(ImageVec.begin(), ImageVec.end(), PROFILE_SIG.begin(), PROFILE_SIG.end()) - ImageVec.begin() - 4,
+		dqtFirstPosA = search(ImageVec.begin(), ImageVec.end(), DQT_SIG_A.begin(), DQT_SIG_A.end()) - ImageVec.begin(),
+		dqtFirstPosB = search(ImageVec.begin(), ImageVec.end(), DQT_SIG_B.begin(), DQT_SIG_B.end()) - ImageVec.begin(),
+		dqtIndex = 0;
+	
+	dqtIndex = dqtFirstPosB > dqtFirstPosA ? dqtFirstPosA : dqtFirstPosB;
+	
+	while (dqtIndex > findProfileSigIndex) {
 		ImageVec.erase(ImageVec.begin() + findProfileSigIndex, ImageVec.begin() + findProfileSigIndex + 18);
 		findProfileSigIndex = search(ImageVec.begin(), ImageVec.end(), PROFILE_SIG.begin(), PROFILE_SIG.end()) - ImageVec.begin() - 4;
 	}
 	
-	// Update location now we have removed all of "ProfileChunkVec".
-	dqtFirstPos = search(ImageVec.begin(), ImageVec.end(), DQT_SIG.begin(), DQT_SIG.end()) - ImageVec.begin();
+	dqtIndex = dqtIndex == dqtFirstPosA ? search(ImageVec.begin(), ImageVec.end(), DQT_SIG_A.begin(), DQT_SIG_A.end()) - ImageVec.begin() 
+		: search(ImageVec.begin(), ImageVec.end(), DQT_SIG_B.begin(), DQT_SIG_B.end()) - ImageVec.begin();
 
 	// Erase bytes starting at first occurrence of dqt until end of "ImageVec". Vector now contains just the deflate data (Basic profile + user data).
 	ImageVec.erase(ImageVec.begin() + dqtFirstPos, ImageVec.end());
@@ -388,7 +393,7 @@ void inflateDeflate(std::vector<unsigned char>& Vec, bool inflateData) {
 		inflateInit(&strm);
 	}
 	else {
-		deflateInit(&strm, 6); // Compression level 6 (78, 9c...)
+		deflateInit(&strm, 9); // Compression level 6 (78, DA...)
 	}
 
 	while (strm.avail_in)
