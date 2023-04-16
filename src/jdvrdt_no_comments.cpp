@@ -149,7 +149,7 @@ void processEmbeddedImage(char* argv[]) {
 	dqtIndex = dqtIndex == dqtFirstPosA ? search(ImageVec.begin(), ImageVec.end(), DQT_SIG_A.begin(), DQT_SIG_A.end()) - ImageVec.begin() 
 		: search(ImageVec.begin(), ImageVec.end(), DQT_SIG_B.begin(), DQT_SIG_B.end()) - ImageVec.begin();
 
-	ImageVec.erase(ImageVec.begin() + dqtFirstPos, ImageVec.end());
+	ImageVec.erase(ImageVec.begin() + dqtIndex, ImageVec.end());
 
 	bool inflate = true;
 
