@@ -10,13 +10,13 @@ Post & share your "*file-embedded*" image on ***[reddit](https://www.reddit.com/
 ![Demo Image](https://github.com/CleasbyCode/jdvrdt/blob/main/demo_image/demo.jpg)  
 {***Image demo: MP3 embedded within this JPG***} 
 
-**Imgur issue:** When the embedded image size is over 5MB, the data is still retained, but Imgur will reduce the dimension size of your image.
+**Imgur issue:** Data is still retained when the file-embedded JPG image is over 5MB, but Imgur reduces the dimension size of the image.
 
 ***jdvrdt file-embedded images do not work with Twitter.  For Twitter, please use [pdvzip](https://github.com/CleasbyCode/pdvzip) (PNG only).***
 
 This program can be used on Linux and Windows.
 
-The file data is inserted and preserved within multiple 65KB ICC Profile chunks in the image file.
+The file data is inserted and preserved within multiple 65KB ICC Profile blocks in the JPG image file.
 
 ![ICC](https://github.com/CleasbyCode/jdvrdt/blob/main/demo_image/icc.png)  
 
@@ -57,8 +57,6 @@ Usage:  jdvrdt -i <jpg-image>  <file(s)>
         
 $ ./jdvrdt -x jdvimg1.jpg
 
-Searching for embedded data file. Please wait...
-
 Extracted file: "jdv_document.pdf 1242153 Bytes"
 
 Complete!  
@@ -77,15 +75,9 @@ You can now post your file-embedded JPG image(s) on reddit.
 
 $ ./jdvrdt -x jdvimg1.jpg  jdvimg2.jpg  jdvimg3.jpg  
 
-Searching for embedded data file. Please wait...
-
 Extracted file: "jdv_Clowns.part1.rar 10485760 Bytes"
 
-Searching for embedded data file. Please wait...
-
 Extracted file: "jdv_Clowns.part2.rar 10485760 Bytes"
-
-Searching for embedded data file. Please wait...
 
 Extracted file: "jdv_Clowns.part3.rar 10485760 Bytes"
 
