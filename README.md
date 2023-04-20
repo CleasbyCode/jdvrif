@@ -8,7 +8,7 @@ This program enables you to embed & extract arbitrary data of up to ~20MB within
 Post & share your "*file-embedded*" image on ***[reddit](https://www.reddit.com/)*** or Imgur. 
 
 ![Demo Image](https://github.com/CleasbyCode/jdvrdt/blob/main/demo_image/image.jpg)  
-{***Image demo: MP3 embedded within this JPG***} 
+{***MP3 embedded within this JPG. Image credit: @YZAVoku***} 
 
 **Imgur issue:** Data is still retained when the file-embedded JPG image is over 5MB, but Imgur reduces the dimension size of the image.
 
