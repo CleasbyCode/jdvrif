@@ -5,22 +5,18 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <zlib.h>
 
 // Open user image & data file and check file size requirements. Display error & exit program if any file fails to open or exceeds size limits.
 void processFiles(char* [], int, int, const std::string&);
 
-// Open jdvrdt jpg image file, then proceed to inflate/uncompress and extract embedded data file from it. 
+// Open jdvrdt jpg image file, then proceed to extract embedded data file. 
 void processEmbeddedImage(char* []);
 
-// Read in and store jpg image & data file into vectors. Data file is deflate/compressed (zlib).
+// Read in and store jpg image & data file into vectors..
 void readFilesIntoVectors(std::ifstream&, std::ifstream&, const std::string&, const std::string&, const ptrdiff_t&, const ptrdiff_t&, int, int);
 
-// Insert updated values, such as chunk size into relevant vector index locations.
+// Insert updated values, such as block size and other values into relevant vector index locations.
 void insertValue(std::vector<unsigned char>&, ptrdiff_t, const size_t&, int);
-
-// Inflate or Deflate iCC Profile chunk, which include user's data file.
-void inflateDeflate(std::vector<unsigned char>&, bool);
 
 // Display program infomation
 void displayInfo();
@@ -30,7 +26,7 @@ const std::string READ_ERR_MSG = "\nRead Error: Unable to open/read file: ";
 int main(int argc, char** argv) {
 
 	if (argc == 2 && std::string(argv[1]) == "--info") {
-    		argc = 0;
+		argc = 0;
 		displayInfo();
 	}
 	else if (argc >= 4 && argc < 9 && std::string(argv[1]) == "-i") {
@@ -45,8 +41,8 @@ int main(int argc, char** argv) {
 	}
 	else if (argc >= 3 && argc < 8 && std::string(argv[1]) == "-x") {
 		while (argc >= 3) {
-			 processEmbeddedImage(argv++);
-			 argc--;
+			processEmbeddedImage(argv++);
+			argc--;
 		}
 	}
 	else {
@@ -88,7 +84,7 @@ void processFiles(char* argv[], int argc, int sub, const std::string& IMAGE_FILE
 
 	// Get size of files.
 	readImage.seekg(0, readImage.end),
-	readFile.seekg(0, readFile.end);
+		readFile.seekg(0, readFile.end);
 
 	const ptrdiff_t
 		IMAGE_SIZE = readImage.tellg(),
@@ -112,7 +108,7 @@ void processFiles(char* argv[], int argc, int sub, const std::string& IMAGE_FILE
 	readFilesIntoVectors(readImage, readFile, IMAGE_FILE, DATA_FILE, IMAGE_SIZE, DATA_SIZE, argc, sub);
 }
 
-// Inflate and extract embedded data file from jpg image.
+// Extract embedded data file from jpg image.
 void processEmbeddedImage(char* argv[]) {
 
 	const std::string IMAGE_FILE = argv[2];
@@ -129,85 +125,92 @@ void processEmbeddedImage(char* argv[]) {
 	// Read file-embedded jpg image into vector "ImageVec".
 	std::vector<unsigned char> ImageVec((std::istreambuf_iterator<char>(readImage)), std::istreambuf_iterator<char>());
 
-	int profileSigIndex = 6;
-
-	// Get iCC Profile chunk signature from vector.
+	int
+		profileSigIndex = 6,
+		jdvSigIndex = 25,
+		nameLengthIndex = 32,
+		nameIndex = 33,
+		countIndex = 72,
+		dataSizeIndex = 88,
+		dataIndex = 152,  // Start index location of user's data file within iCC Profile.
+		nameLength = ImageVec[nameLengthIndex],
+		profileCount = ImageVec[countIndex] << 8 | ImageVec[countIndex + 1],  // Get ICC_PROFILE insert count value stored in main profile.
+		profileDataSize = ImageVec[dataSizeIndex] << 24 | ImageVec[dataSizeIndex + 1] << 16 | ImageVec[dataSizeIndex + 2] << 8 | ImageVec[dataSizeIndex + 3]; // Get data file size stored in main profile.
+		
 	const std::string
 		PROFILE_SIG = "ICC_PROFILE",
-		PROFILE_CHECK{ ImageVec.begin() + profileSigIndex, ImageVec.begin() + profileSigIndex + PROFILE_SIG.length()};
+		JDV_SIG = "JDVRdT",
+		PROFILE_CHECK{ ImageVec.begin() + profileSigIndex, ImageVec.begin() + profileSigIndex + PROFILE_SIG.length() }, // Get ICC signature from vector "ImageVec".
+		JDV_CHECK{ ImageVec.begin() + jdvSigIndex, ImageVec.begin() + jdvSigIndex + JDV_SIG.length() };	// Get JDVRdT signature from vector "ImageVec".
 
-	if (PROFILE_CHECK != PROFILE_SIG) {
+	if (PROFILE_CHECK != PROFILE_SIG || JDV_CHECK != JDV_SIG) {
 		// File requirements check failure, display relevant error message and exit program.
-		std::cerr << "\nImage Error: Image file \"" << IMAGE_FILE << "\" does not appear to contain a valid iCC Profile.\n\n";
+		std::cerr << "\nImage Error: Image file \"" << IMAGE_FILE << "\" does not appear to be a JDVRdT file-embedded image.\n\n";
 		std::exit(EXIT_FAILURE);
 	}
 
-	int deflateDataIndex = 20;  // Start index location of deflate data within iCC Profile chunk.
-
-	// From "ImageVec" vector index 0, erase bytes so that start of vector is now the beginning of the deflate data (78,DA...).
-	ImageVec.erase(ImageVec.begin(), ImageVec.begin() + deflateDataIndex);
-
-	std::vector<unsigned char> DQT_SIG_A{ 0xFF, 0xDB, 0x00, 0x43 };
-	std::vector<unsigned char> DQT_SIG_B{ 0xFF, 0xDB, 0x00, 0x84 };
+	std::string encryptedName = { ImageVec.begin() + nameIndex, ImageVec.begin() + nameIndex + ImageVec[nameLengthIndex] };	// Get encrypted filename stored in vector "ImageVec".
 	
-	std::cout << "\nSearching for embedded data file. Please wait...\n";
-	
-	// Within "ImageVec", find and erase all occurrences of the contents of "ProfileChunkVec".
-	// Stop the search once we get to location of dqtIndex.
-	ptrdiff_t 
-		findProfileSigIndex = search(ImageVec.begin(), ImageVec.end(), PROFILE_SIG.begin(), PROFILE_SIG.end()) - ImageVec.begin() - 4,
-		dqtFirstPosA = search(ImageVec.begin(), ImageVec.end(), DQT_SIG_A.begin(), DQT_SIG_A.end()) - ImageVec.begin(),
-		dqtFirstPosB = search(ImageVec.begin(), ImageVec.end(), DQT_SIG_B.begin(), DQT_SIG_B.end()) - ImageVec.begin(),
-		dqtIndex = 0;
-	
-	dqtIndex = dqtFirstPosB > dqtFirstPosA ? dqtFirstPosA : dqtFirstPosB;
-	
-	while (dqtIndex > findProfileSigIndex) {
-		ImageVec.erase(ImageVec.begin() + findProfileSigIndex, ImageVec.begin() + findProfileSigIndex + 18);
-		findProfileSigIndex = search(ImageVec.begin(), ImageVec.end(), PROFILE_SIG.begin(), PROFILE_SIG.end()) - ImageVec.begin() - 4;
-	}
-	
-	dqtIndex = dqtIndex == dqtFirstPosA ? search(ImageVec.begin(), ImageVec.end(), DQT_SIG_A.begin(), DQT_SIG_A.end()) - ImageVec.begin() 
-		: search(ImageVec.begin(), ImageVec.end(), DQT_SIG_B.begin(), DQT_SIG_B.end()) - ImageVec.begin();
+	// From "ImageVec" vector index 0, erase bytes so that start of vector is now the beginning of the user's data file.
+	ImageVec.erase(ImageVec.begin(), ImageVec.begin() + dataIndex);
 
-	// Erase bytes starting at first occurrence of dqt until end of "ImageVec". Vector now contains just the deflate data (Basic profile + user data).
-	ImageVec.erase(ImageVec.begin() + dqtIndex, ImageVec.end());
+	if (profileCount) {
 
-	bool inflate = true;
+		// Within "ImageVec", find and erase all occurrences of the contents of "ProfileBlockVec".
+		// Stop the search once profileCount is 0.
+		ptrdiff_t findProfileSigIndex = search(ImageVec.begin(), ImageVec.end(), PROFILE_SIG.begin(), PROFILE_SIG.end()) - ImageVec.begin() - 4;
 
-	// Call function to inflate "ImageVec" content, which includes user's data file.
-	inflateDeflate(ImageVec, inflate);
-
-	const std::string
-		JDV_SIG = "JDV",
-		JDV_CHECK{ ImageVec.begin() + 5, ImageVec.begin() + 5 + JDV_SIG.length() };	// Get JDVRDT signature from vector "ImageVec".
-		
-	// Make sure this is a jdvrdt file-embedded image.
-	if (JDV_CHECK != JDV_SIG) {
-		// File requirements check failure, display relevant error message and exit program.
-		std::cerr << "\nProfile Error: iCC Profile does not seem to be a JDV modified profile.\n\n";
-		std::exit(EXIT_FAILURE);
+		while (profileCount--) {
+			ImageVec.erase(ImageVec.begin() + findProfileSigIndex, ImageVec.begin() + findProfileSigIndex + 18);
+			findProfileSigIndex = search(ImageVec.begin() + findProfileSigIndex, ImageVec.end(), PROFILE_SIG.begin(), PROFILE_SIG.end()) - ImageVec.begin() - 4;
+		}
 	}
 
-	std::string fileName = { ImageVec.begin() + 13, ImageVec.begin() + 13 + ImageVec[12] };	// Get embedded filename from vector "ImageVec".
-	if (fileName.substr(0, 4) != "jdv_") {
-		fileName = "jdv_" + fileName;
+	// Remove jpg image from data file. Erase all bytes starting from end of "profileDataSize". Vector now contains just the user's data file.
+    ImageVec.erase(ImageVec.begin() + profileDataSize, ImageVec.end());
+
+	// We will store the decrypted embedded file in this vector.
+	std::vector<unsigned char> ExtractedFileVec;
+
+	std::string decryptedName;
+
+	bool nameDecrypted = false;
+
+	int
+		keyStartPos = 0,
+		keyLength = 5,
+		keyPos = keyStartPos;
+
+	// Decrypt the embedded filename and the embedded data file.
+	for (int i = 0; ImageVec.size() > i; i++) {
+		if (!nameDecrypted) {
+			keyPos = keyPos > keyStartPos + keyLength ? keyStartPos : keyPos;
+			decryptedName += encryptedName[i] ^ JDV_SIG[keyPos];
+		}
+
+		ExtractedFileVec.insert(ExtractedFileVec.begin() + i, ImageVec[i] ^ encryptedName[keyPos++]);
+
+		if (i >= nameLength - 1) {
+			nameDecrypted = true;
+			keyPos = keyPos > keyStartPos + keyLength ? keyStartPos : keyPos;
+		}
 	}
 
-	// Erase the 132 byte basic ICC Profile at the start of the "ImageVec" vector.
-	ImageVec.erase(ImageVec.begin(), ImageVec.begin() + 132);
+	if (decryptedName.substr(0, 4) != "jdv_") {
+		decryptedName = "jdv_" + decryptedName;
+	}
 
 	// Write data from vector "ImageVec" out to file.
-	std::ofstream writeFile(fileName, std::ios::binary);
+	std::ofstream writeFile(decryptedName, std::ios::binary);
 
 	if (!writeFile) {
 		std::cerr << "\nWrite Error: Unable to write to file.\n\n";
 		std::exit(EXIT_FAILURE);
 	}
 
-	writeFile.write((char*)&ImageVec[0], ImageVec.size());
+	writeFile.write((char*)&ExtractedFileVec[0], ImageVec.size());
 
-	std::cout << "\nExtracted file: \"" + fileName + " "  << ImageVec.size() << " " << "Bytes\"\n";
+	std::cout << "\nExtracted file: \"" + decryptedName + " " << ImageVec.size() << " " << "Bytes\"\n";
 }
 
 void readFilesIntoVectors(std::ifstream& readImage, std::ifstream& readFile, const std::string& IMAGE_FILE, const std::string& DATA_FILE, const ptrdiff_t& IMAGE_SIZE, const ptrdiff_t& DATA_SIZE, int argc, int sub) {
@@ -216,35 +219,27 @@ void readFilesIntoVectors(std::ifstream& readImage, std::ifstream& readFile, con
 	readImage.seekg(0, readImage.beg),
 	readFile.seekg(0, readFile.beg);
 
-	// The first 132 bytes of this vector contains the basic profile.
+	// The first 152 bytes of this vector contains the basic profile.
 	// Without this basic profile, some image display programs will show error messages when loading the image.
 	std::vector<unsigned char>
 		ProfileVec{
-			0x00, 0x00, 0x00, 0x84, 0x20, 0x4A, 0x44, 0x56, 0x00, 0x00, 0x00, 0x20,
-			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-			0x61, 0x63, 0x73, 0x70, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			0xFF, 0xD8, 0xFF, 0xE2, 0xFF, 0xFF, 0x49, 0x43, 0x43, 0x5F, 0x50, 0x52, 0x4F, 0x46,
+			0x49, 0x4C, 0x45, 0x00, 0x01, 0x01, 0x00, 0x00, 0x00, 0x84, 0x20, 0x4A, 0x44, 0x56,
+			0x52, 0x64, 0x54, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			0x61, 0x63, 0x73, 0x70, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 	},
-
-		ProfileFirstChunkVec
+		ProfileBlockVec
 	{
-			0xFF, 0xD8, 0xFF, 0xE2, 0xFF, 0xFF, 0x49, 0x43, 0x43, 0x5F, 0x50, 0x52, 0x4F, 0x46,
-			0x49, 0x4C, 0x45, 0x00, 0x00, 0x02
+			0xFF, 0xE2, 0xFF, 0xFF, 0x49, 0x43, 0x43, 0x5F, 0x50, 0x52, 0x4F, 0x46, 0x49, 0x4C,
+			0x45, 0x00, 0x01, 0x01
 	},
-
-		ProfileChunkVec
-	{
-			0xFF, 0xE2, 0xFF, 0xFF, 0x49, 0x43, 0x43, 0x5F, 0x50, 0x52, 0x4F, 0x46,
-			0x49, 0x4C, 0x45, 0x00, 0x00, 0x02
-	},
-		
 		// Read-in user jpg image file and store in vector "ImageVec".
 		ImageVec((std::istreambuf_iterator<char>(readImage)), std::istreambuf_iterator<char>());
 
@@ -278,10 +273,14 @@ void readFilesIntoVectors(std::ifstream& readImage, std::ifstream& readFile, con
 		noSlashName = DATA_FILE.substr(firstSlashPos + 1, DATA_FILE.length()),
 		encryptedName;
 
-	ptrdiff_t
-		profileNameLengthIndex = 12,	// Index location inside the iCC Profile to store the length value of the embedded data's filename.
-		profileNameIndex = 13,		// Start index inside the iCC Profile to store the filename for the embedded data file.
-		noSlashNameLength = noSlashName.length(); // Character length of filename for the embedded data file.
+	int
+		profileNameLengthIndex = 32,	// Index location inside the iCC Profile to store the length value of the embedded data's filename.
+		profileNameIndex = 33,		// Start index inside the iCC Profile to store the filename for the embedded data file.
+		xorKeyStartPos = 25,
+		xorKeyLength = 5,
+		xorKeyIndex = 25;
+
+	size_t noSlashNameLength = noSlashName.length(); // Character length of filename for the embedded data file.
 
 	// Make sure character length of filename (user's data file) does not exceed set maximum.
 	if (noSlashNameLength > MAX_LENGTH_FILENAME) {
@@ -297,53 +296,71 @@ void readFilesIntoVectors(std::ifstream& readImage, std::ifstream& readFile, con
 	// Make space for this data by removing equivalent length of characters from iCC Profile.
 	ProfileVec.erase(ProfileVec.begin() + profileNameIndex, ProfileVec.begin() + noSlashNameLength + profileNameIndex);
 
-	ProfileVec.insert(ProfileVec.begin() + profileNameIndex, noSlashName.begin(), noSlashName.end());
-
-	// Insert user data file at end of ProfileVec.
-	ProfileVec.resize(DATA_SIZE + ProfileVec.size() / sizeof(unsigned char));
-	readFile.read((char*)&ProfileVec[132], DATA_SIZE);
-
-	bool inflate = false;  // Set to deflate
-
-	// Call function to deflate/compress the contents of vector "ProfileVec" (Basic profile with user's data file).
-	inflateDeflate(ProfileVec, inflate);
-
-	const size_t DEFLATE_VECTOR_SIZE = ProfileVec.size() + ProfileFirstChunkVec.size(); // including 20 bytes of the ProfileFirstChunkVec.
-
-	int bits = 16,
-		profileChunkSize = 65535,
-		profileFirstChunkSizeIndex = 4,
-		profileChunkSizeIndex = 2,
-		profileFirstByteCount = 4,	// 0xFF, 0xD8, 0xFF, 0xE2
-		profileChunkByteCount = 2;	// 0xFF, 0xE2,
-
-	if (profileChunkSize > DEFLATE_VECTOR_SIZE) {
-		// Update profile chunk size, as it is smaller than the set default.
-		insertValue(ProfileFirstChunkVec, profileFirstChunkSizeIndex, DEFLATE_VECTOR_SIZE - profileFirstByteCount, bits);
+	// Encrypt filename.
+	for (int i = 0; noSlashNameLength != 0; noSlashNameLength--) {
+		xorKeyIndex = xorKeyIndex > xorKeyStartPos + xorKeyLength ? xorKeyStartPos : xorKeyIndex;  // Reset position.
+		encryptedName += noSlashName[i++] ^ ProfileVec[xorKeyIndex++]; // xor each character of filename against each byte (8) of the crc values.
 	}
 
-	// Insert the content of "ProfileFirstChunkVec" into "ProfileVec".
-	ProfileVec.insert(ProfileVec.begin(), ProfileFirstChunkVec.begin(), ProfileFirstChunkVec.end());
+	ProfileVec.insert(ProfileVec.begin() + profileNameIndex, encryptedName.begin(), encryptedName.end());
 
-	// Insert "ProfileChunkVec" at every "profileChunkSize" (approx), or whatever data size under "profileChunkSize" remains, until end of file.
-	if (DEFLATE_VECTOR_SIZE > profileChunkSize) {
+	char byte;
 
-		ProfileVec.insert(ProfileVec.begin() + profileChunkSize + profileFirstByteCount, ProfileChunkVec.begin(), ProfileChunkVec.end());
+	xorKeyStartPos = 33;
+	xorKeyIndex = xorKeyStartPos;
 
-		int totalChunkSize = profileChunkSize + profileFirstByteCount + profileChunkByteCount;  // 65,535 + 4 + 2
+	for (int insertIndex = 152; DATA_SIZE + 152 > insertIndex;) {
+		byte = readFile.get();
+		ProfileVec.insert((ProfileVec.begin() + insertIndex++), byte ^ ProfileVec[xorKeyIndex++]);
+		xorKeyIndex = xorKeyIndex > xorKeyStartPos + xorKeyLength ? xorKeyStartPos : xorKeyIndex; // Reset position.
+	}
+
+	// Insert user data file at end of ProfileVec.
+	//ProfileVec.resize(DATA_SIZE + ProfileVec.size() / sizeof(unsigned char));
+	//readFile.read((char*)&ProfileVec[152], DATA_SIZE);
+
+	int bits = 16,
+		blockSize = 65535,				// ICC profile max block size.
+		tallySize = 2,
+		profileCount = 0,
+		profileMainBlockSizeIndex = 4,  // ProfileVec 2 byte length field vector index location.
+		profileBlockSizeIndex = 2,		// ProfileBlockVec 2 byte length field vector index location.
+		profileCountIndex = 72,			// Index location in main profile, where we store the total number of inserted ICC profile blocks.
+		profileDataSizeIndex = 88;		// Index location in main profile, where we store file size of user's data file.
+
+	// Get update size for ProfileVec after adding user data file.
+	const size_t VECTOR_SIZE = ProfileVec.size();
+	
+	// Where we see +4 (-4) or +2, these are the number of bytes at the start of "ProfileVec" (4 bytes: 0xFF, 0xD8, 0xFF, 0xE2) 
+	// and "ProfileBlockVec" (2 bytes: 0xFF, 0xE2), just before the default block size bytes 0xFF, 0xFF, where the block count starts from. 
+
+	if (blockSize + 4 >= VECTOR_SIZE) {
+		// Update profile block size of "ProfileVec", as it is smaller than the set default (FFFF).
+		insertValue(ProfileVec, profileMainBlockSizeIndex, VECTOR_SIZE - 4, bits);
+		bits = 32;
+		insertValue(ProfileVec, profileDataSizeIndex, DATA_SIZE, bits);
+	}
+	
+	// Insert "ProfileBlockVec" at every "blockSize", or whatever data size that's under "blockSize" remains, until end of file.
+	if (VECTOR_SIZE > blockSize + 4) {
 
 		bool isTrue = true;
 
 		while (isTrue) {
-			totalChunkSize += profileChunkSize + profileChunkByteCount; // Tally...
-			if (profileChunkSize > ProfileVec.size() - (totalChunkSize + profileChunkByteCount)) {
-				// Data file size remaining is less than "profileChunkSize", so update profile chunk size, insert last "ProfileChunkVec" and exit the loop.
-				insertValue(ProfileChunkVec, profileChunkSizeIndex, (ProfileVec.size() + ProfileChunkVec.size()) - (totalChunkSize + profileChunkByteCount), bits);
-				ProfileVec.insert(ProfileVec.begin() + totalChunkSize, ProfileChunkVec.begin(), ProfileChunkVec.end());
+			tallySize += blockSize + 2; // Tally of how much data we have traversed through when inserting "ProfileBlockVec" at every "blockSize" within "ProfileVec". 
+			if (blockSize + 2 >= ProfileVec.size() - tallySize + 2) {
+				// Data file size remaining is less than "blockSize" default (FFFF), so update profile block size & insert last "ProfileBlockVec" then exit the loop.
+				profileCount++;
+				insertValue(ProfileBlockVec, profileBlockSizeIndex, (ProfileVec.size() + ProfileBlockVec.size()) - (tallySize + 2), bits);
+				insertValue(ProfileVec, profileCountIndex, profileCount, bits);
+				bits = 32;
+				insertValue(ProfileVec, profileDataSizeIndex, DATA_SIZE, bits);
+				ProfileVec.insert(ProfileVec.begin() + tallySize, ProfileBlockVec.begin(), ProfileBlockVec.end());
 				isTrue = false;
 			}
-			else {
-				ProfileVec.insert(ProfileVec.begin() + totalChunkSize, ProfileChunkVec.begin(), ProfileChunkVec.end());
+			else {  // Keep going, we have not yet reached end of file (last blockSize).
+				profileCount++;
+				ProfileVec.insert(ProfileVec.begin() + tallySize, ProfileBlockVec.begin(), ProfileBlockVec.end());
 			}
 		}
 	}
@@ -364,71 +381,6 @@ void readFilesIntoVectors(std::ifstream& readImage, std::ifstream& readFile, con
 	std::cout << "\nCreated output file: \"" + EMBEDDED_IMAGE_FILE + "\"\n";
 }
 
-void inflateDeflate(std::vector<unsigned char>& Vec, bool inflateData) {
-
-	// zlib function, see https://zlib.net/
-
-	std::vector <unsigned char> Buffer;
-
-	size_t BUFSIZE;
-
-	if (!inflateData) {
-		BUFSIZE = 1032 * 1024;  // Required for deflate. This BUFSIZE covers us to our max file size of 20MB. A lower BUFSIZE results in lost data after 1MB.
-	}
-	else {
-		BUFSIZE = 256 * 1024;  // Fine for inflate.
-	}
-
-	unsigned char* temp_buffer{ new unsigned char[BUFSIZE] };
-
-	z_stream strm;
-	strm.zalloc = 0;
-	strm.zfree = 0;
-	strm.next_in = Vec.data();
-	strm.avail_in = Vec.size();
-	strm.next_out = temp_buffer;
-	strm.avail_out = BUFSIZE;
-
-	if (inflateData) {
-		inflateInit(&strm);
-	}
-	else {
-		deflateInit(&strm, 9); // Compression level 6 (78, DA...)
-	}
-
-	while (strm.avail_in)
-	{
-		if (inflateData) {
-			inflate(&strm, Z_NO_FLUSH);
-		}
-		else {
-			deflate(&strm, Z_NO_FLUSH);
-		}
-
-		if (!strm.avail_out)
-		{
-			Buffer.insert(Buffer.end(), temp_buffer, temp_buffer + BUFSIZE);
-			strm.next_out = temp_buffer;
-			strm.avail_out = BUFSIZE;
-		}
-		else
-			break;
-	}
-	if (inflateData) {
-		inflate(&strm, Z_FINISH);
-		Buffer.insert(Buffer.end(), temp_buffer, temp_buffer + BUFSIZE - strm.avail_out);
-		inflateEnd(&strm);
-	}
-	else {
-		deflate(&strm, Z_FINISH);
-		Buffer.insert(Buffer.end(), temp_buffer, temp_buffer + BUFSIZE - strm.avail_out);
-		deflateEnd(&strm);
-	}
-
-	Vec.swap(Buffer);
-	delete[] temp_buffer;
-}
-
 void insertValue(std::vector<unsigned char>& vec, ptrdiff_t valueInsertIndex, const size_t& VALUE, int bits) {
 
 	while (bits) vec[valueInsertIndex++] = (VALUE >> (bits -= 8)) & 0xff;
@@ -443,13 +395,11 @@ jdvrdt enables you to embed & extract arbitrary data of upto ~20MB within a sing
 
 You can upload and share your data embedded JPG image file on Reddit or *Imgur.
 
-*Imgur issue: When the embedded image size is over 5MB, the data is still retained, but Imgur will reduce the dimension size of your image.
+*Imgur issue: Data is still retained when the file-embedded JPG image is over 5MB, but Imgur reduces the dimension size of the image.
  
 jdvrdt data embedded images will not work with Twitter. For Twitter, please use pdvzip (PNG only).
-
 This program works on Linux and Windows.
-
-The file data is inserted and preserved within multiple 65KB ICC Profile chunks in the image file.
+The file data is inserted and preserved within multiple 65KB ICC Profile blocks in the image file.
  
 To maximise the amount of data you can embed in your image file. I recommend compressing your 
 data file(s) to zip/rar formats, etc.
@@ -457,5 +407,6 @@ data file(s) to zip/rar formats, etc.
 Using jdvrdt, You can insert up to five files at a time (outputs one image per file).
 
 You can also extract files from up to five images at a time.
+
 )";
 }
