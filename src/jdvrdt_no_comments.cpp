@@ -348,7 +348,9 @@ You can upload and share your data embedded JPG image file on Reddit or *Imgur.
 *Imgur issue: Data is still retained when the file-embedded JPG image is over 5MB, but Imgur reduces the dimension size of the image.
  
 jdvrdt data embedded images will not work with Twitter. For Twitter, please use pdvzip (PNG only).
+
 This program works on Linux and Windows.
+
 The file data is inserted and preserved within multiple 65KB ICC Profile blocks in the image file.
  
 To maximise the amount of data you can embed in your image file. I recommend compressing your 
