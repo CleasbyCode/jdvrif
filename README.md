@@ -8,15 +8,15 @@ This program enables you to embed & extract any file type of up to 20MB via a si
 Post & share your "*file-embedded*" image on ***[reddit](https://www.reddit.com/)*** or Imgur. 
 
 ![Demo Image](https://github.com/CleasbyCode/jdvrdt/blob/main/demo_image/image.jpg)  
-{***8MB MP3 music file embedded within this JPG. Image credit: @YZAVoku***} 
+{***MP3 music file embedded within this JPG. Image credit: @YZAVoku***} 
 
-**Imgur issue:** Data is still retained when the file-embedded JPG image is over 5MB, but Imgur reduces the dimension size of the image.
+**Imgur issue:** Data is still retained when the "file-embedded" JPG image is over 5MB, but Imgur reduces the dimension size of the image.
 
-***jdvrdt file-embedded images do not work with Twitter.  For Twitter, please use [pdvzip](https://github.com/CleasbyCode/pdvzip) (PNG only).***
+***jdvrdt "file-embedded" images do not work with Twitter.  For Twitter, please use [pdvzip](https://github.com/CleasbyCode/pdvzip) (PNG only).***
 
 This program can be used on Linux and Windows.
 
-The file data is inserted and preserved within multiple 65KB ICC Profile blocks in the JPG image file.
+Your data file is inserted and preserved within multiple 65KB ICC Profile blocks in the JPG image file.
 
 ![ICC](https://github.com/CleasbyCode/jdvrdt/blob/main/demo_image/icc.png)  
 
@@ -47,7 +47,7 @@ Created output file: "jdvimg1.jpg"
 
 Complete!  
 
-You can now post your file-embedded JPG image(s) on reddit.
+You can now post your "file-embedded" JPG image(s) on reddit.
  
 $ ./jdvrdt
 
@@ -71,7 +71,7 @@ Created output file: "jdvimg3.jpg"
 
 Complete!
 
-You can now post your file-embedded JPG image(s) on reddit.  
+You can now post your "file-embedded" JPG image(s) on reddit.  
 
 $ ./jdvrdt -x jdvimg1.jpg  jdvimg2.jpg  jdvimg3.jpg  
 
