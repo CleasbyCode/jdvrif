@@ -60,7 +60,7 @@ void processFiles(char* argv[], int argc, int sub, const std::string& IMAGE_FILE
 		readFile(DATA_FILE, std::ios::binary);
 
 	if (!readImage || !readFile) {
-		
+
 		const std::string ERR_MSG = !readImage ? READ_ERR_MSG + "\"" + IMAGE_FILE + "\"\n\n" : READ_ERR_MSG + "\"" + DATA_FILE + "\"\n\n";
 
 		std::cerr << ERR_MSG;
@@ -69,10 +69,10 @@ void processFiles(char* argv[], int argc, int sub, const std::string& IMAGE_FILE
 
 	const int
 		MAX_JPG_SIZE_BYTES = 20971520,		
-		MAX_DATAFILE_SIZE_BYTES = 20971520;
+		MAX_DATAFILE_SIZE_BYTES = 20971520;	
 
 	readImage.seekg(0, readImage.end),
-		readFile.seekg(0, readFile.end);
+	readFile.seekg(0, readFile.end);
 
 	const ptrdiff_t
 		IMAGE_SIZE = readImage.tellg(),
@@ -113,17 +113,19 @@ void processEmbeddedImage(char* argv[]) {
 		profileSigIndex = 6,	
 		jdvSigIndex = 25,	
 		nameLengthIndex = 32,	
-		nameIndex = 33,		
-		countIndex = 72,	
-		dataSizeIndex = 88,	
-		dataIndex = 152,  	
+		nameIndex = 33,			
+		countIndex = 72,		
+		dataSizeIndex = 88,		
+		dataIndex = 152,  		
 		nameLength = ImageVec[nameLengthIndex], 
+		profileLength = 18,
 		profileCount = ImageVec[countIndex] << 8 | ImageVec[countIndex + 1],  
 		profileDataSize = ImageVec[dataSizeIndex] << 24 | ImageVec[dataSizeIndex + 1] << 16 | ImageVec[dataSizeIndex + 2] << 8 | ImageVec[dataSizeIndex + 3]; 
-		
+
 	const std::string
 		PROFILE_SIG = "ICC_PROFILE",
 		JDV_SIG = "JDVRdT",
+		KEY = "\xFF\xD8\xFF\xE2\xFF\xFF",
 		PROFILE_CHECK{ ImageVec.begin() + profileSigIndex, ImageVec.begin() + profileSigIndex + PROFILE_SIG.length() }, 
 		JDV_CHECK{ ImageVec.begin() + jdvSigIndex, ImageVec.begin() + jdvSigIndex + JDV_SIG.length() };	
 
@@ -131,9 +133,9 @@ void processEmbeddedImage(char* argv[]) {
 		std::cerr << "\nImage Error: Image file \"" << IMAGE_FILE << "\" does not appear to be a JDVRdT file-embedded image.\n\n";
 		std::exit(EXIT_FAILURE);
 	}
-	
-	std::string encryptedName = { ImageVec.begin() + nameIndex, ImageVec.begin() + nameIndex + ImageVec[nameLengthIndex] };	
-	
+
+	std::string encryptedName = { ImageVec.begin() + nameIndex, ImageVec.begin() + nameIndex + ImageVec[nameLengthIndex] };
+
 	ImageVec.erase(ImageVec.begin(), ImageVec.begin() + dataIndex);
 
 	if (profileCount) {
@@ -141,13 +143,13 @@ void processEmbeddedImage(char* argv[]) {
 		ptrdiff_t findProfileSigIndex = search(ImageVec.begin(), ImageVec.end(), PROFILE_SIG.begin(), PROFILE_SIG.end()) - ImageVec.begin() - 4;
 
 		while (profileCount--) {
-			ImageVec.erase(ImageVec.begin() + findProfileSigIndex, ImageVec.begin() + findProfileSigIndex + 18);
+			ImageVec.erase(ImageVec.begin() + findProfileSigIndex, ImageVec.begin() + findProfileSigIndex + profileLength);
 			findProfileSigIndex = search(ImageVec.begin() + findProfileSigIndex, ImageVec.end(), PROFILE_SIG.begin(), PROFILE_SIG.end()) - ImageVec.begin() - 4;
 		}
 	}
 
-    	ImageVec.erase(ImageVec.begin() + profileDataSize, ImageVec.end());
-
+	ImageVec.erase(ImageVec.begin() + profileDataSize, ImageVec.end());
+	
 	std::vector<unsigned char> ExtractedFileVec;
 
 	std::string decryptedName;
@@ -162,7 +164,7 @@ void processEmbeddedImage(char* argv[]) {
 	for (int i = 0; ImageVec.size() > i; i++) {
 		if (!nameDecrypted) {
 			keyPos = keyPos > keyStartPos + keyLength ? keyStartPos : keyPos;
-			decryptedName += encryptedName[i] ^ JDV_SIG[keyPos];
+			decryptedName += encryptedName[i] ^ KEY[keyPos];
 		}
 
 		ExtractedFileVec.insert(ExtractedFileVec.begin() + i, ImageVec[i] ^ encryptedName[keyPos++]);
@@ -198,12 +200,12 @@ void readFilesIntoVectors(std::ifstream& readImage, std::ifstream& readFile, con
 		ProfileVec{
 			0xFF, 0xD8, 0xFF, 0xE2, 0xFF, 0xFF, 0x49, 0x43, 0x43, 0x5F, 0x50, 0x52, 0x4F, 0x46,
 			0x49, 0x4C, 0x45, 0x00, 0x01, 0x01, 0x00, 0x00, 0x00, 0x84, 0x20, 0x4A, 0x44, 0x56,
-			0x52, 0x64, 0x54, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+			0x52, 0x64, 0x54, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 			0x61, 0x63, 0x73, 0x70, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
@@ -219,10 +221,9 @@ void readFilesIntoVectors(std::ifstream& readImage, std::ifstream& readFile, con
 		TXT_NUM = std::to_string(sub - argc),
 		EMBEDDED_IMAGE_FILE = "jdvimg" + TXT_NUM + ".jpg",
 		JPG_SIG = "\xFF\xD8\xFF",
-		JPG_CHECK{ ImageVec.begin(), ImageVec.begin() + JPG_SIG.length() };	
+		JPG_CHECK{ ImageVec.begin(), ImageVec.begin() + JPG_SIG.length() };
 
 	if (JPG_CHECK != JPG_SIG) {
-		
 		std::cerr << "\nImage Error: File does not appear to be a valid JPG image.\n\n";
 		std::exit(EXIT_FAILURE);
 	}
@@ -234,19 +235,19 @@ void readFilesIntoVectors(std::ifstream& readImage, std::ifstream& readFile, con
 	ImageVec.erase(ImageVec.begin(), ImageVec.begin() + dqtPos);
 
 	const int MAX_LENGTH_FILENAME = 23;
-
-	std::size_t firstSlashPos = DATA_FILE.find_first_of("\\/");
 	
+	std::size_t firstSlashPos = DATA_FILE.find_first_of("\\/");
 	std::string
 		noSlashName = DATA_FILE.substr(firstSlashPos + 1, DATA_FILE.length()),
 		encryptedName;
-	
+
 	int
 		profileNameLengthIndex = 32,	
 		profileNameIndex = 33,		
-		xorKeyStartPos = 25,		
-		xorKeyLength = 5,		
-		xorKeyIndex = 25;
+		profileVecSize = 152,
+		xorKeyStartPos = 0,				
+		xorKeyLength = 5,			
+		xorKeyIndex = 0;				
 
 	size_t noSlashNameLength = noSlashName.length(); 
 
@@ -257,22 +258,22 @@ void readFilesIntoVectors(std::ifstream& readImage, std::ifstream& readFile, con
 	}
 
 	insertValue(ProfileVec, profileNameLengthIndex, noSlashNameLength, 8);
-
+	
 	ProfileVec.erase(ProfileVec.begin() + profileNameIndex, ProfileVec.begin() + noSlashNameLength + profileNameIndex);
 
 	for (int i = 0; noSlashNameLength != 0; noSlashNameLength--) {
 		xorKeyIndex = xorKeyIndex > xorKeyStartPos + xorKeyLength ? xorKeyStartPos : xorKeyIndex;  
 		encryptedName += noSlashName[i++] ^ ProfileVec[xorKeyIndex++]; 
 	}
-	
+
 	ProfileVec.insert(ProfileVec.begin() + profileNameIndex, encryptedName.begin(), encryptedName.end());
 
 	char byte;
-	
-	xorKeyStartPos = 33;	
+
+	xorKeyStartPos = profileNameIndex;	
 	xorKeyIndex = xorKeyStartPos;
 
-	for (int insertIndex = 152; DATA_SIZE + 152 > insertIndex;) {
+	for (int insertIndex = profileVecSize; DATA_SIZE + profileVecSize > insertIndex;) {
 		byte = readFile.get();
 		ProfileVec.insert((ProfileVec.begin() + insertIndex++), byte ^ ProfileVec[xorKeyIndex++]);
 		xorKeyIndex = xorKeyIndex > xorKeyStartPos + xorKeyLength ? xorKeyStartPos : xorKeyIndex; 
@@ -288,19 +289,19 @@ void readFilesIntoVectors(std::ifstream& readImage, std::ifstream& readFile, con
 		profileDataSizeIndex = 88;	
 
 	const size_t VECTOR_SIZE = ProfileVec.size();
-	
+
 	if (blockSize + 4 >= VECTOR_SIZE) {
 		insertValue(ProfileVec, profileMainBlockSizeIndex, VECTOR_SIZE - 4, bits);
 		bits = 32;
 		insertValue(ProfileVec, profileDataSizeIndex, DATA_SIZE, bits);
 	}
-	
+
 	if (VECTOR_SIZE > blockSize + 4) {
 
 		bool isTrue = true;
 
 		while (isTrue) {
-			tallySize += blockSize + 2; 
+			tallySize += blockSize + 2;
 			if (blockSize + 2 >= ProfileVec.size() - tallySize + 2) {
 				profileCount++;
 				insertValue(ProfileBlockVec, profileBlockSizeIndex, (ProfileVec.size() + ProfileBlockVec.size()) - (tallySize + 2), bits);
@@ -310,7 +311,7 @@ void readFilesIntoVectors(std::ifstream& readImage, std::ifstream& readFile, con
 				ProfileVec.insert(ProfileVec.begin() + tallySize, ProfileBlockVec.begin(), ProfileBlockVec.end());
 				isTrue = false;
 			}
-			else {  
+			else { 
 				profileCount++;
 				ProfileVec.insert(ProfileVec.begin() + tallySize, ProfileBlockVec.begin(), ProfileBlockVec.end());
 			}
