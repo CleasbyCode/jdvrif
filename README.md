@@ -8,7 +8,7 @@ This program enables you to embed & extract any file type of up to 20MB via a si
 Post & share your "*file-embedded*" image on ***[reddit](https://www.reddit.com/)*** or Imgur. 
 
 ![Demo Image](https://github.com/CleasbyCode/jdvrdt/blob/main/demo_image/image.jpg)  
-{***MP3 music file embedded within this JPG. Image credit: @YZAVoku***}   
+{***MP3 music file embedded within this JPG / Image credit: @YZAVoku***}   
 
 [**Video_Demo (YouTube) - Embed Zip File Inside JPG Image & Post on Reddit**](https://youtu.be/YHT-V6otO2M)  
 
