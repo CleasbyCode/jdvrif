@@ -10,7 +10,7 @@ Post & share your "*file-embedded*" image on ***[reddit](https://www.reddit.com/
 ![Demo Image](https://github.com/CleasbyCode/jdvrdt/blob/main/demo_image/image.jpg)  
 {***MP3 music file embedded within this JPG / Image credit: @YZAVoku***}   
 
-[**Video_Demo (YouTube) - Embed Zip File Inside JPG Image & Post on Reddit**](https://youtu.be/YHT-V6otO2M)  
+[**Video_Demo (YouTube) - Embed Zip File Inside JPG Image & Post on Reddit**](https://www.youtube.com/watch_popup?v=YHT-V6otO2M)  
 
 **Imgur issue:** Data is still retained when the "file-embedded" JPG image is over 5MB, but Imgur reduces the dimension size of the image.
 
