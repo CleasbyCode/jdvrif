@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 
+typedef unsigned char BYTE;
+
 // Open user image & data file and check file size requirements. Display error & exit program if any file fails to open or exceeds size limits.
 void processFiles(char* [], int, int, const std::string&);
 
@@ -15,8 +17,11 @@ void processEmbeddedImage(char* []);
 // Read in and store jpg image & data file into vectors..
 void readFilesIntoVectors(std::ifstream&, std::ifstream&, const std::string&, const std::string&, const ptrdiff_t&, const ptrdiff_t&, int, int);
 
-// Insert updated values, such as block size and other values into relevant vector index locations.
-void insertValue(std::vector<unsigned char>&, ptrdiff_t, const size_t&, int);
+// Encrypt or decrypt (simple xor) user's data file and its filename.
+std::string encryptDecrypt(const std::vector<BYTE>&, std::vector<BYTE>&, const std::string&, const size_t&, bool);
+
+// Insert values, such as block size, file sizes and other values into relevant vector index locations.
+void insertValue(std::vector<BYTE>&, int, const size_t&, int);
 
 // Display program infomation
 void displayInfo();
@@ -33,16 +38,13 @@ int main(int argc, char** argv) {
 		int sub = argc - 1;
 		argc -= 2;
 		const std::string IMAGE_FILE = argv[2];
-		
 		while (argc != 1) {
 			processFiles(argv++, argc, sub, IMAGE_FILE);
 			argc--;
 		}
-		
 		argc = 1;
 	}
 	else if (argc >= 3 && argc < 8 && std::string(argv[1]) == "-x") {
-		
 		while (argc >= 3) {
 			processEmbeddedImage(argv++);
 			argc--;
@@ -117,7 +119,7 @@ void processEmbeddedImage(char* argv[]) {
 	const std::string IMAGE_FILE = argv[2];
 
 	if (IMAGE_FILE == "." || IMAGE_FILE == "/") std::exit(EXIT_FAILURE);
-
+	
 	std::ifstream readImage(IMAGE_FILE, std::ios::binary);
 
 	if (!readImage) {
@@ -125,37 +127,30 @@ void processEmbeddedImage(char* argv[]) {
 		std::exit(EXIT_FAILURE);
 	}
 
-	// Read "file-embedded" JPG image into vector "ImageVec".
-	std::vector<unsigned char> ImageVec((std::istreambuf_iterator<char>(readImage)), std::istreambuf_iterator<char>());
+	std::vector<BYTE> ImageVec((std::istreambuf_iterator<char>(readImage)), std::istreambuf_iterator<char>());
 
-	const int			// Most values here relate to the contents of the vector "ImageVec".
-		XOR_KEY_START_POS = 0,  // Default start index location for xor key.
-		XOR_KEY_LENGTH = 5,	// Character length value (length starts from 0) of the key string used to xor decrypt the embedded filename.
+	const int					// Most values here relate to the contents of the vector "ImageVec".
 		PROFILE_SIG_INDEX = 6,	// ICC Profile signature start index location.
 		PROFILE_LENGTH = 18,	// Length value of the inserted ICC "ProfileBlockVec". We need to remove all of these from the data file.
-		JDV_SIG_INDEX = 25,	// This programs signature start index location. 
+		JDV_SIG_INDEX = 25,		// This programs signature start index location. 
 		NAME_LENGTH_INDEX = 32,	// Index location for length value of filename for user's data file.
-		NAME_INDEX = 33,	// Start index location of filename for user's data file.
+		NAME_INDEX = 33,		// Start index location of filename for user's data file.
 		ICC_COUNT_INDEX = 72,	// Value index location for the total number of inserted ICC Profile blocks ("ProfileBlockVec").
 		DATA_SIZE_INDEX = 88,	// Start index location for the size value of the user's data file.
-		DATA_INDEX = 152,  	// Start index location of user's data file within the main ICC Profile.
+		DATA_INDEX = 152,  		// Start index location of user's data file within the main ICC Profile.
 		
 		// Get embedded filename length value from "ImageVec" stored within the main Profile.
 		ENCRYPTED_NAME_LENGTH = ImageVec[NAME_LENGTH_INDEX], 
 		// Get data file size stored in the main Profile.
 		PROFILE_DATA_SIZE = ImageVec[DATA_SIZE_INDEX] << 24 | ImageVec[DATA_SIZE_INDEX + 1] << 16 | ImageVec[DATA_SIZE_INDEX + 2] << 8 | ImageVec[DATA_SIZE_INDEX + 3]; 
 
-	int 
-		profileCount = ImageVec[ICC_COUNT_INDEX] << 8 | ImageVec[ICC_COUNT_INDEX + 1],  // Get ICC Profile insert count value from "ImageVec" stored in main Profile.
-		firstKeyPos = XOR_KEY_START_POS,  // 0, First key position variable used for xor decrypting filename of user's data file.
-		secondKeyPos = XOR_KEY_START_POS; // 0, Second key position variable used for xor decrypting user's data file.
+	int profileCount = ImageVec[ICC_COUNT_INDEX] << 8 | ImageVec[ICC_COUNT_INDEX + 1];  // Get ICC Profile insert count value from "ImageVec" stored in main Profile.
 
 	const std::string
-		PROFILE_SIG = "ICC_PROFILE",		// Signature string for JPG Profile.
-		JDV_SIG = "JDVRdT",			// Signature string for this program.
-		XOR_KEY = "\xFF\xD8\xFF\xE2\xFF\xFF",	// String used to xor decrypt embedded filename.
+		PROFILE_SIG = "ICC_PROFILE",			// Signature string for JPG Profile.
+		JDV_SIG = "JDVRdT",						// Signature string for this program.
 		PROFILE_CHECK{ ImageVec.begin() + PROFILE_SIG_INDEX, ImageVec.begin() + PROFILE_SIG_INDEX + PROFILE_SIG.length() }, // Get ICC signature from vector "ImageVec".
-		JDV_CHECK{ ImageVec.begin() + JDV_SIG_INDEX, ImageVec.begin() + JDV_SIG_INDEX + JDV_SIG.length() },			// Get JDV signature from vector "ImageVec".
+		JDV_CHECK{ ImageVec.begin() + JDV_SIG_INDEX, ImageVec.begin() + JDV_SIG_INDEX + JDV_SIG.length() },					// Get JDV signature from vector "ImageVec".
 		ENCRYPTED_NAME = { ImageVec.begin() + NAME_INDEX, ImageVec.begin() + NAME_INDEX + ImageVec[NAME_LENGTH_INDEX] };	// Get encrypted filename stored in vector "ImageVec".
 
 	if (PROFILE_CHECK != PROFILE_SIG || JDV_CHECK != JDV_SIG) {
@@ -164,52 +159,28 @@ void processEmbeddedImage(char* argv[]) {
 		std::exit(EXIT_FAILURE);
 	}
 
-	// From "ImageVec" vector index 0, erase bytes so that start of vector is now the beginning of the user's data file.
+	// From "ImageVec" vector index 0, erase 152 bytes (main Profile size) so that start of vector is now the beginning of the user's encrypted data file.
 	ImageVec.erase(ImageVec.begin(), ImageVec.begin() + DATA_INDEX);
 
-	if (profileCount) { // Apart from the first main Profile (0), are there anymore Profile inserts within the data file? If so, we need to find & remove them all.
+	ptrdiff_t foundProfileIndex = 0;
 
-		// Within "ImageVec" find and erase all occurrences of the contents of "ProfileBlockVec".
-		ptrdiff_t findProfileSigIndex = search(ImageVec.begin(), ImageVec.end(), PROFILE_SIG.begin(), PROFILE_SIG.end()) - ImageVec.begin() - 4;
-
-		// Stop the search once profileCount is 0.
-		while (profileCount--) {
-			ImageVec.erase(ImageVec.begin() + findProfileSigIndex, ImageVec.begin() + findProfileSigIndex + PROFILE_LENGTH);
-			findProfileSigIndex = search(ImageVec.begin() + findProfileSigIndex, ImageVec.end(), PROFILE_SIG.begin(), PROFILE_SIG.end()) - ImageVec.begin() - 4;
-		}
+	// Within "ImageVec" find and erase all occurrences of the contents of "ProfileBlockVec". Stop the search once profileCount is 0.
+	while (profileCount--) {
+		foundProfileIndex = search(ImageVec.begin() + foundProfileIndex, ImageVec.end(), PROFILE_SIG.begin(), PROFILE_SIG.end()) - ImageVec.begin() - 4;
+		ImageVec.erase(ImageVec.begin() + foundProfileIndex, ImageVec.begin() + foundProfileIndex + PROFILE_LENGTH);
 	}
-
-	// Remove JPG image from data file. Erase all bytes starting from end of "PROFILE_DATA_SIZE" value. Vector now contains just the user's data file.
+	
+	// Remove JPG image from data file. Erase all bytes starting from end of "PROFILE_DATA_SIZE" value. Vector now contains just the user's encryped data file.
 	ImageVec.erase(ImageVec.begin() + PROFILE_DATA_SIZE, ImageVec.end());
 
 	// We will store the decrypted embedded file in this vector.
-	std::vector<unsigned char> ExtractedFileVec;
+	std::vector<BYTE> DecryptedFileVec;
+	DecryptedFileVec.reserve(PROFILE_DATA_SIZE);
 
-	std::string decryptedName;
+	bool isEncrypt = false; // Set to decrypt.
 
-	bool isNameDecrypted = false;
-
-	// Decrypt the embedded user's data filename and data file. Store decrypted data file in vector "ExtractedFileVec".
-	
-	// Each character of the embedded filename was xor encrypted against the characters of the XOR_KEY string, 
-	// Each byte of the user's data file was xor encrypted against each character of the encrypted filename
-	// First start xor decrypting the characters of the filename (store in "decryptedName" string) against the characters of XOR_KEY, 
-	// then xor decrypt each byte of the data file against the encrypted characters of the filename.
-	for (int i = 0; ImageVec.size() > i; i++) {
-
-		if (!isNameDecrypted) {
-			firstKeyPos = firstKeyPos > XOR_KEY_LENGTH ? XOR_KEY_START_POS : firstKeyPos;
-			secondKeyPos = secondKeyPos > ENCRYPTED_NAME_LENGTH ? XOR_KEY_START_POS : secondKeyPos;
-			decryptedName += ENCRYPTED_NAME[i] ^ XOR_KEY[firstKeyPos++];
-		}
-
-		ExtractedFileVec.insert(ExtractedFileVec.begin() + i, ImageVec[i] ^ ENCRYPTED_NAME[secondKeyPos++]);
-
-		if (i >= ENCRYPTED_NAME_LENGTH - 1) {
-			isNameDecrypted = true;
-			secondKeyPos = secondKeyPos > ENCRYPTED_NAME_LENGTH - 1 ? XOR_KEY_START_POS : secondKeyPos;
-		}
-	}
+	// Call function to decrypt the embedded user's data filename and data file. 
+	std::string decryptedName = encryptDecrypt(ImageVec, DecryptedFileVec, ENCRYPTED_NAME, PROFILE_DATA_SIZE, isEncrypt);
 
 	if (decryptedName.substr(0, 4) != "jdv_") {
 		decryptedName = "jdv_" + decryptedName;
@@ -223,7 +194,7 @@ void processEmbeddedImage(char* argv[]) {
 		std::exit(EXIT_FAILURE);
 	}
 
-	writeFile.write((char*)&ExtractedFileVec[0], ImageVec.size());
+	writeFile.write((char*)&DecryptedFileVec[0], ImageVec.size());
 
 	std::cout << "\nExtracted file: \"" + decryptedName + " " << ImageVec.size() << " " << "Bytes\"\n";
 }
@@ -235,7 +206,7 @@ void readFilesIntoVectors(std::ifstream& readImage, std::ifstream& readFile, con
 	readFile.seekg(0, readFile.beg);
 
 	// The first 152 bytes of this vector contains the basic profile.
-	std::vector<unsigned char>
+	std::vector<BYTE>
 		ProfileVec{
 			0xFF, 0xD8, 0xFF, 0xE2, 0xFF, 0xFF, 0x49, 0x43, 0x43, 0x5F, 0x50, 0x52, 0x4F, 0x46,
 			0x49, 0x4C, 0x45, 0x00, 0x01, 0x01, 0x00, 0x00, 0x00, 0x84, 0x20, 0x4A, 0x44, 0x56,
@@ -253,14 +224,23 @@ void readFilesIntoVectors(std::ifstream& readImage, std::ifstream& readFile, con
 	{
 			0xFF, 0xE2, 0xFF, 0xFF, 0x49, 0x43, 0x43, 0x5F, 0x50, 0x52, 0x4F, 0x46, 0x49, 0x4C,
 			0x45, 0x00, 0x01, 0x01
+
 	},
-		// Read-in user JPG image file and store in vector "ImageVec".
-		ImageVec((std::istreambuf_iterator<char>(readImage)), std::istreambuf_iterator<char>());
+		// Read-in JPG image file and store in vector "ImageVec".
+		ImageVec((std::istreambuf_iterator<char>(readImage)), std::istreambuf_iterator<char>()),
+
+		// Read-in user's data file and store in vector "FileVec".
+		FileVec((std::istreambuf_iterator<char>(readFile)), std::istreambuf_iterator<char>()),
+
+		// We will store the encrypted contents of FileVec into vector EncryptedVec.
+		EncryptedVec;
+
+	EncryptedVec.reserve(DATA_SIZE);
 
 	const std::string
-		TXT_NUM = std::to_string(sub - argc),			// If we embed multiple files (max 5), each outputted image will be differentiated, 
-		EMBEDDED_IMAGE_FILE = "jdvimg" + TXT_NUM + ".jpg",  	// by a number in the name, jdvimg1.jpg, jdvimg2.jpg, jdvimg3.jpg, etc.
-		JPG_SIG = "\xFF\xD8\xFF",				// JPG image signature. 
+		TXT_NUM = std::to_string(sub - argc),			// If we embed multiple files (max 5), each outputted image will be differentiated by a number in the name, 
+		EMBEDDED_IMAGE_FILE = "jdvimg" + TXT_NUM + ".jpg",  // jdvimg1.jpg, jdvimg2.jpg, jdvimg3.jpg, etc.
+		JPG_SIG = "\xFF\xD8\xFF",							// JPG image signature. 
 		JPG_CHECK{ ImageVec.begin(), ImageVec.begin() + JPG_SIG.length() };	// Get image header from vector. 
 
 	// Make sure image file has valid JPG header.
@@ -271,7 +251,7 @@ void readFilesIntoVectors(std::ifstream& readImage, std::ifstream& readFile, con
 	}
 
 	// Signature for Define Quantization Table(s) 
-	const std::vector<unsigned char> DQT_SIG{ 0xFF, 0xDB };
+	const std::vector<BYTE> DQT_SIG{ 0xFF, 0xDB };
 
 	// Find location in ImageVec of first DQT.
 	const ptrdiff_t DQT_POS = search(ImageVec.begin(), ImageVec.end(), DQT_SIG.begin(), DQT_SIG.end()) - ImageVec.begin();
@@ -279,7 +259,7 @@ void readFilesIntoVectors(std::ifstream& readImage, std::ifstream& readFile, con
 	// Erase the first n bytes before this DQT position.
 	ImageVec.erase(ImageVec.begin(), ImageVec.begin() + DQT_POS);
 
-	// We don't want "./" or ".\" characters at the start of the filename (user's data file), which we will store in the iCC Profile. 
+	// We don't want "./" or ".\" characters at the start of the filename (user's data file), which we will store in the main Profile. 
 	const size_t FIRST_SLASH_POS = DATA_FILE.find_first_of("\\/");
 
 	const std::string NO_SLASH_NAME = DATA_FILE.substr(FIRST_SLASH_POS + 1, DATA_FILE.length());
@@ -295,43 +275,15 @@ void readFilesIntoVectors(std::ifstream& readImage, std::ifstream& readFile, con
 		std::exit(EXIT_FAILURE);
 	}
 
-	std::string encryptedName;
-
 	const int
-		PROFILE_NAME_LENGTH_INDEX = 32, // Index location inside the iCC Profile to store the length value of the embedded data's filename.
-		PROFILE_NAME_INDEX = 33,	// Start index inside the iCC Profile to store the filename for the embedded data file.
-		PROFILE_VEC_SIZE = 152,		// Byte size of main Profile. User's data file is stored after the main Profile content.
-		XOR_KEY_START_POS = 0,		// Start index location of xor key characters (the first 6 bytes of "ProfileVec").
-		XOR_KEY_LENGTH = 5;		// Length of xor key (Length value starts from 0).
+		PROFILE_NAME_LENGTH_INDEX = 32, // Index location inside the main Profile to store the length value of the embedded data's filename.
+		PROFILE_NAME_INDEX = 33,		// Start index inside the main Profile to store the filename for the embedded data file.
+		PROFILE_VEC_SIZE = 152;			// Byte size of main Profile. User's data file is stored after the main Profile content.
+	
+	bool isEncrypt = true; // Set to encrypt.
 
-	int
-		firstKeyPos = XOR_KEY_START_POS,	// 0, First key position variable used for xor encrypting filename of user's data file.
-		secondKeyPos = XOR_KEY_START_POS;	// 0, Second key position variable used for xor encrypting user's data file.
-
-	char byte;
-
-	bool isNameEncrypted = false;
-
-	// Xor encrypt user's data filename and data file. Store in "ProfileVec".
-	// The filename is xor encrypted against the first 6 characters within "ProfileVec".
-	// Each byte of the user's data file is xor encrypted against each character of the encrypted filename.
-	for (int i = 0, insertIndex = PROFILE_VEC_SIZE; DATA_SIZE + PROFILE_VEC_SIZE > insertIndex; i++) {
-		
-		byte = readFile.get();
-
-		if (!isNameEncrypted) {
-			firstKeyPos = firstKeyPos > XOR_KEY_LENGTH ? XOR_KEY_START_POS : firstKeyPos;
-			secondKeyPos = secondKeyPos > NO_SLASH_NAME_LENGTH ? XOR_KEY_START_POS : secondKeyPos;
-			encryptedName += NO_SLASH_NAME[i] ^ ProfileVec[firstKeyPos++]; // xor each character of filename against first six characters of "ProfileVec".
-		}
-
-		ProfileVec.insert(ProfileVec.begin() + insertIndex++, byte ^ encryptedName[secondKeyPos++]);
-
-		if (i >= NO_SLASH_NAME_LENGTH - 1) {
-			isNameEncrypted = true;
-			secondKeyPos = secondKeyPos > NO_SLASH_NAME_LENGTH - 1 ? XOR_KEY_START_POS : secondKeyPos;
-		}
-	}
+	// Call function to encrypt the embedded user's data filename and data file. 
+	std::string encryptedName = encryptDecrypt(FileVec, EncryptedVec, NO_SLASH_NAME, DATA_SIZE, isEncrypt);
 
 	// Insert the character length value of the filename of user's data file into the main Profile,
 	insertValue(ProfileVec, PROFILE_NAME_LENGTH_INDEX, NO_SLASH_NAME_LENGTH, 8);
@@ -342,36 +294,47 @@ void readFilesIntoVectors(std::ifstream& readImage, std::ifstream& readFile, con
 	// Insert encrypted filename into the main profile "ProfileVec".
 	ProfileVec.insert(ProfileVec.begin() + PROFILE_NAME_INDEX, encryptedName.begin(), encryptedName.end());
 
-	const int BLOCK_SIZE = 65535;		// ICC Profile default block size (0xFFFF).
+	// Insert contents of vector "EncryptedVec" into vector "ProfileVec", combining then main Profile with user's encrypted data file.	
+	ProfileVec.insert(ProfileVec.begin() + PROFILE_VEC_SIZE, EncryptedVec.begin(), EncryptedVec.end());
 
-	int 
-		bits = 16,			// Variable used with the "insertValue" function.
-		tallySize = 2,			// Keep count of how much data we have traversed while inserting "ProfileBlockVec" at every "BLOCK_SIZE" within "ProfileVec". 
-		profileCount = 0,		// Keep count of how many ICC Profile blocks ("ProfileBlockVec") we insert into the data file.
+	const int 
+		VECTOR_SIZE = static_cast<int>(ProfileVec.size()),	// Get updated size for "ProfileVec" after adding data file.
+		BLOCK_SIZE = 65535;									// ICC Profile default block size (0xFFFF).
+
+	int bits = 16,						// Variable used with the "insertValue" function.
+		tallySize = 2,					// Keep count of how much data we have traversed while inserting "ProfileBlockVec" at every "BLOCK_SIZE" within "ProfileVec". 
+		profileCount = 0,				// Keep count of how many ICC Profile blocks ("ProfileBlockVec") we insert into the data file.
 		profileMainBlockSizeIndex = 4,  // "ProfileVec" start index location for it's 2 byte block size field.
-		profileBlockSizeIndex = 2,	// "ProfileBlockVec" start index location for it's 2 block size field.
-		profileCountIndex = 72,		// Start index location in main Profile, where we store the value of the total number of inserted ICC Profile blocks (2 bytes max).
-		profileDataSizeIndex = 88;	// Start index location in main Profile, where we store the file size value of user's data file. ( 4 bytes max).
-
-	// Get updated size for "ProfileVec" after adding data file.
-	const size_t VECTOR_SIZE = ProfileVec.size();
+		profileBlockSizeIndex = 2,		// "ProfileBlockVec" start index location for it's 2 block size field.
+		profileCountIndex = 72,			// Start index location in main Profile, where we store the value of the total number of inserted ICC Profile blocks (2 bytes max).
+		profileDataSizeIndex = 88;		// Start index location in main Profile, where we store the file size value of user's data file. ( 4 bytes max).
 
 	// Where we see +4 (-4) or +2, these are the number of bytes at the start of "ProfileVec" (4 bytes: 0xFF, 0xD8, 0xFF, 0xE2) 
 	// and "ProfileBlockVec" (2 bytes: 0xFF, 0xE2), just before the default "BLOCK_SIZE" bytes: 0xFF, 0xFF, where the block count starts from. 
 
 	if (BLOCK_SIZE + 4 >= VECTOR_SIZE) {
 
-		// Seems we are dealing with a small data file, all content fits within the main Profile block. 
-		// No need to insert any "ProfileBlockVec's" for this file. Finish up, skip the "While loop" and write the "embedded" image output file, exit program.
-		// Update Profile block size of "ProfileVec", as it is smaller than the set default (0xFFFF).
+		// Seems we are dealing with a small data file. All data content fits within the main 65KB Profile block. 
+		// Finish up, skip the "While loop" and write the "embedded" image out to file, exit program.
 		
+		// Update Profile block size of "ProfileVec", as it is smaller than the set default (0xFFFF).
 		insertValue(ProfileVec, profileMainBlockSizeIndex, VECTOR_SIZE - 4, bits);
+
+		// Even though no more Profile blocks are required, to prevent GIMP from displaying an error message regarding an invalid icc profile, 
+		// we insert a single "ProfileBlockVec" with a minimum size of 16 bytes at the end of the data file, just before start of JPG image.
+		insertValue(ProfileBlockVec, profileBlockSizeIndex, 16, bits);  
+		ProfileVec.insert(ProfileVec.begin() + VECTOR_SIZE, ProfileBlockVec.begin(), ProfileBlockVec.end()); // Insert final "ProfileBlockVec".
+		
+		profileCount = 1;
+		// Insert final profileCount value into "ProfileVec".
+		insertValue(ProfileVec, profileCountIndex, profileCount, bits);
+
 		bits = 32;
 		// Insert file size value of user's data file into "ProfileVec".
 		insertValue(ProfileVec, profileDataSizeIndex, DATA_SIZE, bits);
 	}
 
-	// Insert "ProfileBlockVec" contents in data file, at every "BLOCK_SIZE", or whatever remaining data size that's under "BLOCK_SIZE", until end of file.
+	// Insert "ProfileBlockVec" contents in data file at every "BLOCK_SIZE", or whatever remaining data size that is below "BLOCK_SIZE", until end of file.
 	if (VECTOR_SIZE > BLOCK_SIZE + 4) {
 
 		bool isMoreData = true;
@@ -418,7 +381,44 @@ void readFilesIntoVectors(std::ifstream& readImage, std::ifstream& readFile, con
 	std::cout << "\nCreated output file: \"" + EMBEDDED_IMAGE_FILE + "\"\n";
 }
 
-void insertValue(std::vector<unsigned char>& vec, ptrdiff_t valueInsertIndex, const size_t& VALUE, int bits) {
+std::string encryptDecrypt(const std::vector<BYTE>& IN_VEC, std::vector<BYTE>& outVec, const std::string& IN_NAME, const size_t& DATA_SIZE, bool isEncrypt) {
+
+	const std::string XOR_KEY = "\xFF\xD8\xFF\xE2\xFF\xFF";	// String used to xor encrypt/decrypt filename.
+
+	const int NAME_LENGTH = static_cast<int>(IN_NAME.length());	// Length of filename
+	
+	std::string outName;
+
+	int
+		xorKeyPos = 0,	// Character position variable for XOR_KEY string.
+		nameKeyPos = 0,	// Character position variable for filename string (outName / IN_NAME).
+		insertPos = 0;  // Character position variable of where to insert each byte of user data file into "outVec" vector.
+
+	while (DATA_SIZE > insertPos) {
+		
+		if (insertPos >= NAME_LENGTH) {								
+			nameKeyPos = nameKeyPos > NAME_LENGTH ? 0 : nameKeyPos;		// Reset filename character position to the start if is has reached last character.
+		}
+		else {
+			xorKeyPos = xorKeyPos > XOR_KEY.length() ? 0 : xorKeyPos;	// Reset XOR_KEY position to the start if it has reached last character.
+			outName += IN_NAME[insertPos] ^ XOR_KEY[xorKeyPos++];		// xor each character of filename against characters of XOR_KEY string. Store in "outName".
+		}
+
+		if (isEncrypt) {
+			// xor each byte of the unencrypted data file from "IN_VEC" against each character of the encrypted filename, from "outName". Store in "outVec".
+			outVec.emplace_back(IN_VEC[insertPos++] ^ outName[nameKeyPos++]);
+			// outVec.insert(outVec.begin() + insertPos++, IN_VEC[insertPos] ^ outName[nameKeyPos++]); 
+		}
+		else {
+			// xor each byte of the encrypted data file from "IN_VEC" against each character of the encrypted filename, this time from "IN_NAME". store in "outVec".
+			outVec.emplace_back(IN_VEC[insertPos++] ^ IN_NAME[nameKeyPos++]);
+			// outVec.insert(outVec.begin() + insertPos++, IN_VEC[insertPos] ^ IN_NAME[nameKeyPos++]);
+		}
+	}
+	return outName;
+}
+
+void insertValue(std::vector<unsigned char>& vec, int valueInsertIndex, const size_t& VALUE, int bits) {
 
 	while (bits) vec[valueInsertIndex++] = (VALUE >> (bits -= 8)) & 0xff;
 }
