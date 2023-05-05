@@ -1,4 +1,4 @@
-//	JPG Data Vehicle for Reddit, (JDVRDT v1.0). Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
+//	JPG Data Vehicle for Reddit, (JDVRDT v1.1). Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
 
 #include <algorithm>
 #include <fstream>
@@ -129,15 +129,15 @@ void processEmbeddedImage(char* argv[]) {
 
 	std::vector<BYTE> ImageVec((std::istreambuf_iterator<char>(readImage)), std::istreambuf_iterator<char>());
 
-	const int					// Most values here relate to the contents of the vector "ImageVec".
+	const int			// Most values here relate to the contents of the vector "ImageVec".
 		PROFILE_SIG_INDEX = 6,	// ICC Profile signature start index location.
 		PROFILE_LENGTH = 18,	// Length value of the inserted ICC "ProfileBlockVec". We need to remove all of these from the data file.
-		JDV_SIG_INDEX = 25,		// This programs signature start index location. 
+		JDV_SIG_INDEX = 25,	// This programs signature start index location. 
 		NAME_LENGTH_INDEX = 32,	// Index location for length value of filename for user's data file.
-		NAME_INDEX = 33,		// Start index location of filename for user's data file.
+		NAME_INDEX = 33,	// Start index location of filename for user's data file.
 		ICC_COUNT_INDEX = 72,	// Value index location for the total number of inserted ICC Profile blocks ("ProfileBlockVec").
 		DATA_SIZE_INDEX = 88,	// Start index location for the size value of the user's data file.
-		DATA_INDEX = 152,  		// Start index location of user's data file within the main ICC Profile.
+		DATA_INDEX = 152,  	// Start index location of user's data file within the main ICC Profile.
 		
 		// Get embedded filename length value from "ImageVec" stored within the main Profile.
 		ENCRYPTED_NAME_LENGTH = ImageVec[NAME_LENGTH_INDEX], 
@@ -147,10 +147,10 @@ void processEmbeddedImage(char* argv[]) {
 	int profileCount = ImageVec[ICC_COUNT_INDEX] << 8 | ImageVec[ICC_COUNT_INDEX + 1];  // Get ICC Profile insert count value from "ImageVec" stored in main Profile.
 
 	const std::string
-		PROFILE_SIG = "ICC_PROFILE",			// Signature string for JPG Profile.
-		JDV_SIG = "JDVRdT",						// Signature string for this program.
-		PROFILE_CHECK{ ImageVec.begin() + PROFILE_SIG_INDEX, ImageVec.begin() + PROFILE_SIG_INDEX + PROFILE_SIG.length() }, // Get ICC signature from vector "ImageVec".
-		JDV_CHECK{ ImageVec.begin() + JDV_SIG_INDEX, ImageVec.begin() + JDV_SIG_INDEX + JDV_SIG.length() },					// Get JDV signature from vector "ImageVec".
+		PROFILE_SIG = "ICC_PROFILE",	// Signature string for JPG Profile.
+		JDV_SIG = "JDVRdT",		// Signature string for this program.
+		PROFILE_CHECK{ ImageVec.begin() + PROFILE_SIG_INDEX, ImageVec.begin() + PROFILE_SIG_INDEX + PROFILE_SIG.length() }, 	// Get ICC signature from vector "ImageVec".
+		JDV_CHECK{ ImageVec.begin() + JDV_SIG_INDEX, ImageVec.begin() + JDV_SIG_INDEX + JDV_SIG.length() },			// Get JDV signature from vector "ImageVec".
 		ENCRYPTED_NAME = { ImageVec.begin() + NAME_INDEX, ImageVec.begin() + NAME_INDEX + ImageVec[NAME_LENGTH_INDEX] };	// Get encrypted filename stored in vector "ImageVec".
 
 	if (PROFILE_CHECK != PROFILE_SIG || JDV_CHECK != JDV_SIG) {
@@ -238,9 +238,9 @@ void readFilesIntoVectors(std::ifstream& readImage, std::ifstream& readFile, con
 	EncryptedVec.reserve(DATA_SIZE);
 
 	const std::string
-		TXT_NUM = std::to_string(sub - argc),			// If we embed multiple files (max 5), each outputted image will be differentiated by a number in the name, 
-		EMBEDDED_IMAGE_FILE = "jdvimg" + TXT_NUM + ".jpg",  // jdvimg1.jpg, jdvimg2.jpg, jdvimg3.jpg, etc.
-		JPG_SIG = "\xFF\xD8\xFF",							// JPG image signature. 
+		TXT_NUM = std::to_string(sub - argc),			// If we embed multiple files (max 5), each outputted image will be differentiated by a 
+		EMBEDDED_IMAGE_FILE = "jdvimg" + TXT_NUM + ".jpg",  	// number in the name, jdvimg1.jpg, jdvimg2.jpg, jdvimg3.jpg, etc.
+		JPG_SIG = "\xFF\xD8\xFF",				// JPG image signature. 
 		JPG_CHECK{ ImageVec.begin(), ImageVec.begin() + JPG_SIG.length() };	// Get image header from vector. 
 
 	// Make sure image file has valid JPG header.
@@ -277,8 +277,8 @@ void readFilesIntoVectors(std::ifstream& readImage, std::ifstream& readFile, con
 
 	const int
 		PROFILE_NAME_LENGTH_INDEX = 32, // Index location inside the main Profile to store the length value of the embedded data's filename.
-		PROFILE_NAME_INDEX = 33,		// Start index inside the main Profile to store the filename for the embedded data file.
-		PROFILE_VEC_SIZE = 152;			// Byte size of main Profile. User's data file is stored after the main Profile content.
+		PROFILE_NAME_INDEX = 33,	// Start index inside the main Profile to store the filename for the embedded data file.
+		PROFILE_VEC_SIZE = 152;		// Byte size of main Profile. User's data file is stored after the main Profile content.
 	
 	bool isEncrypt = true; // Set to encrypt.
 
@@ -299,15 +299,15 @@ void readFilesIntoVectors(std::ifstream& readImage, std::ifstream& readFile, con
 
 	const int 
 		VECTOR_SIZE = static_cast<int>(ProfileVec.size()),	// Get updated size for "ProfileVec" after adding data file.
-		BLOCK_SIZE = 65535;									// ICC Profile default block size (0xFFFF).
+		BLOCK_SIZE = 65535;					// ICC Profile default block size (0xFFFF).
 
-	int bits = 16,						// Variable used with the "insertValue" function.
-		tallySize = 2,					// Keep count of how much data we have traversed while inserting "ProfileBlockVec" at every "BLOCK_SIZE" within "ProfileVec". 
-		profileCount = 0,				// Keep count of how many ICC Profile blocks ("ProfileBlockVec") we insert into the data file.
+	int bits = 16,				// Variable used with the "insertValue" function.
+		tallySize = 2,			// Keep count of how much data we have traversed while inserting "ProfileBlockVec" at every "BLOCK_SIZE" within "ProfileVec". 
+		profileCount = 0,		// Keep count of how many ICC Profile blocks ("ProfileBlockVec") we insert into the data file.
 		profileMainBlockSizeIndex = 4,  // "ProfileVec" start index location for it's 2 byte block size field.
-		profileBlockSizeIndex = 2,		// "ProfileBlockVec" start index location for it's 2 block size field.
-		profileCountIndex = 72,			// Start index location in main Profile, where we store the value of the total number of inserted ICC Profile blocks (2 bytes max).
-		profileDataSizeIndex = 88;		// Start index location in main Profile, where we store the file size value of user's data file. ( 4 bytes max).
+		profileBlockSizeIndex = 2,	// "ProfileBlockVec" start index location for it's 2 block size field.
+		profileCountIndex = 72,		// Start index location in main Profile, where we store the value of the total number of inserted ICC Profile blocks (2 bytes max).
+		profileDataSizeIndex = 88;	// Start index location in main Profile, where we store the file size value of user's data file. ( 4 bytes max).
 
 	// Where we see +4 (-4) or +2, these are the number of bytes at the start of "ProfileVec" (4 bytes: 0xFF, 0xD8, 0xFF, 0xE2) 
 	// and "ProfileBlockVec" (2 bytes: 0xFF, 0xE2), just before the default "BLOCK_SIZE" bytes: 0xFF, 0xFF, where the block count starts from. 
@@ -383,7 +383,7 @@ void readFilesIntoVectors(std::ifstream& readImage, std::ifstream& readFile, con
 
 std::string encryptDecrypt(const std::vector<BYTE>& IN_VEC, std::vector<BYTE>& outVec, const std::string& IN_NAME, const size_t& DATA_SIZE, bool isEncrypt) {
 
-	const std::string XOR_KEY = "\xFF\xD8\xFF\xE2\xFF\xFF";	// String used to xor encrypt/decrypt filename.
+	const std::string XOR_KEY = "\xFF\xD8\xFF\xE2\xFF\xFF";		// String used to xor encrypt/decrypt filename.
 
 	const int NAME_LENGTH = static_cast<int>(IN_NAME.length());	// Length of filename
 	
@@ -426,7 +426,7 @@ void insertValue(std::vector<unsigned char>& vec, int valueInsertIndex, const si
 void displayInfo() {
 
 	std::cout << R"(
-JPG Data Vehicle for Reddit, (jdvrdt v1.0). Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023.
+JPG Data Vehicle for Reddit, (jdvrdt v1.1). Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023.
 
 jdvrdt enables you to embed & extract arbitrary data of upto ~20MB within a single JPG image.
 
