@@ -301,7 +301,8 @@ void readFilesIntoVectors(std::ifstream& readImage, std::ifstream& readFile, con
 		VECTOR_SIZE = static_cast<int>(ProfileVec.size()),	// Get updated size for "ProfileVec" after adding data file.
 		BLOCK_SIZE = 65535;					// ICC Profile default block size (0xFFFF).
 
-	int bits = 16,				// Variable used with the "insertValue" function.
+	int 
+		bits = 16,			// Variable used with the "insertValue" function.
 		tallySize = 2,			// Keep count of how much data we have traversed while inserting "ProfileBlockVec" at every "BLOCK_SIZE" within "ProfileVec". 
 		profileCount = 0,		// Keep count of how many ICC Profile blocks ("ProfileBlockVec") we insert into the data file.
 		profileMainBlockSizeIndex = 4,  // "ProfileVec" start index location for it's 2 byte block size field.
@@ -397,7 +398,7 @@ std::string encryptDecrypt(const std::vector<BYTE>& IN_VEC, std::vector<BYTE>& o
 	while (DATA_SIZE > insertPos) {
 		
 		if (insertPos >= NAME_LENGTH) {								
-			nameKeyPos = nameKeyPos > NAME_LENGTH ? 0 : nameKeyPos;		// Reset filename character position to the start if is has reached last character.
+			nameKeyPos = nameKeyPos > NAME_LENGTH ? 0 : nameKeyPos;		// Reset filename character position to the start if it has reached last character.
 		}
 		else {
 			xorKeyPos = xorKeyPos > XOR_KEY.length() ? 0 : xorKeyPos;	// Reset XOR_KEY position to the start if it has reached last character.
@@ -407,12 +408,10 @@ std::string encryptDecrypt(const std::vector<BYTE>& IN_VEC, std::vector<BYTE>& o
 		if (isEncrypt) {
 			// xor each byte of the unencrypted data file from "IN_VEC" against each character of the encrypted filename, from "outName". Store in "outVec".
 			outVec.emplace_back(IN_VEC[insertPos++] ^ outName[nameKeyPos++]);
-			// outVec.insert(outVec.begin() + insertPos++, IN_VEC[insertPos] ^ outName[nameKeyPos++]); 
 		}
 		else {
 			// xor each byte of the encrypted data file from "IN_VEC" against each character of the encrypted filename, this time from "IN_NAME". store in "outVec".
 			outVec.emplace_back(IN_VEC[insertPos++] ^ IN_NAME[nameKeyPos++]);
-			// outVec.insert(outVec.begin() + insertPos++, IN_VEC[insertPos] ^ IN_NAME[nameKeyPos++]);
 		}
 	}
 	return outName;
