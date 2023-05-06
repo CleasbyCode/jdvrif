@@ -15,13 +15,13 @@ void processFiles(char* [], int, int, const std::string&);
 void processEmbeddedImage(char* []);
 
 // Read in and store jpg image & data file into vectors..
-void readFilesIntoVectors(std::ifstream&, std::ifstream&, const std::string&, const std::string&, const ptrdiff_t&, const ptrdiff_t&, int, int);
+void readFilesIntoVectors(std::ifstream&, std::ifstream&, const std::string&, const std::string&, const ptrdiff_t, const ptrdiff_t, int, int);
 
 // Encrypt or decrypt (simple xor) user's data file and its filename.
-std::string encryptDecrypt(const std::vector<BYTE>&, std::vector<BYTE>&, const std::string&, const size_t&, bool);
+std::string encryptDecrypt(const std::vector<BYTE>&, std::vector<BYTE>&, const std::string&, const size_t, bool);
 
 // Insert values, such as block size, file sizes and other values into relevant vector index locations.
-void insertValue(std::vector<BYTE>&, int, const size_t&, int);
+void insertValue(std::vector<BYTE>&, int, const size_t, int);
 
 // Display program infomation
 void displayInfo();
@@ -199,7 +199,7 @@ void processEmbeddedImage(char* argv[]) {
 	std::cout << "\nExtracted file: \"" + decryptedName + " " << ImageVec.size() << " " << "Bytes\"\n";
 }
 
-void readFilesIntoVectors(std::ifstream& readImage, std::ifstream& readFile, const std::string& IMAGE_FILE, const std::string& DATA_FILE, const ptrdiff_t& IMAGE_SIZE, const ptrdiff_t& DATA_SIZE, int argc, int sub) {
+void readFilesIntoVectors(std::ifstream& readImage, std::ifstream& readFile, const std::string& IMAGE_FILE, const std::string& DATA_FILE, const ptrdiff_t IMAGE_SIZE, const ptrdiff_t DATA_SIZE, int argc, int sub) {
 
 	// Reset position of files. 
 	readImage.seekg(0, readImage.beg),
@@ -382,7 +382,7 @@ void readFilesIntoVectors(std::ifstream& readImage, std::ifstream& readFile, con
 	std::cout << "\nCreated output file: \"" + EMBEDDED_IMAGE_FILE + "\"\n";
 }
 
-std::string encryptDecrypt(const std::vector<BYTE>& IN_VEC, std::vector<BYTE>& outVec, const std::string& IN_NAME, const size_t& DATA_SIZE, bool isEncrypt) {
+std::string encryptDecrypt(const std::vector<BYTE>& IN_VEC, std::vector<BYTE>& outVec, const std::string& IN_NAME, const size_t DATA_SIZE, bool isEncrypt) {
 
 	const std::string XOR_KEY = "\xFF\xD8\xFF\xE2\xFF\xFF";		// String used to xor encrypt/decrypt filename.
 
@@ -417,7 +417,7 @@ std::string encryptDecrypt(const std::vector<BYTE>& IN_VEC, std::vector<BYTE>& o
 	return outName;
 }
 
-void insertValue(std::vector<unsigned char>& vec, int valueInsertIndex, const size_t& VALUE, int bits) {
+void insertValue(std::vector<unsigned char>& vec, int valueInsertIndex, const size_t VALUE, int bits) {
 
 	while (bits) vec[valueInsertIndex++] = (VALUE >> (bits -= 8)) & 0xff;
 }
