@@ -153,7 +153,7 @@ void checkFileSize(std::ifstream& readImage, std::ifstream& readFile, jdvStruct 
 void checkEmbeddedImage(std::ifstream& readImage, jdvStruct &jdv) {
 
 	// Read-in and store embedded image file into vector "EmbdImageVec".
-	jdv.EmbdImageVec.resize(jdv.IMAGE_SIZE / sizeof(unsigned char));
+	jdv.EmbdImageVec.resize(jdv.IMAGE_SIZE / sizeof(BYTE));
 	readImage.read((char*)&jdv.EmbdImageVec[0], jdv.IMAGE_SIZE);
 
 	const int JDV_SIG_INDEX = 25;	// Signature index location within vector "EmbdImageVec". 
@@ -246,11 +246,11 @@ void configureVectors(std::ifstream& readImage, std::ifstream& readFile, jdvStru
 	};
 	
 	// Read-in and store JPG image file into vector "ImageVec".
-	jdv.ImageVec.resize(jdv.IMAGE_SIZE / sizeof(unsigned char));
+	jdv.ImageVec.resize(jdv.IMAGE_SIZE / sizeof(BYTE));
 	readImage.read((char*)&jdv.ImageVec[0], jdv.IMAGE_SIZE);
 
 	// Read-in and store user's data file into vector "FileVec".
-	jdv.FileVec.resize(jdv.FILE_SIZE / sizeof(unsigned char));
+	jdv.FileVec.resize(jdv.FILE_SIZE / sizeof(BYTE));
 	readFile.read((char*)&jdv.FileVec[0], jdv.FILE_SIZE);
 
 	// This vector will be used to store the users encrypted data file.
