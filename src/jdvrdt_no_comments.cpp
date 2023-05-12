@@ -1,4 +1,4 @@
-//	JPG Data Vehicle for Reddit, (JDVRDT v1.1). Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
+//	JPG Data Vehicle for Reddit, (JDVRDT v1.2). Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
 
 #include <algorithm>
 #include <fstream>
@@ -8,34 +8,48 @@
 
 typedef unsigned char BYTE;
 
-void processFiles(char* [], int, int, const std::string&);
-void processEmbeddedImage(char* []);
-void readFilesIntoVectors(std::ifstream&, std::ifstream&, const std::string&, const std::string&, const ptrdiff_t, const ptrdiff_t, int, int);
-std::string encryptDecrypt(const std::vector<BYTE>&, std::vector<BYTE>&, const std::string&, const size_t, bool);
-void insertValue(std::vector<BYTE>&, int, const size_t, int);
-void displayInfo();
+struct jdvStruct {
+	std::vector<BYTE> ImageVec, FileVec, ProfileVec, ProfileBlockVec, EmbdImageVec, EncryptedVec, DecryptedVec;
+	std::string IMAGE_NAME, FILE_NAME, MODE;
+	size_t IMAGE_SIZE{},FILE_SIZE{};
+	int imgVal{}, subVal{};
+};
 
-const std::string READ_ERR_MSG = "\nRead Error: Unable to open/read file: ";
+void openFiles(char* [], jdvStruct &jdv);
+void checkFileSize(std::ifstream&, std::ifstream&, jdvStruct &jdv);
+void checkEmbeddedImage(std::ifstream&, jdvStruct &jdv);
+void removeProfileHeaders(jdvStruct& jdv);
+void configureVectors(std::ifstream&, std::ifstream&, jdvStruct& jdv);
+void removeImageHeader(jdvStruct &jdv);
+void encryptDecrypt(jdvStruct& jdv);
+void insertProfileBlocks(jdvStruct &jdv);
+void writeOutFile(jdvStruct& jdv);
+void updateValue(std::vector<BYTE>&, int, const size_t, int);
+void displayInfo();
 
 int main(int argc, char** argv) {
 
+	jdvStruct jdv;
+	
 	if (argc == 2 && std::string(argv[1]) == "--info") {
 		argc = 0;
 		displayInfo();
 	}
-	else if (argc >= 4 && argc < 9 && std::string(argv[1]) == "-i") {
-		int sub = argc - 1;
+	else if (argc >= 4 && argc < 9 && std::string(argv[1]) == "-i") { 
+		jdv.MODE = argv[1], jdv.subVal = argc - 1, jdv.IMAGE_NAME = argv[2];
 		argc -= 2;
-		const std::string IMAGE_FILE = argv[2];
-		while (argc != 1) {
-			processFiles(argv++, argc, sub, IMAGE_FILE);
+		while (argc != 1) {  
+			jdv.imgVal = argc, jdv.FILE_NAME = argv[3];
+			openFiles(argv++, jdv);
 			argc--;
 		}
 		argc = 1;
 	}
-	else if (argc >= 3 && argc < 8 && std::string(argv[1]) == "-x") {
-		while (argc >= 3) {
-			processEmbeddedImage(argv++);
+	else if (argc >= 3 && argc < 8 && std::string(argv[1]) == "-x") { 
+		jdv.MODE = argv[1];
+		while (argc >= 3) {  
+			jdv.IMAGE_NAME = argv[2];
+			openFiles(argv++, jdv);
 			argc--;
 		}
 	}
@@ -45,220 +59,260 @@ int main(int argc, char** argv) {
 	}
 	if (argc != 0) {
 		if (argc == 2) {
-			std::cout << "\nComplete!\n\n";
+			std::cout << "\nComplete! Please check your extracted file(s).\n\n";
 		}
 		else {
-			std::cout << "\nComplete!\n\nYou can now post your file-embedded jpg image(s) on reddit.\n\n";
+			std::cout << "\nComplete!\n\nYou can now post your \"file-embedded\" JPG image(s) on reddit.\n\n";
 		}
 	}
 	return 0;
 }
 
-void processFiles(char* argv[], int argc, int sub, const std::string& IMAGE_FILE) {
+void openFiles(char* argv[], jdvStruct &jdv) {
 
-	const std::string DATA_FILE = argv[3];
+	const std::string READ_ERR_MSG = "\nRead Error: Unable to open/read file: ";
 
 	std::ifstream
-		readImage(IMAGE_FILE, std::ios::binary),
-		readFile(DATA_FILE, std::ios::binary);
+		readImage(jdv.IMAGE_NAME, std::ios::binary),
+		readFile(jdv.FILE_NAME, std::ios::binary);
 
-	if (!readImage || !readFile) {
-
-		const std::string ERR_MSG = !readImage ? READ_ERR_MSG + "\"" + IMAGE_FILE + "\"\n\n" : READ_ERR_MSG + "\"" + DATA_FILE + "\"\n\n";
+	if (jdv.MODE == "-i" && (!readImage || !readFile) || jdv.MODE == "-x" && !readImage) {
+		
+		const std::string ERR_MSG = !readImage ? READ_ERR_MSG + "\"" + jdv.IMAGE_NAME + "\"\n\n" : READ_ERR_MSG + "\"" + jdv.FILE_NAME + "\"\n\n";
 
 		std::cerr << ERR_MSG;
 		std::exit(EXIT_FAILURE);
 	}
-
-	const int
-		MAX_JPG_SIZE_BYTES = 20971520,		
-		MAX_DATAFILE_SIZE_BYTES = 20971520;	
 
 	readImage.seekg(0, readImage.end),
 	readFile.seekg(0, readFile.end);
 
-	const ptrdiff_t
-		IMAGE_SIZE = readImage.tellg(),
-		DATA_SIZE = readFile.tellg();
+	jdv.IMAGE_SIZE = readImage.tellg();
+	jdv.FILE_SIZE = readFile.tellg();
 
-	if ((IMAGE_SIZE + DATA_SIZE) > MAX_JPG_SIZE_BYTES
-		|| DATA_SIZE > MAX_DATAFILE_SIZE_BYTES) {
+	readImage.seekg(0, readImage.beg),
+	readFile.seekg(0, readFile.beg);
+
+	if (jdv.MODE == "-i") { 
+		checkFileSize(readImage, readFile, jdv);
+	}
+	else { 
+		checkEmbeddedImage(readImage, jdv);
+	}
+}
+
+void checkFileSize(std::ifstream& readImage, std::ifstream& readFile, jdvStruct &jdv) {
+	
+	const int
+		MAX_JPG_SIZE_BYTES = 20971520,		
+		MAX_DATAFILE_SIZE_BYTES = 20971520;	
+
+	if ((jdv.IMAGE_SIZE + jdv.FILE_SIZE) > MAX_JPG_SIZE_BYTES
+		|| jdv.FILE_SIZE > MAX_DATAFILE_SIZE_BYTES) {
 
 		const std::string
-			SIZE_ERR_JPG = "\nImage Size Error: JPG image (+including embedded file size) must not exceed 20MB.\n\n",
-			SIZE_ERR_DATA = "\nFile Size Error: Your data file must not exceed 20MB.\n\n",
+			SIZE_ERR_IMAGE = "\nImage Size Error: JPG image (+including embedded file size) must not exceed 20MB.\n\n",
+			SIZE_ERR_FILE = "\nFile Size Error: Your data file must not exceed 20MB.\n\n",
 
-			ERR_MSG = IMAGE_SIZE + MAX_DATAFILE_SIZE_BYTES > MAX_JPG_SIZE_BYTES ? SIZE_ERR_JPG : SIZE_ERR_DATA;
+			ERR_MSG = jdv.IMAGE_SIZE + MAX_DATAFILE_SIZE_BYTES > MAX_JPG_SIZE_BYTES ? SIZE_ERR_IMAGE : SIZE_ERR_FILE;
 
 		std::cerr << ERR_MSG;
 		std::exit(EXIT_FAILURE);
 	}
 
-	readFilesIntoVectors(readImage, readFile, IMAGE_FILE, DATA_FILE, IMAGE_SIZE, DATA_SIZE, argc, sub);
+	configureVectors(readImage, readFile, jdv);
 }
 
-void processEmbeddedImage(char* argv[]) {
+void checkEmbeddedImage(std::ifstream& readImage, jdvStruct &jdv) {
 
-	const std::string IMAGE_FILE = argv[2];
+	jdv.EmbdImageVec.resize(jdv.IMAGE_SIZE / sizeof(unsigned char));
+	readImage.read((char*)&jdv.EmbdImageVec[0], jdv.IMAGE_SIZE);
 
-	if (IMAGE_FILE == "." || IMAGE_FILE == "/") std::exit(EXIT_FAILURE);
+	const int JDV_SIG_INDEX = 25;	
 	
-	std::ifstream readImage(IMAGE_FILE, std::ios::binary);
-
-	if (!readImage) {
-		std::cerr << "\nRead Error: Unable to open/read file: \"" + IMAGE_FILE + "\"\n\n";
-		std::exit(EXIT_FAILURE);
-	}
-
-	std::vector<BYTE> ImageVec((std::istreambuf_iterator<char>(readImage)), std::istreambuf_iterator<char>());
-
-	const int			
-		PROFILE_SIG_INDEX = 6,	
-		PROFILE_LENGTH = 18,	
-		JDV_SIG_INDEX = 25,	
-		NAME_LENGTH_INDEX = 32,	
-		NAME_INDEX = 33,	
-		ICC_COUNT_INDEX = 72,	
-		DATA_SIZE_INDEX = 88,	
-		DATA_INDEX = 152,  	
-		
-		ENCRYPTED_NAME_LENGTH = ImageVec[NAME_LENGTH_INDEX], 
-		PROFILE_DATA_SIZE = ImageVec[DATA_SIZE_INDEX] << 24 | ImageVec[DATA_SIZE_INDEX + 1] << 16 | ImageVec[DATA_SIZE_INDEX + 2] << 8 | ImageVec[DATA_SIZE_INDEX + 3]; 
-
-	int profileCount = ImageVec[ICC_COUNT_INDEX] << 8 | ImageVec[ICC_COUNT_INDEX + 1];  
-
 	const std::string
-		PROFILE_SIG = "ICC_PROFILE",	
-		JDV_SIG = "JDVRdT",		
-		PROFILE_CHECK{ ImageVec.begin() + PROFILE_SIG_INDEX, ImageVec.begin() + PROFILE_SIG_INDEX + PROFILE_SIG.length() }, 	
-		JDV_CHECK{ ImageVec.begin() + JDV_SIG_INDEX, ImageVec.begin() + JDV_SIG_INDEX + JDV_SIG.length() },			
-		ENCRYPTED_NAME = { ImageVec.begin() + NAME_INDEX, ImageVec.begin() + NAME_INDEX + ImageVec[NAME_LENGTH_INDEX] };	
-
-	if (PROFILE_CHECK != PROFILE_SIG || JDV_CHECK != JDV_SIG) {
-		std::cerr << "\nImage Error: Image file \"" << IMAGE_FILE << "\" does not appear to be a JDVRdT file-embedded image.\n\n";
+		JDV_SIG = "JDVRdT",	
+		JDV_CHECK{ jdv.EmbdImageVec.begin() + JDV_SIG_INDEX, jdv.EmbdImageVec.begin() + JDV_SIG_INDEX + JDV_SIG.length() };	
+	
+	if (JDV_CHECK != JDV_SIG) {
+		std::cerr << "\nImage Error: Image file \"" << jdv.IMAGE_NAME << "\" does not appear to be a JDVRdT file-embedded image.\n\n";
 		std::exit(EXIT_FAILURE);
 	}
+	removeProfileHeaders(jdv);
+}
 
-	ImageVec.erase(ImageVec.begin(), ImageVec.begin() + DATA_INDEX);
+void removeProfileHeaders(jdvStruct &jdv) {
+	
+	const int
+		PROFILE_HEADER_LENGTH = 18,	
+		NAME_LENGTH_INDEX = 32,		
+		NAME_INDEX = 33,		
+		PROFILE_COUNT_INDEX = 72,	
+		FILE_SIZE_INDEX = 88,		
+		FILE_INDEX = 152,  		
+		ENCRYPTED_NAME_LENGTH = jdv.EmbdImageVec[NAME_LENGTH_INDEX], 
+		FILE_SIZE = jdv.EmbdImageVec[FILE_SIZE_INDEX] << 24 | jdv.EmbdImageVec[FILE_SIZE_INDEX + 1] << 16 | jdv.EmbdImageVec[FILE_SIZE_INDEX + 2] << 8 | jdv.EmbdImageVec[FILE_SIZE_INDEX + 3];
 
-	ptrdiff_t foundProfileIndex = 0;
+	const std::string PROFILE_SIG = "ICC_PROFILE";	
+	
+	int profileCount = jdv.EmbdImageVec[PROFILE_COUNT_INDEX] << 8 | jdv.EmbdImageVec[PROFILE_COUNT_INDEX + 1];
+
+	jdv.FILE_NAME = { jdv.EmbdImageVec.begin() + NAME_INDEX, jdv.EmbdImageVec.begin() + NAME_INDEX + jdv.EmbdImageVec[NAME_LENGTH_INDEX] };
+
+	jdv.EmbdImageVec.erase(jdv.EmbdImageVec.begin(), jdv.EmbdImageVec.begin() + FILE_INDEX);
+
+	ptrdiff_t headerIndex = 0; 
 
 	while (profileCount--) {
-		foundProfileIndex = search(ImageVec.begin() + foundProfileIndex, ImageVec.end(), PROFILE_SIG.begin(), PROFILE_SIG.end()) - ImageVec.begin() - 4;
-		ImageVec.erase(ImageVec.begin() + foundProfileIndex, ImageVec.begin() + foundProfileIndex + PROFILE_LENGTH);
+		headerIndex = search(jdv.EmbdImageVec.begin() + headerIndex, jdv.EmbdImageVec.end(), PROFILE_SIG.begin(), PROFILE_SIG.end()) - jdv.EmbdImageVec.begin() - 4;
+		jdv.EmbdImageVec.erase(jdv.EmbdImageVec.begin() + headerIndex, jdv.EmbdImageVec.begin() + headerIndex + PROFILE_HEADER_LENGTH);
 	}
 	
-	ImageVec.erase(ImageVec.begin() + PROFILE_DATA_SIZE, ImageVec.end());
+	jdv.EmbdImageVec.erase(jdv.EmbdImageVec.begin() + FILE_SIZE, jdv.EmbdImageVec.end());
 
-	std::vector<BYTE> DecryptedFileVec;
-	DecryptedFileVec.reserve(PROFILE_DATA_SIZE);
+	jdv.DecryptedVec.reserve(FILE_SIZE);
+	
+	jdv.EmbdImageVec.swap(jdv.FileVec);
 
-	bool isEncrypt = false; 
-
-	std::string decryptedName = encryptDecrypt(ImageVec, DecryptedFileVec, ENCRYPTED_NAME, PROFILE_DATA_SIZE, isEncrypt);
-
-	if (decryptedName.substr(0, 4) != "jdv_") {
-		decryptedName = "jdv_" + decryptedName;
-	}
-
-	std::ofstream writeFile(decryptedName, std::ios::binary);
-
-	if (!writeFile) {
-		std::cerr << "\nWrite Error: Unable to write to file.\n\n";
-		std::exit(EXIT_FAILURE);
-	}
-
-	writeFile.write((char*)&DecryptedFileVec[0], ImageVec.size());
-
-	std::cout << "\nExtracted file: \"" + decryptedName + " " << ImageVec.size() << " " << "Bytes\"\n";
+	encryptDecrypt(jdv);
 }
 
-void readFilesIntoVectors(std::ifstream& readImage, std::ifstream& readFile, const std::string& IMAGE_FILE, const std::string& DATA_FILE, const ptrdiff_t IMAGE_SIZE, const ptrdiff_t DATA_SIZE, int argc, int sub) {
+void configureVectors(std::ifstream& readImage, std::ifstream& readFile, jdvStruct &jdv) {
 
-	readImage.seekg(0, readImage.beg),
-	readFile.seekg(0, readFile.beg);
+	jdv.ProfileVec = {
+		0xFF, 0xD8, 0xFF, 0xE2, 0xFF, 0xFF, 0x49, 0x43, 0x43, 0x5F, 0x50, 0x52, 0x4F, 0x46,
+		0x49, 0x4C, 0x45, 0x00, 0x01, 0x01, 0x00, 0x00, 0x00, 0x84, 0x20, 0x4A, 0x44, 0x56,
+		0x52, 0x64, 0x54, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		0x61, 0x63, 0x73, 0x70, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	};
 
-	std::vector<BYTE>
-		ProfileVec{
-			0xFF, 0xD8, 0xFF, 0xE2, 0xFF, 0xFF, 0x49, 0x43, 0x43, 0x5F, 0x50, 0x52, 0x4F, 0x46,
-			0x49, 0x4C, 0x45, 0x00, 0x01, 0x01, 0x00, 0x00, 0x00, 0x84, 0x20, 0x4A, 0x44, 0x56,
-			0x52, 0x64, 0x54, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-			0x61, 0x63, 0x73, 0x70, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
-	},
-		ProfileBlockVec
-	{
+	jdv.ProfileBlockVec = {
 			0xFF, 0xE2, 0xFF, 0xFF, 0x49, 0x43, 0x43, 0x5F, 0x50, 0x52, 0x4F, 0x46, 0x49, 0x4C,
 			0x45, 0x00, 0x01, 0x01
+	};
+	
+	jdv.ImageVec.resize(jdv.IMAGE_SIZE / sizeof(unsigned char));
+	readImage.read((char*)&jdv.ImageVec[0], jdv.IMAGE_SIZE);
 
-	},
-		ImageVec((std::istreambuf_iterator<char>(readImage)), std::istreambuf_iterator<char>()),
+	jdv.FileVec.resize(jdv.FILE_SIZE / sizeof(unsigned char));
+	readFile.read((char*)&jdv.FileVec[0], jdv.FILE_SIZE);
 
-		FileVec((std::istreambuf_iterator<char>(readFile)), std::istreambuf_iterator<char>()),
+	jdv.EncryptedVec.reserve(jdv.FILE_SIZE);
+	
+	removeImageHeader(jdv);
+}
 
-		EncryptedVec;
-
-	EncryptedVec.reserve(DATA_SIZE);
+void removeImageHeader(jdvStruct &jdv) {
 
 	const std::string
-		TXT_NUM = std::to_string(sub - argc),			
-		EMBEDDED_IMAGE_FILE = "jdvimg" + TXT_NUM + ".jpg",  	
-		JPG_SIG = "\xFF\xD8\xFF",				
-		JPG_CHECK{ ImageVec.begin(), ImageVec.begin() + JPG_SIG.length() };	
+		JPG_SIG = "\xFF\xD8\xFF",	
+		JPG_CHECK{ jdv.ImageVec.begin(), jdv.ImageVec.begin() + JPG_SIG.length() };	
 
 	if (JPG_CHECK != JPG_SIG) {
 		std::cerr << "\nImage Error: File does not appear to be a valid JPG image.\n\n";
 		std::exit(EXIT_FAILURE);
 	}
-
-	const std::vector<BYTE> DQT_SIG{ 0xFF, 0xDB };
 	
-	const ptrdiff_t DQT_POS = search(ImageVec.begin(), ImageVec.end(), DQT_SIG.begin(), DQT_SIG.end()) - ImageVec.begin();
-
-	ImageVec.erase(ImageVec.begin(), ImageVec.begin() + DQT_POS);
+	const auto DQT_SIG = { 0xFF, 0xDB };
 	
-	const size_t FIRST_SLASH_POS = DATA_FILE.find_first_of("\\/");
+	const ptrdiff_t DQT_POS = search(jdv.ImageVec.begin(), jdv.ImageVec.end(), DQT_SIG.begin(), DQT_SIG.end()) - jdv.ImageVec.begin();
 
-	const std::string NO_SLASH_NAME = DATA_FILE.substr(FIRST_SLASH_POS + 1, DATA_FILE.length());
-	
-	const size_t NO_SLASH_NAME_LENGTH = NO_SLASH_NAME.length(); 
+	jdv.ImageVec.erase(jdv.ImageVec.begin(), jdv.ImageVec.begin() + DQT_POS);
+
+	encryptDecrypt(jdv);
+}
+
+void encryptDecrypt(jdvStruct& jdv) {
+
+	const std::string XOR_KEY = "\xFF\xD8\xFF\xE2\xFF\xFF";	
+
+	if (jdv.MODE == "-i") { 
+		
+		const size_t FIRST_SLASH_POS = jdv.FILE_NAME.find_first_of("\\/");
+
+		jdv.FILE_NAME = jdv.FILE_NAME.substr(FIRST_SLASH_POS + 1, jdv.FILE_NAME.length());
+	}
 
 	const int MAX_LENGTH_FILENAME = 23;
-	
-	if (NO_SLASH_NAME_LENGTH > MAX_LENGTH_FILENAME) {
-		std::cerr << "\nFile Error: Filename length of your data file (" + std::to_string(NO_SLASH_NAME_LENGTH) + " characters) is too long.\n"
+
+	const size_t
+		NAME_LENGTH = jdv.FILE_NAME.length(),	
+		XOR_KEY_LENGTH = XOR_KEY.length(),
+		FILE_SIZE = jdv.FileVec.size();		
+
+	if (NAME_LENGTH > MAX_LENGTH_FILENAME) {
+		std::cerr << "\nFile Error: Filename length of your data file (" + std::to_string(NAME_LENGTH) + " characters) is too long.\n"
 			"\nFor compatibility requirements, your filename must be under 24 characters.\nPlease try again with a shorter filename.\n\n";
 		std::exit(EXIT_FAILURE);
 	}
 
-	const int
-		PROFILE_NAME_LENGTH_INDEX = 32, 
-		PROFILE_NAME_INDEX = 33,	
-		PROFILE_VEC_SIZE = 152;		
+	std::string
+		inName = jdv.FILE_NAME,
+		outName;
+
+	int
+		xorKeyPos = 0,		
+		nameKeyPos = 0,		
+		indexPos = 0,   	
+		bits = 8;		
 	
-	bool isEncrypt = true; 
+	while (FILE_SIZE > indexPos) {
 
-	std::string encryptedName = encryptDecrypt(FileVec, EncryptedVec, NO_SLASH_NAME, DATA_SIZE, isEncrypt);
+		if (indexPos >= NAME_LENGTH) {
+			nameKeyPos = nameKeyPos > NAME_LENGTH ? 0 : nameKeyPos;	 
+		}
+		else {
+			xorKeyPos = xorKeyPos > XOR_KEY_LENGTH ? 0 : xorKeyPos;	
+			outName += inName[indexPos] ^ XOR_KEY[xorKeyPos++];			
+		}
 
-	insertValue(ProfileVec, PROFILE_NAME_LENGTH_INDEX, NO_SLASH_NAME_LENGTH, 8);
+		if (jdv.MODE == "-i") {
+			jdv.EncryptedVec.emplace_back(jdv.FileVec[indexPos++] ^ outName[nameKeyPos++]);
+		}
+		else {
+			jdv.DecryptedVec.emplace_back(jdv.FileVec[indexPos++] ^ inName[nameKeyPos++]);
+		}
+	}
 
-	ProfileVec.erase(ProfileVec.begin() + PROFILE_NAME_INDEX, ProfileVec.begin() + encryptedName.length() + PROFILE_NAME_INDEX);
-	ProfileVec.insert(ProfileVec.begin() + PROFILE_NAME_INDEX, encryptedName.begin(), encryptedName.end());
+	if (jdv.MODE == "-i") { // Insert mode.
 
-	ProfileVec.insert(ProfileVec.begin() + PROFILE_VEC_SIZE, EncryptedVec.begin(), EncryptedVec.end());
+		const int
+			PROFILE_NAME_LENGTH_INDEX = 32, 
+			PROFILE_NAME_INDEX = 33,	
+			PROFILE_VEC_SIZE = 152;		
+		
+		updateValue(jdv.ProfileVec, PROFILE_NAME_LENGTH_INDEX, NAME_LENGTH, bits);
+		
+		jdv.ProfileVec.erase(jdv.ProfileVec.begin() + PROFILE_NAME_INDEX, jdv.ProfileVec.begin() + outName.length() + PROFILE_NAME_INDEX);
+		
+		jdv.ProfileVec.insert(jdv.ProfileVec.begin() + PROFILE_NAME_INDEX, outName.begin(), outName.end());
 
-	const int 
-		VECTOR_SIZE = static_cast<int>(ProfileVec.size()),	
-		BLOCK_SIZE = 65535;					
+		jdv.ProfileVec.insert(jdv.ProfileVec.begin() + PROFILE_VEC_SIZE, jdv.EncryptedVec.begin(), jdv.EncryptedVec.end());
 
-	int 
-		bits = 16,				
+		insertProfileBlocks(jdv);
+	}
+	else {
+		jdv.FILE_NAME = outName;
+		
+		writeOutFile(jdv);
+	}
+}
+
+void insertProfileBlocks(jdvStruct &jdv) {
+
+	const size_t
+		VECTOR_SIZE = jdv.ProfileVec.size(),	
+		BLOCK_SIZE = 65535;			
+
+	int
+		bits = 16,			
 		tallySize = 2,			
 		profileCount = 0,		
 		profileMainBlockSizeIndex = 4,  
@@ -268,18 +322,18 @@ void readFilesIntoVectors(std::ifstream& readImage, std::ifstream& readFile, con
 	
 	if (BLOCK_SIZE + 4 >= VECTOR_SIZE) {
 		
-		insertValue(ProfileVec, profileMainBlockSizeIndex, VECTOR_SIZE - 4, bits);
-		insertValue(ProfileBlockVec, profileBlockSizeIndex, 16, bits);  
+		updateValue(jdv.ProfileVec, profileMainBlockSizeIndex, VECTOR_SIZE - 4, bits);
+		updateValue(jdv.ProfileBlockVec, profileBlockSizeIndex, 16, bits);
 		
-		ProfileVec.insert(ProfileVec.begin() + VECTOR_SIZE, ProfileBlockVec.begin(), ProfileBlockVec.end()); // Insert final "ProfileBlockVec".
+		jdv.ProfileVec.insert(jdv.ProfileVec.begin() + VECTOR_SIZE, jdv.ProfileBlockVec.begin(), jdv.ProfileBlockVec.end()); 
+
+		profileCount = 1; 
 		
-		profileCount = 1;
-		
-		insertValue(ProfileVec, profileCountIndex, profileCount, bits);
+		updateValue(jdv.ProfileVec, profileCountIndex, profileCount, bits);
 
 		bits = 32;
 		
-		insertValue(ProfileVec, profileDataSizeIndex, DATA_SIZE, bits);
+		updateValue(jdv.ProfileVec, profileDataSizeIndex, jdv.FILE_SIZE, bits);
 	}
 
 	if (VECTOR_SIZE > BLOCK_SIZE + 4) {
@@ -290,83 +344,73 @@ void readFilesIntoVectors(std::ifstream& readImage, std::ifstream& readFile, con
 
 			tallySize += BLOCK_SIZE + 2;
 
-			if (BLOCK_SIZE + 2 >= ProfileVec.size() - tallySize + 2) {
+			if (BLOCK_SIZE + 2 >= jdv.ProfileVec.size() - tallySize + 2) {
 
-				insertValue(ProfileBlockVec, profileBlockSizeIndex, (ProfileVec.size() + ProfileBlockVec.size()) - (tallySize + 2), bits);
+				updateValue(jdv.ProfileBlockVec, profileBlockSizeIndex, (jdv.ProfileVec.size() + jdv.ProfileBlockVec.size()) - (tallySize + 2), bits);
+
 				profileCount++;
 				
-				insertValue(ProfileVec, profileCountIndex, profileCount, bits);
+				updateValue(jdv.ProfileVec, profileCountIndex, profileCount, bits);
+
 				bits = 32;
-		
-				insertValue(ProfileVec, profileDataSizeIndex, DATA_SIZE, bits);
-				ProfileVec.insert(ProfileVec.begin() + tallySize, ProfileBlockVec.begin(), ProfileBlockVec.end()); 
 				
+				updateValue(jdv.ProfileVec, profileDataSizeIndex, jdv.FILE_SIZE, bits);
+
+				jdv.ProfileVec.insert(jdv.ProfileVec.begin() + tallySize, jdv.ProfileBlockVec.begin(), jdv.ProfileBlockVec.end()); 
+
 				isMoreData = false; 
 			}
 
 			else {  
 				profileCount++;
-				ProfileVec.insert(ProfileVec.begin() + tallySize, ProfileBlockVec.begin(), ProfileBlockVec.end());
+				jdv.ProfileVec.insert(jdv.ProfileVec.begin() + tallySize, jdv.ProfileBlockVec.begin(), jdv.ProfileBlockVec.end());
 			}
 		}
 	}
-	
-	ImageVec.insert(ImageVec.begin(), ProfileVec.begin(), ProfileVec.end());
-	
-	std::ofstream writeFile(EMBEDDED_IMAGE_FILE, std::ios::binary);
+
+	jdv.ImageVec.insert(jdv.ImageVec.begin(), jdv.ProfileVec.begin(), jdv.ProfileVec.end());
+
+	std::string diffVal = std::to_string(jdv.subVal - jdv.imgVal);	
+									
+	jdv.FILE_NAME = "jdv_img" + diffVal + ".jpg";					
+
+	writeOutFile(jdv);
+}
+
+void writeOutFile(jdvStruct &jdv) {
+
+	if (jdv.FILE_NAME.substr(0, 4) != "jdv_") {
+		jdv.FILE_NAME = "jdv_" + jdv.FILE_NAME;
+	}
+
+	std::ofstream writeFile(jdv.FILE_NAME, std::ios::binary);
 
 	if (!writeFile) {
 		std::cerr << "\nWrite Error: Unable to write to file.\n\n";
 		std::exit(EXIT_FAILURE);
 	}
 
-	writeFile.write((char*)&ImageVec[0], ImageVec.size());
-
-	std::cout << "\nCreated output file: \"" + EMBEDDED_IMAGE_FILE + "\"\n";
-}
-
-std::string encryptDecrypt(const std::vector<BYTE>& IN_VEC, std::vector<BYTE>& outVec, const std::string& IN_NAME, const size_t DATA_SIZE, bool isEncrypt) {
-
-	const std::string XOR_KEY = "\xFF\xD8\xFF\xE2\xFF\xFF";		
-
-	const int NAME_LENGTH = static_cast<int>(IN_NAME.length());	
-	
-	std::string outName;
-
-	int
-		xorKeyPos = 0,	
-		nameKeyPos = 0,	
-		insertPos = 0;  
-
-	while (DATA_SIZE > insertPos) {
-		
-		if (insertPos >= NAME_LENGTH) {								
-			nameKeyPos = nameKeyPos > NAME_LENGTH ? 0 : nameKeyPos;		
-		}
-		else {
-			xorKeyPos = xorKeyPos > XOR_KEY.length() ? 0 : xorKeyPos;	
-			outName += IN_NAME[insertPos] ^ XOR_KEY[xorKeyPos++];		
-		}
-
-		if (isEncrypt) {
-			outVec.emplace_back(IN_VEC[insertPos++] ^ outName[nameKeyPos++]);
-		}
-		else {
-			outVec.emplace_back(IN_VEC[insertPos++] ^ IN_NAME[nameKeyPos++]);
-		}
+	if (jdv.MODE == "-i") {
+		writeFile.write((char*)&jdv.ImageVec[0], jdv.ImageVec.size());
+		std::cout << "\nCreated output file: \"" + jdv.FILE_NAME + " " << jdv.ImageVec.size() << " " << "Bytes\"\n";
+		jdv.EncryptedVec.clear();
 	}
-	return outName;
+	else {
+		writeFile.write((char*)&jdv.DecryptedVec[0], jdv.DecryptedVec.size());
+		std::cout << "\nExtracted file: \"" + jdv.FILE_NAME + " " << jdv.DecryptedVec.size() << " " << "Bytes\"\n";
+		jdv.DecryptedVec.clear();
+	}
 }
 
-void insertValue(std::vector<unsigned char>& vec, int valueInsertIndex, const size_t VALUE, int bits) {
+void updateValue(std::vector<unsigned char>& vect, int valueInsertIndex, const size_t VALUE, int bits) {
 
-	while (bits) vec[valueInsertIndex++] = (VALUE >> (bits -= 8)) & 0xff;
+	while (bits) vect[valueInsertIndex++] = (VALUE >> (bits -= 8)) & 0xff;
 }
 
 void displayInfo() {
 
 	std::cout << R"(
-JPG Data Vehicle for Reddit, (jdvrdt v1.1). Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023.
+JPG Data Vehicle for Reddit, (jdvrdt v1.2). Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023.
 
 jdvrdt enables you to embed & extract arbitrary data of upto ~20MB within a single JPG image.
 
