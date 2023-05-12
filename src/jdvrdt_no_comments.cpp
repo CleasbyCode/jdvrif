@@ -125,7 +125,7 @@ void checkFileSize(std::ifstream& readImage, std::ifstream& readFile, jdvStruct 
 
 void checkEmbeddedImage(std::ifstream& readImage, jdvStruct &jdv) {
 
-	jdv.EmbdImageVec.resize(jdv.IMAGE_SIZE / sizeof(unsigned char));
+	jdv.EmbdImageVec.resize(jdv.IMAGE_SIZE / sizeof(BYTE));
 	readImage.read((char*)&jdv.EmbdImageVec[0], jdv.IMAGE_SIZE);
 
 	const int JDV_SIG_INDEX = 25;	
@@ -198,10 +198,10 @@ void configureVectors(std::ifstream& readImage, std::ifstream& readFile, jdvStru
 			0x45, 0x00, 0x01, 0x01
 	};
 	
-	jdv.ImageVec.resize(jdv.IMAGE_SIZE / sizeof(unsigned char));
+	jdv.ImageVec.resize(jdv.IMAGE_SIZE / sizeof(BYTE));
 	readImage.read((char*)&jdv.ImageVec[0], jdv.IMAGE_SIZE);
 
-	jdv.FileVec.resize(jdv.FILE_SIZE / sizeof(unsigned char));
+	jdv.FileVec.resize(jdv.FILE_SIZE / sizeof(BYTE));
 	readFile.read((char*)&jdv.FileVec[0], jdv.FILE_SIZE);
 
 	jdv.EncryptedVec.reserve(jdv.FILE_SIZE);
