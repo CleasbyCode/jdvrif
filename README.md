@@ -45,7 +45,7 @@ Usage:  jdvrdt -i <jpg-image>  <file(s)>
 
 $ ./jdvrdt -i image.jpg  document.pdf
   
-Created output file: "jdvimg1.jpg"  
+Created output file: "jdv_img1.jpg 1243153 Bytes"  
 
 Complete!  
 
@@ -57,25 +57,25 @@ Usage:  jdvrdt -i <jpg-image>  <file(s)>
 	jdvrdt -x <jpg-image(s)>  
 	jdvrdt --info
         
-$ ./jdvrdt -x jdvimg1.jpg
+$ ./jdvrdt -x jdv_img1.jpg
 
 Extracted file: "jdv_document.pdf 1242153 Bytes"
 
-Complete!  
+Complete! Please check your extracted file(s).
 
 $ ./jdvrdt -i toy.jpg  Clowns.part1.rar  Clowns.part2.rar  Clowns.part3.rar 
 
-Created output file: "jdvimg1.jpg"
+Created output file: "jdv_img1.jpg 10489760 Bytes"
 
-Created output file: "jdvimg2.jpg"
+Created output file: "jdv_img2.jpg 10489760 Bytes"
 
-Created output file: "jdvimg3.jpg"
+Created output file: "jdv_img3.jpg 10489760 Bytes"
 
 Complete!
 
 You can now post your "file-embedded" JPG image(s) on reddit.  
 
-$ ./jdvrdt -x jdvimg1.jpg  jdvimg2.jpg  jdvimg3.jpg  
+$ ./jdvrdt -x jdv_img1.jpg  jdv_img2.jpg  jdv_img3.jpg  
 
 Extracted file: "jdv_Clowns.part1.rar 10485760 Bytes"
 
@@ -83,7 +83,7 @@ Extracted file: "jdv_Clowns.part2.rar 10485760 Bytes"
 
 Extracted file: "jdv_Clowns.part3.rar 10485760 Bytes"
 
-Complete!
+Complete! Please check your extracted file(s).
 
 ```
 
