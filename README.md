@@ -25,9 +25,9 @@ Your data file is inserted and preserved within multiple 65KB ICC Profile blocks
 To maximise the amount of data you can embed in your image file, I recommend first compressing your 
 data file(s) to zip/rar formats, etc.  
 
-Using jdvrdt, you can insert up to five files at a time (outputs one image per file).  
+Using jdvrdt, you can insert up to six files at a time (outputs one image per file).  
 
-You can also extract files from up to five images at a time.
+You can also extract files from up to six images at a time.
 
 Compile and run the program under Windows or **Linux**.
 
@@ -59,7 +59,7 @@ Usage:  jdvrdt -i <jpg-image>  <file(s)>
         
 $ ./jdvrdt -x jdv_img1.jpg
 
-Extracted file: "jdv_document.pdf 1242153 Bytes"
+Extracted file: "document.pdf 1242153 Bytes"
 
 Complete! Please check your extracted file(s).
 
@@ -77,11 +77,11 @@ You can now post your "file-embedded" JPG image(s) on reddit.
 
 $ ./jdvrdt -x jdv_img1.jpg  jdv_img2.jpg  jdv_img3.jpg  
 
-Extracted file: "jdv_Clowns.part1.rar 10485760 Bytes"
+Extracted file: "Clowns.part1.rar 10485760 Bytes"
 
-Extracted file: "jdv_Clowns.part2.rar 10485760 Bytes"
+Extracted file: "Clowns.part2.rar 10485760 Bytes"
 
-Extracted file: "jdv_Clowns.part3.rar 10485760 Bytes"
+Extracted file: "Clowns.part3.rar 10485760 Bytes"
 
 Complete! Please check your extracted file(s).
 
