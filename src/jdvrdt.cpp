@@ -187,6 +187,7 @@ void removeProfileHeaders(jdvStruct& jdv) {
 	
 	const size_t FILE_SIZE = jdv.EmbdImageVec[FILE_SIZE_INDEX] << 24 | jdv.EmbdImageVec[FILE_SIZE_INDEX + 1] << 16 |
 				jdv.EmbdImageVec[FILE_SIZE_INDEX + 2] << 8 | jdv.EmbdImageVec[FILE_SIZE_INDEX + 3];
+	
 	const std::string PROFILE_SIG = "ICC_PROFILE";	
 	
 	SBYTE profileCount = jdv.EmbdImageVec[PROFILE_COUNT_INDEX] << 8 | jdv.EmbdImageVec[PROFILE_COUNT_INDEX + 1];
@@ -207,6 +208,7 @@ void removeProfileHeaders(jdvStruct& jdv) {
 	
 	encryptDecrypt(jdv);
 }
+
 void encryptDecrypt(jdvStruct& jdv) {
 	
 	if (jdv.MODE == "-i") { 	
@@ -361,6 +363,7 @@ void writeOutFile(jdvStruct& jdv) {
 }
 
 void displayInfo() {
+	
 	std::cout << R"(
 JPG Data Vehicle for Reddit, (jdvrdt v1.2). Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023.
 
