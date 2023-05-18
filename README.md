@@ -7,7 +7,7 @@ jdvrdt partly derives from the ***[technique](https://www.vice.com/en/article/bj
 This program enables you to embed & extract any file type of up to 20MB via a single JPG image.  
 Post & share your "*file-embedded*" image on ***[reddit](https://www.reddit.com/)*** or Imgur. 
 
-![Demo Image](https://github.com/CleasbyCode/jdvrdt/blob/main/demo_image/image.jpg)  
+![Demo Image](https://github.com/CleasbyCode/jdvrdt/blob/main/demo_image/Image.jpg)  
 {***Image contains encrypted MP4 movie trailer (17MB)***}   
 
 [**Video_Demo (YouTube) - Embed Zip File Inside JPG Image & Post on Reddit**](https://www.youtube.com/watch_popup?v=YHT-V6otO2M)  
