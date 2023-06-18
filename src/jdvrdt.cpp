@@ -1,4 +1,4 @@
-//	JPG Data Vehicle for Reddit, (JDVRDT v1.2). Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
+//	JPG Data Vehicle for Reddit, Flickr & Imgur (jdvrdt v1.2). Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
 
 #include <algorithm>
 #include <fstream>
@@ -449,7 +449,7 @@ void writeOutFile(jdvStruct& jdv) {
 void displayInfo() {
 	
 	std::cout << R"(
-JPG Data Vehicle for Reddit, (jdvrdt v1.2). Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023.
+JPG Data Vehicle for Reddit, Flickr & Imgur (jdvrdt v1.2). Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023.
 
 jdvrdt enables you to embed & extract arbitrary data of upto ~20MB within a single JPG image.
 
