@@ -49,7 +49,7 @@ Created output file: "jdv_img1.jpg 1243153 Bytes"
 
 Complete!  
 
-You can now post your "file-embedded" JPG image(s) on reddit.
+You can now post your "file-embedded" JPG image(s) on reddit and other supported platforms.
  
 $ ./jdvrdt
 
@@ -73,7 +73,7 @@ Created output file: "jdv_img3.jpg 10489760 Bytes"
 
 Complete!
 
-You can now post your "file-embedded" JPG image(s) on reddit.  
+You can now post your "file-embedded" JPG image(s) on reddit and other supported platforms.
 
 $ ./jdvrdt -x jdv_img1.jpg  jdv_img2.jpg  jdv_img3.jpg  
 
