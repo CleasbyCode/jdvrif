@@ -94,7 +94,7 @@ int main(int argc, char** argv) {
 		}
 		
 		else {
-			std::cout << "\nComplete!\n\nYou can now post your \"file-embedded\" JPG image(s) on reddit.\n\n";
+			std::cout << "\nComplete!\n\nYou can now post your \"file-embedded\" JPG image(s) on reddit and other supported platforms.\n\n";
 		}
 	}
 	return 0;
