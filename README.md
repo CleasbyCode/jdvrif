@@ -17,7 +17,7 @@ With Imgur* and Reddit you are limited to a maximum of 20MB for each JPG image.
 ![Demo Image](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/Image.jpg)  
 {***Image contains encrypted MP4 movie trailer (17MB)***}   
 
-[**Video_Demo (YouTube) - Embed 200MB Zip File Inside JPG Image & Post on Flickr**](https://www.youtube.com/watch_popup?v=YHT-V6otO2M)  
+[**Video_Demo (YouTube) - Embed 200MB ZIP File Inside JPG Image & Post on Flickr**](https://youtu.be/dHWjg79_BxI)  
 
 This program can be used on Linux and Windows.
 
