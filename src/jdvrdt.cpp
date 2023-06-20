@@ -1,4 +1,4 @@
-//	JPG Data Vehicle for Reddit, Flickr & Imgur (jdvrdt v1.2). Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
+//	JPG Data Vehicle for Reddit, Imgur & Flickr (jdvrif v1.2). Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
 
 #include <algorithm>
 #include <fstream>
@@ -66,7 +66,7 @@ int main(int argc, char** argv) {
 		jdv.MODE = argv[1], jdv.subVal = argc - 1, jdv.IMAGE_NAME = argv[2];
 		argc -= 2;
 		
-		while (argc != 1) {  // We can insert upto six files at a time (outputs one image for each file).
+		while (argc != 1) {  // We can insert up to six files at a time (outputs one image for each file).
 			jdv.imgVal = argc, jdv.FILE_NAME = argv[3];
 			openFiles(argv++, jdv);
 			argc--;
@@ -77,14 +77,14 @@ int main(int argc, char** argv) {
 	else if (argc >= 3 && argc < 9 && std::string(argv[1]) == jdv.EXTRACT) { // "-x" Extract file mode selected.
 		jdv.MODE = argv[1];
 		
-		while (argc >= 3) { // We can extract files from upto six embedded images at a time.
+		while (argc >= 3) { // We can extract files from up to six embedded images at a time.
 			jdv.IMAGE_NAME = argv[2];
 			openFiles(argv++, jdv);
 			argc--;
 		}
 	}
 	else {
-		std::cout << "\nUsage:\t\bjdvrdt -i <jpg-image>  <file(s)>\n\t\bjdvrdt -x <jpg-image(s)>\n\t\bjdvrdt --info\n\n";
+		std::cout << "\nUsage:\t\bjdvrif -i <jpg-image>  <file(s)>\n\t\bjdvrif -x <jpg-image(s)>\n\t\bjdvrif --info\n\n";
 		argc = 0;
 	}
 	if (argc != 0) {
@@ -94,7 +94,7 @@ int main(int argc, char** argv) {
 		}
 		
 		else {
-			std::cout << "\nComplete!\n\nYou can now post your \"file-embedded\" JPG image(s) on reddit and other supported platforms.\n\n";
+			std::cout << "\nComplete!\n\nYou can now post your \"file-embedded\" JPG image(s) to the relevant supported platforms.\n\n";
 		}
 	}
 	return 0;
@@ -138,7 +138,7 @@ void openFiles(char* argv[], jdvStruct& jdv) {
 		}
 	}
 	else { // Insert mode. 
-		const int MAX_FILE_SIZE_BYTES = 20971520;  // 20MB reddit & imgur JPG image size limit.
+		const int MAX_FILE_SIZE_BYTES = 209715200; // 200MB file size limit for Flickr.	(20MB limit for Reddit & Imgur).
 		
 		if (jdv.IMAGE_SIZE + jdv.FILE_SIZE > MAX_FILE_SIZE_BYTES) {
 			// File size check failure, display error message and exit program.
@@ -207,6 +207,10 @@ void removeProfileHeaders(jdvStruct& jdv) {
 	// From the relevant index location, get size value of user's data file from "EmbdImageVec", stored within the main profile.
 	const size_t FILE_SIZE = jdv.EmbdImageVec[FILE_SIZE_INDEX] << 24 | jdv.EmbdImageVec[FILE_SIZE_INDEX + 1] << 16 |
 				jdv.EmbdImageVec[FILE_SIZE_INDEX + 2] << 8 | jdv.EmbdImageVec[FILE_SIZE_INDEX + 3];
+
+	if (FILE_SIZE > 20971520) {
+		std::cout << "\nPlease Wait.\nEmbedded file detected exceeds 20MB. Extracting & decrypting this file will take more time...\n";
+	}
 	
 	const std::string PROFILE_SIG = "ICC_PROFILE";	// Signature string for the embedded ICC profile headers we need to find & remove from the user's data file.
 
@@ -241,6 +245,11 @@ void removeProfileHeaders(jdvStruct& jdv) {
 void encryptDecrypt(jdvStruct& jdv) {
 	
 	if (jdv.MODE == jdv.INSERT) {  // "-i" Insert mode 	
+		
+		if (jdv.FILE_SIZE > 20971520) {
+			std::cout << "\nPlease Wait.\nYour data file exceeds 20MB. Encrypting and embedding this file will take more time...\n";
+		}
+		
 		// Before we encrypt user's data filename, check for and remove "./" or ".\" characters at the start of the filename. 
 		size_t lastSlashPos = jdv.FILE_NAME.find_last_of("\\/");
 		
@@ -435,6 +444,9 @@ void writeOutFile(jdvStruct& jdv) {
 		// Write out to disk image file embedded with the encrypted data file.
 		writeFile.write((char*)&jdv.ImageVec[0], jdv.ImageVec.size());
 		std::cout << "\nCreated output file: \"" + jdv.FILE_NAME + " " << jdv.ImageVec.size() << " " << "Bytes\"\n";
+		if (jdv.FILE_SIZE > 20971520) {
+			std::cout << "\nWarning: Your file-embedded image exceeds 20MB. You will only be able to post this image on Flickr.\n";
+		}
 		jdv.EncryptedVec.clear();
 	}
 	
@@ -447,17 +459,20 @@ void writeOutFile(jdvStruct& jdv) {
 }
 
 void displayInfo() {
-	
+
 	std::cout << R"(
-JPG Data Vehicle for Reddit, Flickr & Imgur (jdvrdt v1.2). Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023.
+JPG Data Vehicle for Reddit, Imgur & Flickr (jdvrif v1.2). Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023.
 
-jdvrdt enables you to embed & extract arbitrary data of upto ~20MB within a single JPG image.
+jdvrif enables you to embed & extract arbitrary data of up to 200MB* within a single JPG image.
 
-You can upload and share your data embedded JPG image file on Reddit or *Imgur.
+You can upload and share your data embedded JPG image file on Reddit, Imgur & Flickr.
+
+*With Flickr, you can embed up to 200MB of data in a single JPG image. 
+With Imgur* and Reddit you are limited to a maximum of 20MB for each JPG image.
 
 *Imgur issue: Data is still retained when the file-embedded JPG image is over 5MB, but Imgur reduces the dimension size of the image.
  
-jdvrdt data embedded images will not work with Twitter. For Twitter, please use pdvzip (PNG only).
+jdvrif data embedded images will not work with Twitter. For Twitter, please use pdvzip (PNG only).
 
 This program works on Linux and Windows.
 
@@ -466,7 +481,7 @@ The file data is inserted and preserved within multiple 65KB ICC Profile blocks 
 To maximise the amount of data you can embed in your image file. I recommend compressing your 
 data file(s) to zip/rar formats, etc.
 
-Using jdvrdt, You can insert up to six files at a time (outputs one image per file).
+Using jdvrif, You can insert up to six files at a time (outputs one image per file).
 
 You can also extract files from up to six images at a time.
 
