@@ -8,7 +8,7 @@ This program enables you to embed & extract any file type of up to 200MB* via a 
 Post & share your "*file-embedded*" image on ***[reddit](https://www.reddit.com/), [imgur](https://imgur.com/) & [flickr](https://www.flickr.com)*** 
 
 \*With Flickr, you can embed & post up to 200MB of data in a single JPG image.  
-With Imgur* & Reddit you are limited to a maximum of 20MB for each JPG image.
+With Imgur* and Reddit you are limited to a maximum of 20MB for each JPG image.
 
 **\*Imgur issue:** Data is still retained when the "file-embedded" JPG image is over 5MB, but Imgur reduces the dimension size of the image.
 
