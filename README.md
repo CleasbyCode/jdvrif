@@ -17,7 +17,6 @@ With Imgur* and Reddit you are limited to a maximum of 20MB for each JPG image.
 ***jdvrif "file-embedded" images do not work with Twitter.  For Twitter, please use [pdvzip](https://github.com/CleasbyCode/pdvzip) (PNG only).***
 
 ![Demo Image](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/img.jpg)  
-
 Image Credit: [@Knightama_](https://twitter.com/Knightama_/status/1672320024680476672)  
 {***Image contains encrypted FLAC music file (18MB)***}   
 
