@@ -145,14 +145,21 @@ void openFiles(char* argv[], jdvStruct& jdv) {
 		}
 	}
 	else { // Insert mode. 
-
-		const size_t TOTAL_ICC_PROFILE_SIZE = jdv.FILE_SIZE / 65535 * 18; // Get total size of Profile headers (approx.). Each header is 18 bytes long and is inserted at every 65K of the data file
-		const size_t MAX_FILE_SIZE = 209715200; // 200MB file size limit for Flickr.	20MB limit for Reddit & Imgur.
-
+		
+		// Get total size of Profile headers (approx.). Each header is 18 bytes long and is inserted at every 65K of the data file
+		const size_t TOTAL_ICC_PROFILE_SIZE = jdv.FILE_SIZE / 65535 * 18; 
+		
+		// 200MB file size limit for Flickr.  20MB limit for Reddit & Imgur.
+		const size_t MAX_FILE_SIZE = 209715200; 
+		
 		if (jdv.IMAGE_SIZE + jdv.FILE_SIZE + TOTAL_ICC_PROFILE_SIZE > MAX_FILE_SIZE) {
+			
 			// File size check failure, display error message and exit program.
-			std::cerr << "\nFile Size Error:\n\n  Your data file size [" << jdv.FILE_SIZE+jdv.IMAGE_SIZE + TOTAL_ICC_PROFILE_SIZE <<" Bytes] must not exceed 200MB (209715200 Bytes).\n\n" <<
-				"  The data file size includes:\n\n    Image file size [" << jdv.IMAGE_SIZE << " Bytes],\n    Total size of ICC Profile Headers [" << TOTAL_ICC_PROFILE_SIZE << " Bytes] (18 bytes for every 65K of the data file).\n\n";
+			std::cerr << "\nFile Size Error:\n\n  Your data file size [" << jdv.FILE_SIZE+jdv.IMAGE_SIZE + TOTAL_ICC_PROFILE_SIZE <<
+				" Bytes] must not exceed 200MB (209715200 Bytes).\n\n" <<
+				"  The data file size includes:\n\n    Image file size [" << jdv.IMAGE_SIZE << " Bytes],\n    Total size of ICC Profile Headers ["
+				<< TOTAL_ICC_PROFILE_SIZE << " Bytes] (18 bytes for every 65K of the data file).\n\n";
+			
 			std::exit(EXIT_FAILURE);
 		}
 
@@ -180,8 +187,6 @@ void openFiles(char* argv[], jdvStruct& jdv) {
 
 		// This vector will be used to store the users encrypted data file.
 		jdv.EncryptedVec.reserve(jdv.FILE_SIZE);
-
-		// Remove the default header from the JPG image. It will be replaced with the header in "ProfileVec".
 
 		const std::string
 			JPG_SIG = "\xFF\xD8\xFF",	// JPG image signature. 
@@ -223,13 +228,14 @@ void removeProfileHeaders(jdvStruct& jdv) {
 	const size_t FILE_SIZE = jdv.EmbdImageVec[FILE_SIZE_INDEX] << 24 | jdv.EmbdImageVec[FILE_SIZE_INDEX + 1] << 16 |
 		jdv.EmbdImageVec[FILE_SIZE_INDEX + 2] << 8 | jdv.EmbdImageVec[FILE_SIZE_INDEX + 3];
 
-	int largeFile = 52428800;
+	int largeFile = 52428800; // 50MB or greater considered a large file for jdvrif.
 
 	if (largeFile >= jdv.FILE_SIZE) {
 		std::cout << "\nPlease Wait...\nDecrypting and extracting larger files will take more time.\n";
 	}
-
-	const std::string PROFILE_SIG = "ICC_PROFILE";	// Signature string for the embedded ICC profile headers we need to find & remove from the user's data file.
+			
+	// Signature string for the embedded ICC profile headers we need to find & remove from the user's data file.
+	const std::string PROFILE_SIG = "ICC_PROFILE";	
 
 	// From vector "EmbdImageVec", get the value of the total number of embedded profile headers, stored within the mail profile.
 	SBYTE profileCount = jdv.EmbdImageVec[PROFILE_COUNT_INDEX] << 8 | jdv.EmbdImageVec[PROFILE_COUNT_INDEX + 1];
@@ -284,8 +290,8 @@ void encryptDecrypt(jdvStruct& jdv) {
 	const std::string XOR_KEY = "\xFF\xD8\xFF\xE2\xFF\xFF";	// String used to xor encrypt/decrypt the filename of user's data file.
 
 	size_t indexPos = 0;   	// When encrypting/decrypting the filename, this variable stores the index read position of the filename,
-	// When encrypting/decrypting the user's data file, this variable is used as the index position of where to 
-	// insert each byte of the data file into the relevant "encrypted" or "decrypted" vectors.
+				// When encrypting/decrypting the user's data file, this variable is used as the index position of where to 
+				// insert each byte of the data file into the relevant "encrypted" or "decrypted" vectors.
 
 	const SBYTE MAX_LENGTH_FILENAME = 23;
 
@@ -307,30 +313,30 @@ void encryptDecrypt(jdvStruct& jdv) {
 
 	SBYTE
 		xorKeyStartPos = 0,
-		xorKeyPos = xorKeyStartPos,		// Character position variable for XOR_KEY string.
+		xorKeyPos = xorKeyStartPos,	// Character position variable for XOR_KEY string.
 		nameKeyStartPos = 0,
-		nameKeyPos = nameKeyStartPos,		// Character position variable for filename string (outName / inName).
+		nameKeyPos = nameKeyStartPos,	// Character position variable for filename string (outName / inName).
 		bits = 8;			// Value used in "updateValue" function.
 
 	// xor encrypt or decrypt filename and data file.
 	while (FILE_SIZE > indexPos) {
 
 		if (indexPos >= NAME_LENGTH) {
-			nameKeyPos = nameKeyPos > NAME_LENGTH ? nameKeyStartPos : nameKeyPos;	 // Reset filename character position to the start if it has reached last character.
+			nameKeyPos = nameKeyPos > NAME_LENGTH ? nameKeyStartPos : nameKeyPos;	 // Reset filename character position to the start if it's reached last character.
 		}
 		else {
-			xorKeyPos = xorKeyPos > XOR_KEY_LENGTH ? xorKeyStartPos : xorKeyPos;	// Reset XOR_KEY position to the start if it has reached last character.
-			outName += inName[indexPos] ^ XOR_KEY[xorKeyPos++];	// xor each character of filename against characters of XOR_KEY string. Store output characters in "outName".
-			// Depending on Mode, filename is either encrypted or decrypted.
+			xorKeyPos = xorKeyPos > XOR_KEY_LENGTH ? xorKeyStartPos : xorKeyPos;	// Reset XOR_KEY position to the start if it's reached last character.
+			outName += inName[indexPos] ^ XOR_KEY[xorKeyPos++];	// XOR each character of filename against characters of XOR_KEY string. Store output characters in "outName".
+										// Depending on Mode, filename is either encrypted or decrypted.
 		}
 
 		if (jdv.MODE == "-i") {
-			// Encrypt data file. xor each byte of the data file within "jdv.FileVec" against each character of the encrypted filename, "outName". 
+			// Encrypt data file. XOR each byte of the data file within "jdv.FileVec" against each character of the encrypted filename, "outName". 
 			// Store encrypted output in vector "jdv.EncryptedVec".
 			jdv.EncryptedVec.emplace_back(jdv.FileVec[indexPos++] ^ outName[nameKeyPos++]);
 		}
 		else {
-			// Decrypt data file: xor each byte of the data file within vector "jdv.FileVec" against each character of the encrypted filename, "inName". 
+			// Decrypt data file: XOR each byte of the data file within vector "jdv.FileVec" against each character of the encrypted filename, "inName". 
 			// Store decrypted output in vector "jdv.DecryptedVec".
 			jdv.DecryptedVec.emplace_back(jdv.FileVec[indexPos++] ^ inName[nameKeyPos++]);
 		}
@@ -352,7 +358,6 @@ void encryptDecrypt(jdvStruct& jdv) {
 		// Insert the encrypted filename into the main profile of vector "ProfileVec".
 		jdv.ProfileVec.insert(jdv.ProfileVec.begin() + PROFILE_NAME_INDEX, outName.begin(), outName.end());
 	
-
 		// Insert contents of vector "EncryptedVec" into vector "ProfileVec", combining then main profile with the user's encrypted data file.	
 		jdv.ProfileVec.insert(jdv.ProfileVec.begin() + PROFILE_VEC_SIZE, jdv.EncryptedVec.begin(), jdv.EncryptedVec.end());
 		
@@ -360,6 +365,7 @@ void encryptDecrypt(jdvStruct& jdv) {
 		insertProfileBlocks(jdv);
 	}
 	else { // Extract Mode.
+		
 		// Update string variable with the decrypted filename.
 		jdv.FILE_NAME = outName;
 
@@ -405,7 +411,7 @@ void insertProfileBlocks(jdvStruct& jdv) {
 
 		update->Value(jdv.ProfileVec, ProfileHeaderBlock, profileBlockSizeIndex, (PROFILE_HEADER_SIZE - 2), bits, true);
 
-		jdv.ProfileVec.insert(jdv.ProfileVec.begin() + VECTOR_SIZE, &ProfileHeaderBlock[0], &ProfileHeaderBlock[PROFILE_HEADER_SIZE]); // Insert final "ProfileBlockVec" header.
+		jdv.ProfileVec.insert(jdv.ProfileVec.begin() + VECTOR_SIZE, &ProfileHeaderBlock[0], &ProfileHeaderBlock[PROFILE_HEADER_SIZE]); // Insert last "ProfileBlockVec" header.
 
 		profileCount = 1; // One will always be the minimum number of ICC profile headers. 
 
@@ -418,7 +424,7 @@ void insertProfileBlocks(jdvStruct& jdv) {
 		update->Value(jdv.ProfileVec, ProfileHeaderBlock, profileDataSizeIndex, jdv.FILE_SIZE, bits, false);
 	}
 
-	// Insert "ProfileBlockVec" vector header contents into the data file at every "BLOCK_SIZE", or whatever data size remains, that is below "BLOCK_SIZE", until end of file.
+	// Insert "ProfileBlockVec" vector header contents into data file at every "BLOCK_SIZE", or whatever size remains, that is below "BLOCK_SIZE", until end of file.
 	if (VECTOR_SIZE > BLOCK_SIZE + 4) {
 
 		bool isMoreData = true;
@@ -450,7 +456,9 @@ void insertProfileBlocks(jdvStruct& jdv) {
 			}
 
 			else {  // Keep going, we have not yet reached end of file (last block size).
+				
 				profileCount++;
+				
 				// Insert another ICC profile header ("ProfileBlockVec").
 				jdv.ProfileVec.insert(jdv.ProfileVec.begin() + tallySize, &ProfileHeaderBlock[0], &ProfileHeaderBlock[PROFILE_HEADER_SIZE]);
 			}
@@ -460,8 +468,8 @@ void insertProfileBlocks(jdvStruct& jdv) {
 	// Insert contents of vector "ProfileVec" into vector "ImageVec", combining user's data file and ICC profile header blocks, with the JPG image.	
 	jdv.ImageVec.insert(jdv.ImageVec.begin(), jdv.ProfileVec.begin(), jdv.ProfileVec.end());
 
-	std::string diffVal = std::to_string(jdv.subVal - jdv.imgVal);	// If we embed multiple data files (max 5), each outputted image will be differentiated by a number in the name, 
-	// jdv_img1.jpg, jdv_img2.jpg, jdv_img3.jpg, etc.
+	std::string diffVal = std::to_string(jdv.subVal - jdv.imgVal);	// If we embed multiple data files (max 6), each outputted image will be differentiated 
+									// by a number in the name, e.g. jdv_img1.jpg, jdv_img2.jpg, jdv_img3.jpg.
 	jdv.FILE_NAME = "jdv_img" + diffVal + ".jpg";
 
 	writeOutFile(jdv);
