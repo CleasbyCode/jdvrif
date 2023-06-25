@@ -36,6 +36,15 @@ public:
 class VectorFill {
 public:
 	void Vector(std::vector<BYTE>& vect, std::ifstream& rFile, const size_t FSIZE) {
+		int largeFile = 52428800; // 50MB or greater considered a large file for jdvrif.
+		std::string 
+			encryptMsg = "Encrypting and embedding",
+			decryptMsg = "Decrypting and extracting",
+			waitMsg = jdv.Mode == "-i" ? encryptMsg : decryptMsg;
+			
+		if (FSIZE >= largeFile) {
+			std::cout << "\nPlease Wait...\n"<< waitMsg <<" larger files will take more time.\n";
+		}
 		vect.resize(FSIZE / sizeof(BYTE));
 		rFile.read((char*)vect.data(), FSIZE);
 	}
@@ -119,7 +128,7 @@ void openFiles(char* argv[], jdvStruct& jdv) {
 
 	// Get size of files.
 	readImage.seekg(0, readImage.end),
-		readFile.seekg(0, readFile.end);
+	readFile.seekg(0, readFile.end);
 
 	// Update file size variables.
 	jdv.IMAGE_SIZE = readImage.tellg();
@@ -127,7 +136,7 @@ void openFiles(char* argv[], jdvStruct& jdv) {
 
 	// Reset read position of files. 
 	readImage.seekg(0, readImage.beg),
-		readFile.seekg(0, readFile.beg);
+	readFile.seekg(0, readFile.beg);
 
 	if (jdv.MODE == "-x") { // Extract mode. 
 
@@ -227,13 +236,7 @@ void removeProfileHeaders(jdvStruct& jdv) {
 	// From the relevant index location, get size value of user's data file from "EmbdImageVec", stored within the mail profile.
 	const size_t FILE_SIZE = jdv.EmbdImageVec[FILE_SIZE_INDEX] << 24 | jdv.EmbdImageVec[FILE_SIZE_INDEX + 1] << 16 |
 		jdv.EmbdImageVec[FILE_SIZE_INDEX + 2] << 8 | jdv.EmbdImageVec[FILE_SIZE_INDEX + 3];
-
-	int largeFile = 52428800; // 50MB or greater considered a large file for jdvrif.
-
-	if (largeFile >= jdv.FILE_SIZE) {
-		std::cout << "\nPlease Wait...\nDecrypting and extracting larger files will take more time.\n";
-	}
-			
+		
 	// Signature string for the embedded ICC profile headers we need to find & remove from the user's data file.
 	const std::string PROFILE_SIG = "ICC_PROFILE";	
 
@@ -272,12 +275,6 @@ void encryptDecrypt(jdvStruct& jdv) {
 
 	if (jdv.MODE == "-i") { // Insert mode.
 		
-		size_t largeFile = 52428800 + jdv.IMAGE_SIZE;
-
-		if (jdv.FILE_SIZE >= largeFile) {
-			std::cout << "\nPlease Wait...\nEncrypting and embedding larger files will take more time.\n";
-		}
-
 		// Before we encrypt user's data filename, check for and remove "./" or ".\" characters at the start of the filename. 
 		size_t lastSlashPos = jdv.FILE_NAME.find_last_of("\\/");
 
