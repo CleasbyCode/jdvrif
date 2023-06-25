@@ -35,12 +35,12 @@ public:
 
 class VectorFill {
 public:
-	void Vector(std::vector<BYTE>& vect, std::ifstream& rFile, const size_t FSIZE) {
+	void Vector(std::vector<BYTE>& vect, std::ifstream& rFile, const size_t FSIZE, const std::string MODE) {
 		int largeFile = 52428800; // 50MB or greater considered a large file for jdvrif.
 		std::string 
 			encryptMsg = "Encrypting and embedding",
 			decryptMsg = "Decrypting and extracting",
-			waitMsg = jdv.Mode == "-i" ? encryptMsg : decryptMsg;
+			waitMsg = MODE == "-i" ? encryptMsg : decryptMsg;
 			
 		if (FSIZE >= largeFile) {
 			std::cout << "\nPlease Wait...\n"<< waitMsg <<" larger files will take more time.\n";
@@ -140,7 +140,7 @@ void openFiles(char* argv[], jdvStruct& jdv) {
 
 	if (jdv.MODE == "-x") { // Extract mode. 
 
-		fill->Vector(jdv.EmbdImageVec, readImage, jdv.IMAGE_SIZE);
+		fill->Vector(jdv.EmbdImageVec, readImage, jdv.IMAGE_SIZE, jdv.MODE);
 
 		const SBYTE JDV_SIG_INDEX = 25;	// Signature index location within vector "EmbdImageVec". 
 
@@ -189,10 +189,10 @@ void openFiles(char* argv[], jdvStruct& jdv) {
 		};
 
 		// Read-in and store JPG image file into vector "ImageVec".
-		fill->Vector(jdv.ImageVec, readImage, jdv.IMAGE_SIZE);
+		fill->Vector(jdv.ImageVec, readImage, jdv.IMAGE_SIZE, jdv.MODE);
 
 		// Read-in and store user's data file into vector "FileVec".
-		fill->Vector(jdv.FileVec, readFile, jdv.FILE_SIZE);
+		fill->Vector(jdv.FileVec, readFile, jdv.FILE_SIZE, jdv.MODE);
 
 		// This vector will be used to store the users encrypted data file.
 		jdv.EncryptedVec.reserve(jdv.FILE_SIZE);
