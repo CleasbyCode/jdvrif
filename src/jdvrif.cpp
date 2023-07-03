@@ -520,11 +520,11 @@ void displayInfo() {
 	std::cout << R"(
 JPG Data Vehicle for Reddit, Imgur & Flickr (jdvrif v1.2). Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023.
 
-jdvrif enables you to embed & extract arbitrary data of up to 200MB* within a single JPG image.
+jdvrif enables you to embed & extract arbitrary data of up to *200MB within a single JPG image.
 
 You can upload and share your data-embedded JPG image file on compatible social media & image hosting sites.
 
-Size limit per JPG image is platform dependant:-
+*Size limit per JPG image is platform dependant:-
 
   Flickr (200MB), ImgPile (100MB), ImgBB (32MB), ImageShack (25MB),
   PostImage (24MB), Reddit & *Imgur (20MB), Mastodon (8MB).
