@@ -1,6 +1,6 @@
 # jdvrif
 
-JPG Data Vehicle for Reddit, Imgur & Flickr. 
+JPG Data Vehicle for Reddit, Imgur, Flickr & Other Compatible Social Media/Image Hosting Sites.
 
 jdvrif partly derives from the ***[technique](https://www.vice.com/en/article/bj4wxm/tiny-picture-twitter-complete-works-of-shakespeare-steganography)*** discovered by security researcher ***[David Buchanan](https://www.da.vidbuchanan.co.uk/).*** 
 
