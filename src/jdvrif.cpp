@@ -522,14 +522,16 @@ JPG Data Vehicle for Reddit, Imgur & Flickr (jdvrif v1.2). Created by Nicholas C
 
 jdvrif enables you to embed & extract arbitrary data of up to 200MB* within a single JPG image.
 
-You can upload and share your data embedded JPG image file on Reddit, Imgur & Flickr.
+You can upload and share your data-embedded JPG image file on compatible social media & image hosting sites.
 
-*With Flickr, you can embed up to 200MB of data in a single JPG image. 
-With Imgur* and Reddit you are limited to a maximum of 20MB for each JPG image.
+Size limit per JPG image is platform dependant:-
+
+  Flickr (200MB), ImgPile (100MB), ImgBB (32MB), ImageShack (25MB),
+  PostImage (24MB), Reddit & *Imgur (20MB), Mastodon (8MB).
 
 *Imgur issue: Data is still retained when the file-embedded JPG image is over 5MB, but Imgur reduces the dimension size of the image.
  
-jdvrif data embedded images will not work with Twitter. For Twitter, please use pdvzip (PNG only).
+jdvrif data-embedded images will not work with Twitter. For Twitter, please use pdvzip (PNG only).
 
 This program works on Linux and Windows.
 
