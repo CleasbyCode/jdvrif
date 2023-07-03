@@ -4,13 +4,13 @@ JPG Data Vehicle for Reddit, Imgur, Flickr & Other Compatible Social Media / Ima
 
 jdvrif partly derives from the ***[technique](https://www.vice.com/en/article/bj4wxm/tiny-picture-twitter-complete-works-of-shakespeare-steganography)*** discovered by security researcher ***[David Buchanan](https://www.da.vidbuchanan.co.uk/).*** 
 
-This program enables you to embed & extract any file type of up to *200MB via a single JPG image.  
+This program enables you to embed & extract any file type of up to \*200MB via a single JPG image.  
 
 Post & share your "*file-embedded*" image on compatible social media & image hosting sites.
 
-\*With Flickr (free account), you can embed & upload up to 200MB of data in a single JPG image.  
-
-With Imgur* and Reddit you are limited to a maximum of 20MB for each JPG image.
+Size limit per JPG image is platform dependant:-  
+* Flickr (200MB), ImgPile (100MB), ImgBB (32MB), ImageShack (25MB),
+* PostImage (24MB), Reddit & \*Imgur (20MB), Mastodon (8MB).
 
 **\*Imgur issue:** Data is still retained when the "*file-embedded*" JPG image is over 5MB, but Imgur reduces the dimension size of the image.
 
