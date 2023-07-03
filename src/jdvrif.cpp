@@ -1,4 +1,5 @@
-//	JPG Data Vehicle for Reddit, Imgur & Flickr (jdvrif v1.2). Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
+//	JPG Data Vehicle for Reddit, Imgur & Flickr & other compatible social media / image hosting sites. (jdvrif v1.2). 
+//	Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
 
 #include <algorithm>
 #include <fstream>
@@ -142,12 +143,26 @@ void openFiles(char* argv[], jdvStruct& jdv) {
 
 		fill->Vector(jdv.EmbdImageVec, readImage, jdv.IMAGE_SIZE, jdv.MODE);
 
-		const SBYTE JDV_SIG_INDEX = 25;	// Signature index location within vector "EmbdImageVec". 
+		// Signature index location within vector "EmbdImageVec", if image is saved/downloaded from Mastodon. 
+		// Mastodon retains the ICC profiles & the embedded data, but inserts a longer JPG header, which we need to delete before extracting file(s).
+		const SBYTE JDV_SIG_INDEX_MASTODON = 43;	
+
+		// Signature index location within vector "EmbdImageVec". 
+		const SBYTE JDV_SIG_INDEX = 25;	
 
 		if (jdv.EmbdImageVec[JDV_SIG_INDEX] == 'J' && jdv.EmbdImageVec[JDV_SIG_INDEX + 4] == 'i') {
-			std::cout << "\nOK, jdvrif \"file-embedded\" image found!\n";
+			
 			removeProfileHeaders(jdv);
 		}
+		else if (jdv.EmbdImageVec[JDV_SIG_INDEX_MASTODON] == 'J' && jdv.EmbdImageVec[JDV_SIG_INDEX_MASTODON + 4] == 'i') {
+
+			const SBYTE HEADER_SIZE = 18;
+
+			// Erase the 18 bytes of the JPG header that was inserted by Mastodon.
+			jdv.EmbdImageVec.erase(jdv.EmbdImageVec.begin() + 2, jdv.EmbdImageVec.begin() + 2 + HEADER_SIZE);
+
+			removeProfileHeaders(jdv);
+		}	
 		else {
 			std::cerr << "\nImage Error: Image file \"" << jdv.IMAGE_NAME << "\" does not appear to be a jdvrif file-embedded image.\n\n";
 			std::exit(EXIT_FAILURE);
@@ -223,7 +238,9 @@ void openFiles(char* argv[], jdvStruct& jdv) {
 }
 
 void removeProfileHeaders(jdvStruct& jdv) {
-
+	
+	std::cout << "\nOK, jdvrif \"file-embedded\" image found!\n";
+	
 	const SBYTE
 		PROFILE_HEADER_LENGTH = 18,	// Byte length value of the embedded profile header (see "ProfileBlockVec"). 
 		NAME_LENGTH_INDEX = 32,		// Index location for length value of filename for user's data file.
