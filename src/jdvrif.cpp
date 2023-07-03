@@ -1,4 +1,4 @@
-//	JPG Data Vehicle for Reddit, Imgur & Flickr & other compatible social media / image hosting sites. (jdvrif v1.2). 
+//	JPG Data Vehicle for Reddit, Imgur, Flickr & other compatible social media / image hosting sites. (jdvrif v1.2). 
 //	Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
 
 #include <algorithm>
