@@ -9,8 +9,8 @@ This program enables you to embed & extract any file type of up to \*200MB via a
 Post & share your "*file-embedded*" image on compatible social media & image hosting sites.
 
 \*Size limit per JPG image is platform dependant:-  
-* Flickr (200MB), ImgPile (100MB), ImgBB (32MB), ImageShack (25MB),
-* PostImage (24MB), Reddit & \*Imgur (20MB), Mastodon (8MB).
+* ***Flickr (200MB), ImgPile (100MB), ImgBB (32MB), ImageShack (25MB)***,
+* ***PostImage (24MB), Reddit & \*Imgur (20MB), Mastodon (8MB)***.
 
 **\*Imgur issue:** Data is still retained when the "*file-embedded*" JPG image is over 5MB, but Imgur reduces the dimension size of the image.
 
