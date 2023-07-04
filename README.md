@@ -22,8 +22,9 @@ Image Credit: [@Knightama_](https://twitter.com/Knightama_/status/16723200246804
 
 **Video Demos**  
 
-[***Flickr Upload - MP3 Music File Embedded in JPG Image***](https://youtu.be/pc5h6AGCstI)  
-[***Mastodon Upload -  ZIP File Embedded in JPG Image***](https://youtu.be/rYAMNy5uPh8)
+[***Flickr Upload - Encrypted MP3 Music File Embedded in JPG Image***](https://youtu.be/pc5h6AGCstI)  
+[***Mastodon Upload - Encrypted ZIP File Embedded in JPG Image***](https://youtu.be/rYAMNy5uPh8)
+[***Reddit Upload - Encrypted PNG Image Embedded in JPG Image***](https://youtu.be/6-BDwFJG8Cw)
 
 This program can be used on Linux and Windows.
 
