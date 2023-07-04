@@ -20,7 +20,7 @@ Post & share your "*file-embedded*" image on compatible social media & image hos
 Image Credit: [@Knightama_](https://twitter.com/Knightama_/status/1672320024680476672)  
 {***Image contains encrypted FLAC music file (18MB)***}   
 
-Video Demos
+**Video Demos**  
 [***Flickr Upload - MP3 Music File Embedded in JPG Image***](https://youtu.be/pc5h6AGCstI)  
 [***Mastodon Upload -  ZIP File Embedded in JPG Image***](https://youtu.be/rYAMNy5uPh8)
 
