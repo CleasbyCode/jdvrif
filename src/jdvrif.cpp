@@ -104,7 +104,7 @@ int main(int argc, char** argv) {
 			std::cout << "\nComplete! Please check your extracted file(s).\n\n";
 		}
 		else {
-			std::cout << "\nComplete!\n\nYou can now post your \"file-embedded\" JPG image(s) to the relevant supported platforms.\n\n";
+			std::cout << "\nComplete!\n\nYou can now share your \"file-embedded\" JPG image(s) on compatible platforms.\n\n";
 		}
 	}
 	return 0;
@@ -502,9 +502,25 @@ void writeOutFile(jdvStruct& jdv) {
 		// Write out to disk image file embedded with the encrypted data file.
 		writeFile.write((char*)&jdv.ImageVec[0], jdv.ImageVec.size());
 		std::cout << "\nCreated output file: \"" + jdv.FILE_NAME + " " << jdv.ImageVec.size() << " " << "Bytes\"\n";
-		if (jdv.FILE_SIZE > 20971520) {
-			std::cout << "\nWarning: Your \"file-embedded\" image exceeds 20MB.\n\t You will only be able to post this image on Flickr.\n";
+		std::string msgSizeWarning = 
+			"\n**Warning**\n\nDue to the file size of your \"file-embedded\" JPG image,\nyou will only be able to share " + jdv.FILE_NAME + " on the following platforms: \n\n"
+			"Flickr, ImgPile, ImgBB, ImageShack, PostImage, Reddit & Imgur";
+		const size_t
+			msgLen = msgSizeWarning.length(),
+			imgSize = jdv.ImageVec.size(),
+			mastodonSize = 8388608, imgurRedditSize = 20971520, postImageSize = 25165824,
+			imageShackSize = 26214400, imgbbSize = 33554432, imgPileSize = 104857600;
+		
+		msgSizeWarning = (imgSize > imgurRedditSize && imgSize <= postImageSize ? msgSizeWarning.substr(0, msgLen - 16) 
+			: (imgSize > postImageSize && imgSize <= imageShackSize ? msgSizeWarning.substr(0, msgLen - 27) 
+			: (imgSize > imageShackSize && imgSize <= imgbbSize ? msgSizeWarning.substr(0, msgLen - 39) 
+			: (imgSize > imgbbSize && imgSize <= imgPileSize ? msgSizeWarning.substr(0, msgLen - 46) 
+			: (imgSize > imgPileSize ? msgSizeWarning.substr(0, msgLen - 55) : msgSizeWarning)))));
+
+		if (jdv.ImageVec.size() > mastodonSize) {
+			std::cerr << msgSizeWarning << ".\n";
 		}
+		
 		jdv.EncryptedVec.clear();
 	}
 	else {
