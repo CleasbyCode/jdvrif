@@ -508,8 +508,12 @@ void writeOutFile(jdvStruct& jdv) {
 		const size_t
 			msgLen = msgSizeWarning.length(),
 			imgSize = jdv.ImageVec.size(),
-			mastodonSize = 8388608, imgurRedditSize = 20971520, postImageSize = 25165824,
-			imageShackSize = 26214400, imgbbSize = 33554432, imgPileSize = 104857600;
+			mastodonSize = 8388608,		// 8MB
+			imgurRedditSize = 20971520,	// 20MB
+			postImageSize = 25165824,	// 24MB
+			imageShackSize = 26214400,	// 25MB
+			imgbbSize = 33554432,		// 32MB
+			imgPileSize = 104857600;	// 100MB
 		
 		msgSizeWarning = (imgSize > imgurRedditSize && imgSize <= postImageSize ? msgSizeWarning.substr(0, msgLen - 16) 
 			: (imgSize > postImageSize && imgSize <= imageShackSize ? msgSizeWarning.substr(0, msgLen - 27) 
@@ -517,7 +521,7 @@ void writeOutFile(jdvStruct& jdv) {
 			: (imgSize > imgbbSize && imgSize <= imgPileSize ? msgSizeWarning.substr(0, msgLen - 46) 
 			: (imgSize > imgPileSize ? msgSizeWarning.substr(0, msgLen - 55) : msgSizeWarning)))));
 
-		if (jdv.ImageVec.size() > mastodonSize) {
+		if (imgSize > mastodonSize) {
 			std::cerr << msgSizeWarning << ".\n";
 		}
 		
