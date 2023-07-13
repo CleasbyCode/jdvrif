@@ -13,7 +13,7 @@ typedef unsigned short SBYTE;
 struct jdvStruct {
 	std::vector<BYTE> ImageVec, FileVec, ProfileVec, EmbdImageVec, EncryptedVec, DecryptedVec;
 	std::string IMAGE_NAME, FILE_NAME, MODE;
-	bool imageMastodon = false;
+	bool imageMastodon = false, skipRemove = false;
 	size_t IMAGE_SIZE{}, FILE_SIZE{};
 	SBYTE imgVal{}, subVal{};
 };
@@ -39,13 +39,13 @@ class VectorFill {
 public:
 	void Vector(std::vector<BYTE>& vect, std::ifstream& rFile, const size_t FSIZE, const std::string MODE) {
 		int largeFile = 52428800; // 50MB or greater considered a large file for jdvrif.
-		std::string 
+		std::string
 			encryptMsg = "Encrypting and embedding",
 			decryptMsg = "Decrypting and extracting",
 			waitMsg = MODE == "-i" ? encryptMsg : decryptMsg;
-			
+
 		if (FSIZE >= largeFile) {
-			std::cout << "\nPlease Wait...\n"<< waitMsg <<" larger files will take more time.\n";
+			std::cout << "\nPlease Wait...\n" << waitMsg << " larger files will take more time.\n";
 		}
 		vect.resize(FSIZE / sizeof(BYTE));
 		rFile.read((char*)vect.data(), FSIZE);
@@ -146,13 +146,13 @@ void openFiles(char* argv[], jdvStruct& jdv) {
 
 		// Signature index location within vector "EmbdImageVec", if image is saved/downloaded from Mastodon. 
 		// Mastodon retains the ICC profiles & the embedded data, but inserts a longer JPG header, which we need to delete before extracting file(s).
-		const SBYTE JDV_SIG_INDEX_MASTODON = 43;	
+		const SBYTE JDV_SIG_INDEX_MASTODON = 43;
 
 		// Signature index location within vector "EmbdImageVec". 
-		const SBYTE JDV_SIG_INDEX = 25;	
+		const SBYTE JDV_SIG_INDEX = 25;
 
 		if (jdv.EmbdImageVec[JDV_SIG_INDEX] == 'J' && jdv.EmbdImageVec[JDV_SIG_INDEX + 4] == 'i') {
-			
+
 			removeProfileHeaders(jdv);
 		}
 		else if (jdv.EmbdImageVec[JDV_SIG_INDEX_MASTODON] == 'J' && jdv.EmbdImageVec[JDV_SIG_INDEX_MASTODON + 4] == 'i') {
@@ -161,32 +161,33 @@ void openFiles(char* argv[], jdvStruct& jdv) {
 
 			// Erase the 18 bytes of the JPG header that was inserted by Mastodon.
 			jdv.EmbdImageVec.erase(jdv.EmbdImageVec.begin() + 2, jdv.EmbdImageVec.begin() + 2 + HEADER_SIZE);
-			
+
 			jdv.imageMastodon = true;
-			
+
 			removeProfileHeaders(jdv);
-		}	
+		}
+		
 		else {
 			std::cerr << "\nImage Error: Image file \"" << jdv.IMAGE_NAME << "\" does not appear to be a jdvrif file-embedded image.\n\n";
 			std::exit(EXIT_FAILURE);
 		}
 	}
 	else { // Insert mode. 
-		
+
 		// Get total size of Profile headers (approx.). Each header is 18 bytes long and is inserted at every 65K of the data file
-		const size_t TOTAL_ICC_PROFILE_SIZE = jdv.FILE_SIZE / 65535 * 18; 
-		
+		const size_t TOTAL_ICC_PROFILE_SIZE = jdv.FILE_SIZE / 65535 * 18;
+
 		// 200MB file size limit for Flickr.  20MB limit for Reddit & Imgur.
-		const size_t MAX_FILE_SIZE = 209715200; 
-		
+		const size_t MAX_FILE_SIZE = 209715200;
+
 		if (jdv.IMAGE_SIZE + jdv.FILE_SIZE + TOTAL_ICC_PROFILE_SIZE > MAX_FILE_SIZE) {
-			
+
 			// File size check failure, display error message and exit program.
-			std::cerr << "\nFile Size Error:\n\n  Your data file size [" << jdv.FILE_SIZE+jdv.IMAGE_SIZE + TOTAL_ICC_PROFILE_SIZE <<
+			std::cerr << "\nFile Size Error:\n\n  Your data file size [" << jdv.FILE_SIZE + jdv.IMAGE_SIZE + TOTAL_ICC_PROFILE_SIZE <<
 				" Bytes] must not exceed 200MB (209715200 Bytes).\n\n" <<
 				"  The data file size includes:\n\n    Image file size [" << jdv.IMAGE_SIZE << " Bytes],\n    Total size of ICC Profile Headers ["
 				<< TOTAL_ICC_PROFILE_SIZE << " Bytes] (18 bytes for every 65K of the data file).\n\n";
-			
+
 			std::exit(EXIT_FAILURE);
 		}
 
@@ -241,9 +242,9 @@ void openFiles(char* argv[], jdvStruct& jdv) {
 }
 
 void removeProfileHeaders(jdvStruct& jdv) {
-	
+
 	std::cout << "\nOK, jdvrif \"file-embedded\" image found!\n";
-	
+
 	const SBYTE
 		PROFILE_HEADER_LENGTH = 18,	// Byte length value of the embedded profile header (see "ProfileBlockVec"). 
 		NAME_LENGTH_INDEX = 32,		// Index location for length value of filename for user's data file.
@@ -256,12 +257,17 @@ void removeProfileHeaders(jdvStruct& jdv) {
 	// From the relevant index location, get size value of user's data file from "EmbdImageVec", stored within the mail profile.
 	const size_t FILE_SIZE = jdv.EmbdImageVec[FILE_SIZE_INDEX] << 24 | jdv.EmbdImageVec[FILE_SIZE_INDEX + 1] << 16 |
 		jdv.EmbdImageVec[FILE_SIZE_INDEX + 2] << 8 | jdv.EmbdImageVec[FILE_SIZE_INDEX + 3];
-		
-	// Signature string for the embedded ICC profile headers we need to find & remove from the user's data file.
-	const std::string PROFILE_SIG = "ICC_PROFILE";	
 
+	// Signature string for the embedded ICC profile headers we need to find & remove from the user's data file.
+	const std::string PROFILE_SIG = "ICC_PROFILE";
+	
 	// From vector "EmbdImageVec", get the value of the total number of embedded profile headers, stored within the mail profile.
 	SBYTE profileCount = jdv.EmbdImageVec[PROFILE_COUNT_INDEX] << 8 | jdv.EmbdImageVec[PROFILE_COUNT_INDEX + 1];
+
+	// if imageMastodon is true and we only have a single inserted profile set skip remove to true.
+	if (jdv.imageMastodon && profileCount == 1) {
+		jdv.skipRemove = true;
+	}
 
 	// Get the encrypted filename from vector "EmbdImageVec", stored within the main profile.
 	jdv.FILE_NAME = { jdv.EmbdImageVec.begin() + NAME_INDEX, jdv.EmbdImageVec.begin() + NAME_INDEX + jdv.EmbdImageVec[NAME_LENGTH_INDEX] };
@@ -272,13 +278,15 @@ void removeProfileHeaders(jdvStruct& jdv) {
 	size_t headerIndex = 0; // Variable will store the index location within "EmbdImageVec" of each ICC profile header we find within the vector.
 
 	// Within "EmbdImageVec" find and erase all occurrences of the 18 byte ICC profile header, (see "ProfileBlockVec").
-	// If imageMastodon is true and profileCount is just 1, then skip this while-loop as Mastodon has already stripped for us the last (single) 18 byte ICC Profile header.
-	if (!jdv.imageMastodon && profileCount > 1) {
+	// If skipRemove is true then skip the while loop as Mastodon has already stripped for us the last (single) 18 byte ICC Profile header.
+
+	if (!jdv.skipRemove) {
 		while (profileCount--) {
 			headerIndex = search(jdv.EmbdImageVec.begin() + headerIndex, jdv.EmbdImageVec.end(), PROFILE_SIG.begin(), PROFILE_SIG.end()) - jdv.EmbdImageVec.begin() - 4;
 			jdv.EmbdImageVec.erase(jdv.EmbdImageVec.begin() + headerIndex, jdv.EmbdImageVec.begin() + headerIndex + PROFILE_HEADER_LENGTH);
 		}
 	}
+
 	// Remove the JPG image from the user's data file. 
 	// Erase all bytes starting from the end of "FILE_SIZE" value. Vector "EmbdImageVec" now contains just the user's encrypted data file.
 	jdv.EmbdImageVec.erase(jdv.EmbdImageVec.begin() + FILE_SIZE, jdv.EmbdImageVec.end());
@@ -296,7 +304,7 @@ void removeProfileHeaders(jdvStruct& jdv) {
 void encryptDecrypt(jdvStruct& jdv) {
 
 	if (jdv.MODE == "-i") { // Insert mode.
-		
+
 		// Before we encrypt user's data filename, check for and remove "./" or ".\" characters at the start of the filename. 
 		size_t lastSlashPos = jdv.FILE_NAME.find_last_of("\\/");
 
@@ -309,8 +317,8 @@ void encryptDecrypt(jdvStruct& jdv) {
 	const std::string XOR_KEY = "\xFF\xD8\xFF\xE2\xFF\xFF";	// String used to xor encrypt/decrypt the filename of user's data file.
 
 	size_t indexPos = 0;   	// When encrypting/decrypting the filename, this variable stores the index read position of the filename,
-				// When encrypting/decrypting the user's data file, this variable is used as the index position of where to 
-				// insert each byte of the data file into the relevant "encrypted" or "decrypted" vectors.
+	// When encrypting/decrypting the user's data file, this variable is used as the index position of where to 
+	// insert each byte of the data file into the relevant "encrypted" or "decrypted" vectors.
 
 	const SBYTE MAX_LENGTH_FILENAME = 23;
 
@@ -346,7 +354,7 @@ void encryptDecrypt(jdvStruct& jdv) {
 		else {
 			xorKeyPos = xorKeyPos > XOR_KEY_LENGTH ? xorKeyStartPos : xorKeyPos;	// Reset XOR_KEY position to the start if it's reached last character.
 			outName += inName[indexPos] ^ XOR_KEY[xorKeyPos++];	// XOR each character of filename against characters of XOR_KEY string. Store output characters in "outName".
-										// Depending on Mode, filename is either encrypted or decrypted.
+			// Depending on Mode, filename is either encrypted or decrypted.
 		}
 
 		if (jdv.MODE == "-i") {
@@ -360,7 +368,7 @@ void encryptDecrypt(jdvStruct& jdv) {
 			jdv.DecryptedVec.emplace_back(jdv.FileVec[indexPos++] ^ inName[nameKeyPos++]);
 		}
 	}
-	
+
 	if (jdv.MODE == "-i") { // Insert mode.
 
 		const SBYTE
@@ -373,18 +381,18 @@ void encryptDecrypt(jdvStruct& jdv) {
 
 		// Make space for the filename by removing equivalent length of characters from main profile within vector "ProfileVec".
 		jdv.ProfileVec.erase(jdv.ProfileVec.begin() + PROFILE_NAME_INDEX, jdv.ProfileVec.begin() + outName.length() + PROFILE_NAME_INDEX);
-	
+
 		// Insert the encrypted filename into the main profile of vector "ProfileVec".
 		jdv.ProfileVec.insert(jdv.ProfileVec.begin() + PROFILE_NAME_INDEX, outName.begin(), outName.end());
-	
+
 		// Insert contents of vector "EncryptedVec" into vector "ProfileVec", combining then main profile with the user's encrypted data file.	
 		jdv.ProfileVec.insert(jdv.ProfileVec.begin() + PROFILE_VEC_SIZE, jdv.EncryptedVec.begin(), jdv.EncryptedVec.end());
-		
+
 		// Call function to insert ICC profile headers into the users data file, so as to split it into 65KB (or smaller) profile blocks.
 		insertProfileBlocks(jdv);
 	}
 	else { // Extract Mode.
-		
+
 		// Update string variable with the decrypted filename.
 		jdv.FILE_NAME = outName;
 
@@ -475,9 +483,9 @@ void insertProfileBlocks(jdvStruct& jdv) {
 			}
 
 			else {  // Keep going, we have not yet reached end of file (last block size).
-				
+
 				profileCount++;
-				
+
 				// Insert another ICC profile header ("ProfileBlockVec").
 				jdv.ProfileVec.insert(jdv.ProfileVec.begin() + tallySize, &ProfileHeaderBlock[0], &ProfileHeaderBlock[PROFILE_HEADER_SIZE]);
 			}
@@ -488,7 +496,7 @@ void insertProfileBlocks(jdvStruct& jdv) {
 	jdv.ImageVec.insert(jdv.ImageVec.begin(), jdv.ProfileVec.begin(), jdv.ProfileVec.end());
 
 	std::string diffVal = std::to_string(jdv.subVal - jdv.imgVal);	// If we embed multiple data files (max 6), each outputted image will be differentiated 
-									// by a number in the name, e.g. jdv_img1.jpg, jdv_img2.jpg, jdv_img3.jpg.
+	// by a number in the name, e.g. jdv_img1.jpg, jdv_img2.jpg, jdv_img3.jpg.
 	jdv.FILE_NAME = "jdv_img" + diffVal + ".jpg";
 
 	writeOutFile(jdv);
@@ -507,7 +515,7 @@ void writeOutFile(jdvStruct& jdv) {
 		// Write out to disk image file embedded with the encrypted data file.
 		writeFile.write((char*)&jdv.ImageVec[0], jdv.ImageVec.size());
 		std::cout << "\nCreated output file: \"" + jdv.FILE_NAME + " " << jdv.ImageVec.size() << " " << "Bytes\"\n";
-		std::string msgSizeWarning = 
+		std::string msgSizeWarning =
 			"\n**Warning**\n\nDue to the file size of your \"file-embedded\" JPG image,\nyou will only be able to share " + jdv.FILE_NAME + " on the following platforms: \n\n"
 			"Flickr, ImgPile, ImgBB, ImageShack, PostImage, Reddit & Imgur";
 		const size_t
@@ -519,17 +527,17 @@ void writeOutFile(jdvStruct& jdv) {
 			imageShackSize = 26214400,	// 25MB
 			imgbbSize = 33554432,		// 32MB
 			imgPileSize = 104857600;	// 100MB
-		
-		msgSizeWarning = (imgSize > imgurRedditSize && imgSize <= postImageSize ? msgSizeWarning.substr(0, msgLen - 16) 
-			: (imgSize > postImageSize && imgSize <= imageShackSize ? msgSizeWarning.substr(0, msgLen - 27) 
-			: (imgSize > imageShackSize && imgSize <= imgbbSize ? msgSizeWarning.substr(0, msgLen - 39) 
-			: (imgSize > imgbbSize && imgSize <= imgPileSize ? msgSizeWarning.substr(0, msgLen - 46) 
-			: (imgSize > imgPileSize ? msgSizeWarning.substr(0, msgLen - 55) : msgSizeWarning)))));
+
+		msgSizeWarning = (imgSize > imgurRedditSize && imgSize <= postImageSize ? msgSizeWarning.substr(0, msgLen - 16)
+			: (imgSize > postImageSize && imgSize <= imageShackSize ? msgSizeWarning.substr(0, msgLen - 27)
+				: (imgSize > imageShackSize && imgSize <= imgbbSize ? msgSizeWarning.substr(0, msgLen - 39)
+					: (imgSize > imgbbSize && imgSize <= imgPileSize ? msgSizeWarning.substr(0, msgLen - 46)
+						: (imgSize > imgPileSize ? msgSizeWarning.substr(0, msgLen - 55) : msgSizeWarning)))));
 
 		if (imgSize > mastodonSize) {
 			std::cerr << msgSizeWarning << ".\n";
 		}
-		
+
 		jdv.EncryptedVec.clear();
 	}
 	else {
