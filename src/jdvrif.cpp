@@ -13,6 +13,7 @@ typedef unsigned short SBYTE;
 struct jdvStruct {
 	std::vector<BYTE> ImageVec, FileVec, ProfileVec, EmbdImageVec, EncryptedVec, DecryptedVec;
 	std::string IMAGE_NAME, FILE_NAME, MODE;
+	bool imageMastodon = false;
 	size_t IMAGE_SIZE{}, FILE_SIZE{};
 	SBYTE imgVal{}, subVal{};
 };
@@ -160,7 +161,9 @@ void openFiles(char* argv[], jdvStruct& jdv) {
 
 			// Erase the 18 bytes of the JPG header that was inserted by Mastodon.
 			jdv.EmbdImageVec.erase(jdv.EmbdImageVec.begin() + 2, jdv.EmbdImageVec.begin() + 2 + HEADER_SIZE);
-
+			
+			jdv.imageMastodon = true;
+			
 			removeProfileHeaders(jdv);
 		}	
 		else {
@@ -269,11 +272,13 @@ void removeProfileHeaders(jdvStruct& jdv) {
 	size_t headerIndex = 0; // Variable will store the index location within "EmbdImageVec" of each ICC profile header we find within the vector.
 
 	// Within "EmbdImageVec" find and erase all occurrences of the 18 byte ICC profile header, (see "ProfileBlockVec").
-	while (profileCount--) {
-		headerIndex = search(jdv.EmbdImageVec.begin() + headerIndex, jdv.EmbdImageVec.end(), PROFILE_SIG.begin(), PROFILE_SIG.end()) - jdv.EmbdImageVec.begin() - 4;
-		jdv.EmbdImageVec.erase(jdv.EmbdImageVec.begin() + headerIndex, jdv.EmbdImageVec.begin() + headerIndex + PROFILE_HEADER_LENGTH);
+	// If imageMastodon is true and profileCount is just 1, then skip this while-loop as Mastodon has already stripped for us the last (single) 18 byte ICC Profile header.
+	if (!jdv.imageMastodon && profileCount > 1) {
+		while (profileCount--) {
+			headerIndex = search(jdv.EmbdImageVec.begin() + headerIndex, jdv.EmbdImageVec.end(), PROFILE_SIG.begin(), PROFILE_SIG.end()) - jdv.EmbdImageVec.begin() - 4;
+			jdv.EmbdImageVec.erase(jdv.EmbdImageVec.begin() + headerIndex, jdv.EmbdImageVec.begin() + headerIndex + PROFILE_HEADER_LENGTH);
+		}
 	}
-
 	// Remove the JPG image from the user's data file. 
 	// Erase all bytes starting from the end of "FILE_SIZE" value. Vector "EmbdImageVec" now contains just the user's encrypted data file.
 	jdv.EmbdImageVec.erase(jdv.EmbdImageVec.begin() + FILE_SIZE, jdv.EmbdImageVec.end());
