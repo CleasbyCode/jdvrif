@@ -6,6 +6,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <C:\Users\Nick\source\zlib\zlib-1.2.13\zlib.h>
 
 typedef unsigned char BYTE;
 typedef unsigned short SBYTE;
@@ -57,6 +58,9 @@ void openFiles(char* [], jdvStruct& jdv);
 
 // Function finds and removes all the inserted ICC profile blocks.
 void removeProfileHeaders(jdvStruct& jdv);
+
+// Inflate or Deflate iCCP Profile chunk, which include user's data file.
+void inflateDeflate(std::vector<unsigned char>&, bool);
 
 // Encrypt or decrypt user's data file and its filename.
 void encryptDecrypt(jdvStruct& jdv);
@@ -166,7 +170,7 @@ void openFiles(char* argv[], jdvStruct& jdv) {
 
 			removeProfileHeaders(jdv);
 		}
-		
+
 		else {
 			std::cerr << "\nImage Error: Image file \"" << jdv.IMAGE_NAME << "\" does not appear to be a jdvrif file-embedded image.\n\n";
 			std::exit(EXIT_FAILURE);
@@ -260,7 +264,7 @@ void removeProfileHeaders(jdvStruct& jdv) {
 
 	// Signature string for the embedded ICC profile headers we need to find & remove from the user's data file.
 	const std::string PROFILE_SIG = "ICC_PROFILE";
-	
+
 	// From vector "EmbdImageVec", get the value of the total number of embedded profile headers, stored within the mail profile.
 	SBYTE profileCount = jdv.EmbdImageVec[PROFILE_COUNT_INDEX] << 8 | jdv.EmbdImageVec[PROFILE_COUNT_INDEX + 1];
 
@@ -294,8 +298,16 @@ void removeProfileHeaders(jdvStruct& jdv) {
 	// This vector will be used to store the decrypted user's data file. 
 	jdv.DecryptedVec.reserve(FILE_SIZE);
 
-	// The encrypted data file is now stored in the vector "FileVec".
+	// The *compressed (zlib, deflate) and encrypted (xor) data file is now stored in the vector "FileVec". (*data may not always be compressed).
 	jdv.EmbdImageVec.swap(jdv.FileVec);
+
+	if (jdv.FileVec[0] == 120 && jdv.FileVec[1] == 218) {
+		
+		bool inflate = true;
+
+		// Call function to inflate profile chunk, which includes user's data file. 
+		inflateDeflate(jdv.FileVec, inflate);
+	}
 
 	// Decrypt the contents of "FileVec".
 	encryptDecrypt(jdv);
@@ -385,6 +397,11 @@ void encryptDecrypt(jdvStruct& jdv) {
 		// Insert the encrypted filename into the main profile of vector "ProfileVec".
 		jdv.ProfileVec.insert(jdv.ProfileVec.begin() + PROFILE_NAME_INDEX, outName.begin(), outName.end());
 
+		bool inflate = false;
+
+		// Call function to deflate profile chunk, which includes user's data file. 
+		inflateDeflate(jdv.EncryptedVec, inflate);
+
 		// Insert contents of vector "EncryptedVec" into vector "ProfileVec", combining then main profile with the user's encrypted data file.	
 		jdv.ProfileVec.insert(jdv.ProfileVec.begin() + PROFILE_VEC_SIZE, jdv.EncryptedVec.begin(), jdv.EncryptedVec.end());
 
@@ -401,6 +418,78 @@ void encryptDecrypt(jdvStruct& jdv) {
 	}
 }
 
+void inflateDeflate(std::vector<unsigned char>& Vec, bool inflateData) {
+
+	// zlib function, see https://zlib.net/
+
+	std::vector <unsigned char> Buffer;
+
+	size_t BUFSIZE;
+
+	if (!inflateData) {
+		BUFSIZE = 1032 * 1024;  // Required for deflate. This BUFSIZE covers us for larger file sizes. A lower BUFSIZE results in lost data.
+	}
+	else {
+		BUFSIZE = 256 * 1024;  // Fine for inflate.
+	}
+
+	unsigned char* temp_buffer{ new unsigned char[BUFSIZE] };
+
+	z_stream strm;
+	strm.zalloc = 0;
+	strm.zfree = 0;
+	strm.next_in = Vec.data();
+	strm.avail_in = Vec.size();
+	strm.next_out = temp_buffer;
+	strm.avail_out = BUFSIZE;
+
+	if (inflateData) {
+		inflateInit(&strm);
+	}
+	else {
+		deflateInit(&strm, 9); // Highest level compression, level 9 (0x78, 0xDA...)
+	}
+
+	while (strm.avail_in)
+	{
+		if (inflateData) {
+			inflate(&strm, Z_NO_FLUSH);
+		}
+		else {
+			deflate(&strm, Z_NO_FLUSH);
+		}
+
+		if (!strm.avail_out)
+		{
+			Buffer.insert(Buffer.end(), temp_buffer, temp_buffer + BUFSIZE);
+			strm.next_out = temp_buffer;
+			strm.avail_out = BUFSIZE;
+		}
+		else
+			break;
+	}
+	if (inflateData) {
+		inflate(&strm, Z_FINISH);
+		Buffer.insert(Buffer.end(), temp_buffer, temp_buffer + BUFSIZE - strm.avail_out);
+		inflateEnd(&strm);
+	}
+	else {
+		deflate(&strm, Z_FINISH);
+		Buffer.insert(Buffer.end(), temp_buffer, temp_buffer + BUFSIZE - strm.avail_out);
+		deflateEnd(&strm);
+	}
+
+	if (!inflateData && Vec.size() > Buffer.size() && Buffer.size() !=0) { // Only use the Deflate data if we actually have some data compression.
+		Vec.swap(Buffer);
+	}
+
+	else if (inflateData && Buffer.size() != 0) {
+		Vec.swap(Buffer);
+	}
+
+	delete[] temp_buffer;
+}
+
 void insertProfileBlocks(jdvStruct& jdv) {
 
 	const SBYTE PROFILE_HEADER_SIZE = 18;
@@ -409,17 +498,17 @@ void insertProfileBlocks(jdvStruct& jdv) {
 
 	const size_t
 		VECTOR_SIZE = jdv.ProfileVec.size(),	// Get updated size for vector "ProfileVec" after adding user's data file.
-		BLOCK_SIZE = 65535;			// ICC profile default block size (0xFFFF).
+		BLOCK_SIZE = 65535;						// ICC profile default block size (0xFFFF).
 
 	size_t tallySize = 2;	// Keep count of how much data we have traversed while inserting "ProfileBlockVec" headers at every "BLOCK_SIZE" within "ProfileVec". 
 
 	SBYTE
-		bits = 16,			// Variable used with the "updateValue" function.	
-		profileCount = 0,		// Keep count of how many ICC profile blocks ("ProfileBlockVec") we insert into the user's data file.
+		bits = 16,						// Variable used with the "updateValue" function.	
+		profileCount = 0,				// Keep count of how many ICC profile blocks ("ProfileBlockVec") we insert into the user's data file.
 		profileMainBlockSizeIndex = 4,  // "ProfileVec" start index location for the 2 byte block size field.
-		profileBlockSizeIndex = 2,	// "ProfileBlockVec" start index location for the 2 byte block size field.
-		profileCountIndex = 72,		// Start index location in main profile, where we store the value of the total number of inserted ICC profile headers.
-		profileDataSizeIndex = 88;	// Start index location in main profile, where we store the file size value of the user's data file.
+		profileBlockSizeIndex = 2,		// "ProfileBlockVec" start index location for the 2 byte block size field.
+		profileCountIndex = 72,			// Start index location in main profile, where we store the value of the total number of inserted ICC profile headers.
+		profileDataSizeIndex = 88;		// Start index location in main profile, where we store the file size value of the user's data file.
 
 	// Where we see +4 (-4) or +2, these values are the number of bytes at the start of vector "ProfileVec" (4 bytes: 0xFF, 0xD8, 0xFF, 0xE2) 
 	// and "ProfileBlockVec" (2 bytes: 0xFF, 0xE2), just before the default "BLOCK_SIZE" bytes: 0xFF, 0xFF, where the block count starts from. 
@@ -448,7 +537,7 @@ void insertProfileBlocks(jdvStruct& jdv) {
 		bits = 32;
 
 		// Insert file size value of user's data file into vector "ProfileVec".
-		update->Value(jdv.ProfileVec, ProfileHeaderBlock, profileDataSizeIndex, jdv.FILE_SIZE, bits, false);
+		update->Value(jdv.ProfileVec, ProfileHeaderBlock, profileDataSizeIndex, jdv.EncryptedVec.size(), bits, false);
 	}
 
 	// Insert "ProfileBlockVec" vector header contents into data file at every "BLOCK_SIZE", or whatever size remains, that is below "BLOCK_SIZE", until end of file.
@@ -474,7 +563,7 @@ void insertProfileBlocks(jdvStruct& jdv) {
 				bits = 32;
 
 				// Insert file size value of user's data file into vector "ProfileVec".
-				update->Value(jdv.ProfileVec, ProfileHeaderBlock, profileDataSizeIndex, jdv.FILE_SIZE, bits, false);
+				update->Value(jdv.ProfileVec, ProfileHeaderBlock, profileDataSizeIndex, jdv.EncryptedVec.size(), bits, false);
 
 				// Insert final "ProfileBlockVec" header contents.
 				jdv.ProfileVec.insert(jdv.ProfileVec.begin() + tallySize, &ProfileHeaderBlock[0], &ProfileHeaderBlock[PROFILE_HEADER_SIZE]);
@@ -517,7 +606,7 @@ void writeOutFile(jdvStruct& jdv) {
 		std::cout << "\nCreated output file: \"" + jdv.FILE_NAME + " " << jdv.ImageVec.size() << " " << "Bytes\"\n";
 		std::string msgSizeWarning =
 			"\n**Warning**\n\nDue to the file size of your \"file-embedded\" JPG image,\nyou will only be able to share " + jdv.FILE_NAME + " on the following platforms: \n\n"
-			"Flickr, ImgPile, ImgBB, ImageShack, PostImage, Reddit & Imgur";
+			"Flickr, ImgPile, ImgBB, ImageShack, PostImage, *Reddit (Desktop only) & Imgur";
 		const size_t
 			msgLen = msgSizeWarning.length(),
 			imgSize = jdv.ImageVec.size(),
@@ -560,7 +649,7 @@ You can upload and share your data-embedded JPG image file on compatible social 
 *Size limit per JPG image is platform dependant:-
 
   Flickr (200MB), ImgPile (100MB), ImgBB (32MB), ImageShack (25MB),
-  PostImage (24MB), Reddit & *Imgur (20MB), Mastodon (8MB).
+  PostImage (24MB), *Reddit (Desktop only) & *Imgur (20MB), Mastodon (8MB).
 
 *Imgur issue: Data is still retained when the file-embedded JPG image is over 5MB, but Imgur reduces the dimension size of the image.
  
@@ -570,8 +659,7 @@ This program works on Linux and Windows.
 
 The file data is inserted and preserved within multiple 65KB ICC Profile blocks in the image file.
  
-To maximise the amount of data you can embed in your image file. I recommend compressing your 
-data file(s) to zip/rar formats, etc.
+Your embedded file is encrypted & *compressed (zlib, deflate). *Compression not always used, depends on data. 
 
 Using jdvrif, You can insert up to six files at a time (outputs one image per file).
 
