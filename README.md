@@ -34,8 +34,7 @@ Your data file is inserted and preserved within multiple 65KB ICC Profile blocks
 
 ![ICC](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/icc.png)  
 
-To maximise the amount of data you can embed in your image file, I recommend first compressing your 
-data file(s) to zip/rar formats, etc.  
+Your embedded file is encrypted and *compressed (zlib, deflate). *Compression not always used, depends on data.  
 
 Using jdvrif, you can insert up to six files at a time (outputs one image per file).  
 
