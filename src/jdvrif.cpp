@@ -6,7 +6,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <C:\Users\Nick\source\zlib\zlib-1.2.13\zlib.h>
+#include <zlib.h>
 
 typedef unsigned char BYTE;
 typedef unsigned short SBYTE;
