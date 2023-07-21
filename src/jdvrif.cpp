@@ -498,17 +498,17 @@ void insertProfileBlocks(jdvStruct& jdv) {
 
 	const size_t
 		VECTOR_SIZE = jdv.ProfileVec.size(),	// Get updated size for vector "ProfileVec" after adding user's data file.
-		BLOCK_SIZE = 65535;						// ICC profile default block size (0xFFFF).
+		BLOCK_SIZE = 65535;			// ICC profile default block size (0xFFFF).
 
 	size_t tallySize = 2;	// Keep count of how much data we have traversed while inserting "ProfileBlockVec" headers at every "BLOCK_SIZE" within "ProfileVec". 
 
 	SBYTE
-		bits = 16,						// Variable used with the "updateValue" function.	
-		profileCount = 0,				// Keep count of how many ICC profile blocks ("ProfileBlockVec") we insert into the user's data file.
+		bits = 16,			// Variable used with the "updateValue" function.	
+		profileCount = 0,		// Keep count of how many ICC profile blocks ("ProfileBlockVec") we insert into the user's data file.
 		profileMainBlockSizeIndex = 4,  // "ProfileVec" start index location for the 2 byte block size field.
-		profileBlockSizeIndex = 2,		// "ProfileBlockVec" start index location for the 2 byte block size field.
-		profileCountIndex = 72,			// Start index location in main profile, where we store the value of the total number of inserted ICC profile headers.
-		profileDataSizeIndex = 88;		// Start index location in main profile, where we store the file size value of the user's data file.
+		profileBlockSizeIndex = 2,	// "ProfileBlockVec" start index location for the 2 byte block size field.
+		profileCountIndex = 72,		// Start index location in main profile, where we store the value of the total number of inserted ICC profile headers.
+		profileDataSizeIndex = 88;	// Start index location in main profile, where we store the file size value of the user's data file.
 
 	// Where we see +4 (-4) or +2, these values are the number of bytes at the start of vector "ProfileVec" (4 bytes: 0xFF, 0xD8, 0xFF, 0xE2) 
 	// and "ProfileBlockVec" (2 bytes: 0xFF, 0xE2), just before the default "BLOCK_SIZE" bytes: 0xFF, 0xFF, where the block count starts from. 
