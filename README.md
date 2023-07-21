@@ -46,7 +46,7 @@ Compile and run the program under Windows or **Linux**.
 
 ```c
 
-$ g++ jdvrif.cpp -s -o jdvrif
+$ g++ jdvrif.cpp -lz -s -o jdvrif
 $
 $ ./jdvrif 
 
