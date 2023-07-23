@@ -394,7 +394,7 @@ void encryptDecrypt(jdvStruct& jdv) {
 		else {
 			xorKeyPos = xorKeyPos > XOR_KEY_LENGTH ? xorKeyStartPos : xorKeyPos;	// Reset XOR_KEY position to the start if it's reached last character.
 			outName += inName[indexPos] ^ XOR_KEY[xorKeyPos++];	// XOR each character of filename against characters of XOR_KEY string. Store output characters in "outName".
-			// Depending on Mode, filename is either encrypted or decrypted.
+										// Depending on Mode, filename is either encrypted or decrypted.
 		}
 
 		if (jdv.MODE == "-i") {
@@ -634,8 +634,8 @@ void writeOutFile(jdvStruct& jdv) {
 		const size_t
 			msgLen = msgSizeWarning.length(),
 			imgSize = jdv.ImageVec.size(),
-							// Twitter 9.5KB .Not really supported because of the tiny size requirement, but if your data file is this size 
-							// (9.5KB, 9800bytes) or lower, then you should be able to use Twitter to share/tweet the "file-embedded" image.
+							// Twitter 9.5KB. Not really supported because of the tiny size requirement, but if your data file is this size 
+							// (9.5KB, 9800bytes) or smaller, then you should be able to use Twitter to share/tweet the "file-embedded" image.
 			mastodonSize = 8388608,		// 8MB
 			imgurRedditSize = 20971520,	// 20MB
 			postImageSize = 25165824,	// 24MB
