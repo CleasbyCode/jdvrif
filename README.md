@@ -4,7 +4,7 @@ JPG Data Vehicle for Reddit, Imgur, Flickr & Other Compatible Social Media / Ima
 
 jdvrif partly derives from the ***[technique](https://www.vice.com/en/article/bj4wxm/tiny-picture-twitter-complete-works-of-shakespeare-steganography)*** discovered by security researcher ***[David Buchanan](https://www.da.vidbuchanan.co.uk/).*** 
 
-This program enables you to embed & extract any file type of up to \*200MB via a single JPG image.  
+This program enables you to embed & extract any file type of up to \*200MB via a single *JPG* image.  
 
 Post & share your "*file-embedded*" image on compatible social media & image hosting sites.
 
@@ -12,12 +12,12 @@ Post & share your "*file-embedded*" image on compatible social media & image hos
 * ***Flickr (200MB), ImgPile (100MB), ImgBB (32MB), ImageShack (25MB)***,
 * ***PostImage (24MB), *\Reddit (Desktop only) & \*Imgur (20MB), Mastodon (8MB)***.
   
-**\*Reddit issue:** Desktop only. Does not work with mobile app. Mobile app converts images to Webp format.   
+**\*Reddit issue:** Desktop only. Does not work with mobile app. Mobile app converts images to *Webp* format.   
 
-**\*Imgur issue:** Data is still retained when the "*file-embedded*" JPG image is over 5MB, but Imgur reduces the dimension size of the image.
+**\*Imgur issue:** Data is still retained when the "*file-embedded*" *JPG* image is over *5MB*, but Imgur reduces the dimension size of the image.
 
-**\*Twitter:** If your data file is only *9KB or lower*, you can also use Twitter to share your "file-embedded" JPG image.  
-To share larger files on Twitter, *(up to 5MB)*, please use [pdvzip](https://github.com/CleasbyCode/pdvzip) (PNG only).
+**\*Twitter:** If your data file is only *9KB or lower*, you can also use Twitter to share your "*file-embedded*" JPG image.  
+To share larger files on Twitter, *(up to 5MB)*, please use [pdvzip](https://github.com/CleasbyCode/pdvzip) (*PNG* only).
 
 ![Demo Image](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/img.jpg)  
 Image Credit: [@Knightama_](https://twitter.com/Knightama_/status/1672320024680476672)  
