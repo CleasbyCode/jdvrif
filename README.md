@@ -11,12 +11,13 @@ Post & share your "*file-embedded*" image on compatible social media & image hos
 \*Size limit per JPG image is platform dependant:-  
 * ***Flickr (200MB), ImgPile (100MB), ImgBB (32MB), ImageShack (25MB)***,
 * ***PostImage (24MB), *Reddit (Desktop only) & \*Imgur (20MB), Mastodon (8MB)***.
-
+  
 **\*Reddit issue:** Desktop only. Does not work with mobile app.  
 
 **\*Imgur issue:** Data is still retained when the "*file-embedded*" JPG image is over 5MB, but Imgur reduces the dimension size of the image.
 
-***jdvrif "file-embedded" images do not work with Twitter.  For Twitter, please use [pdvzip](https://github.com/CleasbyCode/pdvzip) (PNG only).***
+***If your data file is only 9KB or lower, you can also use Twitter to share your "file-embedded" JPG image.  To share larger files on Twitter,
+(up to 5MB), please use [pdvzip](https://github.com/CleasbyCode/pdvzip) (PNG only).***
 
 ![Demo Image](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/img.jpg)  
 Image Credit: [@Knightama_](https://twitter.com/Knightama_/status/1672320024680476672)  
