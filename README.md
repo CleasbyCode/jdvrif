@@ -10,9 +10,9 @@ Post & share your "*file-embedded*" image on compatible social media & image hos
 
 \*Size limit per JPG image is platform dependant:-  
 * ***Flickr (200MB), ImgPile (100MB), ImgBB (32MB), ImageShack (25MB)***,
-* ***PostImage (24MB), *Reddit (Desktop only) & \*Imgur (20MB), Mastodon (8MB)***.
+* ***PostImage (24MB), *\Reddit (Desktop only) & \*Imgur (20MB), Mastodon (8MB)***.
   
-**\*Reddit issue:** Desktop only. Does not work with mobile app.  
+**\*Reddit issue:** Desktop only. Does not work with mobile app. Mobile app converts images to Webp format.   
 
 **\*Imgur issue:** Data is still retained when the "*file-embedded*" JPG image is over 5MB, but Imgur reduces the dimension size of the image.
 
