@@ -16,8 +16,8 @@ Post & share your "*file-embedded*" image on compatible social media & image hos
 
 **\*Imgur issue:** Data is still retained when the "*file-embedded*" JPG image is over 5MB, but Imgur reduces the dimension size of the image.
 
-***If your data file is only 9KB or lower, you can also use Twitter to share your "file-embedded" JPG image.  To share larger files on Twitter,
-(up to 5MB), please use [pdvzip](https://github.com/CleasbyCode/pdvzip) (PNG only).***
+**\*Twitter:** If your data file is only *9KB or lower*, you can also use Twitter to share your "file-embedded" JPG image.  
+To share larger files on Twitter, *(up to 5MB)*, please use [pdvzip](https://github.com/CleasbyCode/pdvzip) (PNG only).
 
 ![Demo Image](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/img.jpg)  
 Image Credit: [@Knightama_](https://twitter.com/Knightama_/status/1672320024680476672)  
