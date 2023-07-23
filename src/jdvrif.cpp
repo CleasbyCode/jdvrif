@@ -1,6 +1,11 @@
 //	JPG Data Vehicle for Reddit, Imgur, Flickr & other compatible social media / image hosting sites. (jdvrif v1.2). 
 //	Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
 
+// To compile program (Linux): 
+// $ g++ jdvrif.cpp -lz -s -o jdvrif
+// Run it:
+// $ ./jdvrif
+
 #include <algorithm>
 #include <fstream>
 #include <iostream>
@@ -14,7 +19,6 @@ typedef unsigned short SBYTE;
 struct jdvStruct {
 	std::vector<BYTE> ImageVec, FileVec, ProfileVec, EmbdImageVec, EncryptedVec, DecryptedVec;
 	std::string IMAGE_NAME, FILE_NAME, MODE;
-	bool imageMastodon = false, skipRemove = false;
 	size_t IMAGE_SIZE{}, FILE_SIZE{};
 	SBYTE imgVal{}, subVal{};
 };
@@ -148,25 +152,27 @@ void openFiles(char* argv[], jdvStruct& jdv) {
 
 		fill->Vector(jdv.EmbdImageVec, readImage, jdv.IMAGE_SIZE, jdv.MODE);
 
-		// Signature index location within vector "EmbdImageVec", if image is saved/downloaded from Mastodon. 
-		// Mastodon retains the ICC profiles & the embedded data, but inserts a longer JPG header, which we need to delete before extracting file(s).
-		const SBYTE JDV_SIG_INDEX_MASTODON = 43;
+		// Standard signature index location within vector "EmbdImageVec";
+		const SBYTE JDV_SIG_INDEX = 42;
+		
+		// Shortened signature index location within vector "EmbdImageVec", this is done by Imgur, etc, strips part of the header.
+		const SBYTE JDV_SIG_INDEX_IMGUR = 24;
 
-		// Signature index location within vector "EmbdImageVec". 
-		const SBYTE JDV_SIG_INDEX = 25;
-
-		if (jdv.EmbdImageVec[JDV_SIG_INDEX] == 'J' && jdv.EmbdImageVec[JDV_SIG_INDEX + 4] == 'i') {
+		if (jdv.EmbdImageVec[JDV_SIG_INDEX] == 'J' && jdv.EmbdImageVec[JDV_SIG_INDEX + 5] == 'F') {
 
 			removeProfileHeaders(jdv);
 		}
-		else if (jdv.EmbdImageVec[JDV_SIG_INDEX_MASTODON] == 'J' && jdv.EmbdImageVec[JDV_SIG_INDEX_MASTODON + 4] == 'i') {
+		else if (jdv.EmbdImageVec[JDV_SIG_INDEX_IMGUR] == 'J' && jdv.EmbdImageVec[JDV_SIG_INDEX_IMGUR + 5] == 'F') {
+
+		// If JPG header has been shortened (Imgur, etc), we need to put it back here.
 
 			const SBYTE HEADER_SIZE = 18;
 
-			// Erase the 18 bytes of the JPG header that was inserted by Mastodon.
-			jdv.EmbdImageVec.erase(jdv.EmbdImageVec.begin() + 2, jdv.EmbdImageVec.begin() + 2 + HEADER_SIZE);
+			BYTE HeaderBlock[HEADER_SIZE] = { 0xFF, 0xE0, 0x00, 0x10, 0x4A, 0x46, 0x49, 0x46, 0x00, 0x01, 0x01, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00 };
 
-			jdv.imageMastodon = true;
+			// Insert 18 byte JPG Header into vector "jdv.EmbdImageVec". Data alignment restored. We should now be able to extract the embedded data. 
+			// Insert final "ProfileBlockVec" header contents.
+			jdv.EmbdImageVec.insert(jdv.EmbdImageVec.begin() + 2, &HeaderBlock[0], &HeaderBlock[HEADER_SIZE]);
 
 			removeProfileHeaders(jdv);
 		}
@@ -195,20 +201,46 @@ void openFiles(char* argv[], jdvStruct& jdv) {
 			std::exit(EXIT_FAILURE);
 		}
 
-		// The first 152 bytes of this vector contains the main (basic) ICC profile.
+		// The first 434 bytes of this vector contains the main (basic) ICC profile.
 		jdv.ProfileVec.reserve(jdv.FILE_SIZE);
 		jdv.ProfileVec = {
-			0xFF, 0xD8, 0xFF, 0xE2, 0xFF, 0xFF, 0x49, 0x43, 0x43, 0x5F, 0x50, 0x52, 0x4F, 0x46,
-			0x49, 0x4C, 0x45, 0x00, 0x01, 0x01, 0x00, 0x00, 0x00, 0x84, 0x20, 0x4A, 0x44, 0x56,
-			0x52, 0x69, 0x46, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-			0x61, 0x63, 0x73, 0x70, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+			0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 0x4A, 0x46, 0x49, 0x46, 0x00, 0x01,
+			0x01, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00, 0xFF, 0xE2, 0xFF, 0xFF,
+			0x49, 0x43, 0x43, 0x5F, 0x50, 0x52, 0x4F, 0x46, 0x49, 0x4C, 0x45, 0x00,
+			0x01, 0x01, 0x00, 0x00, 0xFF, 0xEF, 0x4A, 0x44, 0x56, 0x52, 0x69, 0x46,
+			0x00, 0x00, 0x6D, 0x6E, 0x74, 0x72, 0x52, 0x47, 0x42, 0x20, 0x58, 0x59,
+			0x5A, 0x20, 0x07, 0xE0, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00,
+			0x00, 0x00, 0x61, 0x63, 0x73, 0x70, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00,
+			0xF6, 0xD6, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0xD3, 0x2D, 0x00, 0x00,
+			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			0x00, 0x09, 0x64, 0x65, 0x73, 0x63, 0x00, 0x00, 0x00, 0xF0, 0x00, 0x00,
+			0x00, 0x24, 0x72, 0x58, 0x59, 0x5A, 0x00, 0x00, 0x01, 0x14, 0x00, 0x00,
+			0x00, 0x14, 0x67, 0x58, 0x59, 0x5A, 0x00, 0x00, 0x01, 0x28, 0x00, 0x00,
+			0x00, 0x14, 0x62, 0x58, 0x59, 0x5A, 0x00, 0x00, 0x01, 0x3C, 0x00, 0x00,
+			0x00, 0x14, 0x77, 0x74, 0x70, 0x74, 0x00, 0x00, 0x01, 0x50, 0x00, 0x00,
+			0x00, 0x14, 0x72, 0x54, 0x52, 0x43, 0x00, 0x00, 0x01, 0x64, 0x00, 0x00,
+			0x00, 0x28, 0x67, 0x54, 0x52, 0x43, 0x00, 0x00, 0x01, 0x64, 0x00, 0x00,
+			0x00, 0x28, 0x62, 0x54, 0x52, 0x43, 0x00, 0x00, 0x01, 0x64, 0x00, 0x00,
+			0x00, 0x28, 0x63, 0x70, 0x72, 0x74, 0x00, 0x00, 0x01, 0x8C, 0x00, 0x00,
+			0x00, 0x00, 0x6D, 0x6C, 0x75, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			0x00, 0x01, 0x00, 0x00, 0x00, 0x0C, 0x65, 0x6E, 0x55, 0x53, 0x00, 0x00,
+			0x00, 0x08, 0x00, 0x00, 0x00, 0x1C, 0x00, 0x73, 0x00, 0x52, 0x00, 0x47,
+			0x00, 0x42, 0x58, 0x59, 0x5A, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			0x6F, 0xA2, 0x00, 0x00, 0x38, 0xF5, 0x00, 0x00, 0x03, 0x90, 0x58, 0x59,
+			0x5A, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x62, 0x99, 0x00, 0x00,
+			0xB7, 0x85, 0x00, 0x00, 0x18, 0xDA, 0x58, 0x59, 0x5A, 0x20, 0x00, 0x00,
+			0x00, 0x00, 0x00, 0x00, 0x24, 0xA0, 0x00, 0x00, 0x0F, 0x84, 0x00, 0x00,
+			0xB6, 0xCF, 0x58, 0x59, 0x5A, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			0xF6, 0xD6, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0xD3, 0x2D, 0x70, 0x61,
+			0x72, 0x61, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x02,
+			0x66, 0x66, 0x00, 0x00, 0xF2, 0xA7, 0x00, 0x00, 0x0D, 0x59, 0x00, 0x00,
+			0x13, 0xD0, 0x00, 0x00, 0x0A, 0x5B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			0x00, 0x00
 		};
 
 		// Read-in and store JPG image file into vector "ImageVec".
@@ -251,12 +283,12 @@ void removeProfileHeaders(jdvStruct& jdv) {
 
 	const SBYTE
 		PROFILE_HEADER_LENGTH = 18,	// Byte length value of the embedded profile header (see "ProfileBlockVec"). 
-		NAME_LENGTH_INDEX = 32,		// Index location for length value of filename for user's data file.
+		NAME_LENGTH_INDEX = 80,		// Index location for length value of filename for user's data file.
 		NAME_LENGTH = jdv.EmbdImageVec[NAME_LENGTH_INDEX], // Get embedded value of filename length from "EmbdImageVec", stored within the main profile.
-		NAME_INDEX = 33,		// Start index location of filename for user's data file.
-		PROFILE_COUNT_INDEX = 72,	// Value index location for the total number of inserted ICC profile headers (see "ProfileBlockVec").
-		FILE_SIZE_INDEX = 88,		// Start index location for the file size value of the user's data file.
-		FILE_INDEX = 152; 		// Start index location of user's data file within vector "EmbdImageVec".
+		NAME_INDEX = 81,		// Start index location of filename for user's data file.
+		PROFILE_COUNT_INDEX = 138,	// Value index location for the total number of inserted ICC profile headers (see "ProfileBlockVec").
+		FILE_SIZE_INDEX = 144,		// Start index location for the file size value of the user's data file.
+		FILE_INDEX = 434; 		// Start index location of user's data file within vector "EmbdImageVec".
 
 	// From the relevant index location, get size value of user's data file from "EmbdImageVec", stored within the mail profile.
 	const size_t FILE_SIZE = jdv.EmbdImageVec[FILE_SIZE_INDEX] << 24 | jdv.EmbdImageVec[FILE_SIZE_INDEX + 1] << 16 |
@@ -268,11 +300,6 @@ void removeProfileHeaders(jdvStruct& jdv) {
 	// From vector "EmbdImageVec", get the value of the total number of embedded profile headers, stored within the mail profile.
 	SBYTE profileCount = jdv.EmbdImageVec[PROFILE_COUNT_INDEX] << 8 | jdv.EmbdImageVec[PROFILE_COUNT_INDEX + 1];
 
-	// if imageMastodon is true and we only have a single inserted profile set skip remove to true.
-	if (jdv.imageMastodon && profileCount == 1) {
-		jdv.skipRemove = true;
-	}
-
 	// Get the encrypted filename from vector "EmbdImageVec", stored within the main profile.
 	jdv.FILE_NAME = { jdv.EmbdImageVec.begin() + NAME_INDEX, jdv.EmbdImageVec.begin() + NAME_INDEX + jdv.EmbdImageVec[NAME_LENGTH_INDEX] };
 
@@ -282,15 +309,11 @@ void removeProfileHeaders(jdvStruct& jdv) {
 	size_t headerIndex = 0; // Variable will store the index location within "EmbdImageVec" of each ICC profile header we find within the vector.
 
 	// Within "EmbdImageVec" find and erase all occurrences of the 18 byte ICC profile header, (see "ProfileBlockVec").
-	// If skipRemove is true then skip the while loop as Mastodon has already stripped for us the last (single) 18 byte ICC Profile header.
-
-	if (!jdv.skipRemove) {
-		while (profileCount--) {
-			headerIndex = search(jdv.EmbdImageVec.begin() + headerIndex, jdv.EmbdImageVec.end(), PROFILE_SIG.begin(), PROFILE_SIG.end()) - jdv.EmbdImageVec.begin() - 4;
-			jdv.EmbdImageVec.erase(jdv.EmbdImageVec.begin() + headerIndex, jdv.EmbdImageVec.begin() + headerIndex + PROFILE_HEADER_LENGTH);
-		}
+	while (profileCount--) {
+		headerIndex = search(jdv.EmbdImageVec.begin() + headerIndex, jdv.EmbdImageVec.end(), PROFILE_SIG.begin(), PROFILE_SIG.end()) - jdv.EmbdImageVec.begin() - 4;
+		jdv.EmbdImageVec.erase(jdv.EmbdImageVec.begin() + headerIndex, jdv.EmbdImageVec.begin() + headerIndex + PROFILE_HEADER_LENGTH);
 	}
-
+	
 	// Remove the JPG image from the user's data file. 
 	// Erase all bytes starting from the end of "FILE_SIZE" value. Vector "EmbdImageVec" now contains just the user's encrypted data file.
 	jdv.EmbdImageVec.erase(jdv.EmbdImageVec.begin() + FILE_SIZE, jdv.EmbdImageVec.end());
@@ -301,7 +324,7 @@ void removeProfileHeaders(jdvStruct& jdv) {
 	// The *compressed (zlib, deflate) and encrypted (xor) data file is now stored in the vector "FileVec". (*data may not always be compressed).
 	jdv.EmbdImageVec.swap(jdv.FileVec);
 
-	if (jdv.FileVec[0] == 120 && jdv.FileVec[1] == 218) {
+	if (jdv.FileVec[0] == 120 && jdv.FileVec[1] == 218) { // Is data compressed? 
 		
 		bool inflate = true;
 
@@ -357,6 +380,11 @@ void encryptDecrypt(jdvStruct& jdv) {
 		nameKeyPos = nameKeyStartPos,	// Character position variable for filename string (outName / inName).
 		bits = 8;			// Value used in "updateValue" function.
 
+	if (NAME_LENGTH > FILE_SIZE) {
+		std::cerr << "\nFile Size Error: File size is too small.\n\n";
+		std::exit(EXIT_FAILURE);
+	}
+
 	// xor encrypt or decrypt filename and data file.
 	while (FILE_SIZE > indexPos) {
 
@@ -384,9 +412,9 @@ void encryptDecrypt(jdvStruct& jdv) {
 	if (jdv.MODE == "-i") { // Insert mode.
 
 		const SBYTE
-			PROFILE_NAME_LENGTH_INDEX = 32, // Location index inside the main profile "ProfileVec" to store the filename length value of the user's data file.
-			PROFILE_NAME_INDEX = 33,	// Location index inside the main profile "ProfileVec" to store the filename of the user's data file.
-			PROFILE_VEC_SIZE = 152;		// Byte size of main profile within "ProfileVec". User's encrypted data file is stored at the end of the main profile.
+			PROFILE_NAME_LENGTH_INDEX = 80, // Location index inside the main profile "ProfileVec" to store the filename length value of the user's data file.
+			PROFILE_NAME_INDEX = 81,	// Location index inside the main profile "ProfileVec" to store the filename of the user's data file.
+			PROFILE_VEC_SIZE = 434;		// Byte size of main profile within "ProfileVec". User's encrypted data file is stored at the end of the main profile.
 
 		// Update the character length value of the filename for user's data file. Write value into the main profile of vector "ProfileVec".
 		jdv.ProfileVec[PROFILE_NAME_LENGTH_INDEX] = static_cast<int>(NAME_LENGTH);
@@ -427,7 +455,7 @@ void inflateDeflate(std::vector<unsigned char>& Vec, bool inflateData) {
 	size_t BUFSIZE;
 
 	if (!inflateData) {
-		BUFSIZE = 1032 * 1024;  // Required for deflate. This BUFSIZE covers us for larger file sizes. A lower BUFSIZE results in lost data.
+		BUFSIZE = 1032 * 1024;  // Required for deflate. This BUFSIZE covers us to our max file size of 1MB. A lower BUFSIZE results in lost data.
 	}
 	else {
 		BUFSIZE = 256 * 1024;  // Fine for inflate.
@@ -479,11 +507,11 @@ void inflateDeflate(std::vector<unsigned char>& Vec, bool inflateData) {
 		deflateEnd(&strm);
 	}
 
-	if (!inflateData && Vec.size() > Buffer.size() && Buffer.size() !=0) { // Only use the Deflate data if we actually have some data compression.
+	if (!inflateData && Vec.size() > Buffer.size() && Buffer.size() !=0) { // Only use the Deflate if we actually have some data compression.
 		Vec.swap(Buffer);
 	}
 
-	else if (inflateData && Buffer.size() != 0) {
+	else if (inflateData && Buffer.size() != 0) {  
 		Vec.swap(Buffer);
 	}
 
@@ -500,40 +528,33 @@ void insertProfileBlocks(jdvStruct& jdv) {
 		VECTOR_SIZE = jdv.ProfileVec.size(),	// Get updated size for vector "ProfileVec" after adding user's data file.
 		BLOCK_SIZE = 65535;			// ICC profile default block size (0xFFFF).
 
-	size_t tallySize = 2;	// Keep count of how much data we have traversed while inserting "ProfileBlockVec" headers at every "BLOCK_SIZE" within "ProfileVec". 
+	size_t tallySize = 20;	// Keep count of how much data we have traversed while inserting "ProfileBlockVec" headers at every "BLOCK_SIZE" within "ProfileVec". 
 
 	SBYTE
-		bits = 16,			// Variable used with the "updateValue" function.	
-		profileCount = 0,		// Keep count of how many ICC profile blocks ("ProfileBlockVec") we insert into the user's data file.
-		profileMainBlockSizeIndex = 4,  // "ProfileVec" start index location for the 2 byte block size field.
-		profileBlockSizeIndex = 2,	// "ProfileBlockVec" start index location for the 2 byte block size field.
-		profileCountIndex = 72,		// Start index location in main profile, where we store the value of the total number of inserted ICC profile headers.
-		profileDataSizeIndex = 88;	// Start index location in main profile, where we store the file size value of the user's data file.
+		bits = 16,				// Variable used with the "updateValue" function.	
+		profileCount = 0,			// Keep count of how many ICC profile blocks ("ProfileBlockVec") we insert into the user's data file.
+		profileMainBlockSizeIndex = 22,		// "ProfileVec" start index location for the 2 byte block size field.
+		profileSecondaryBlockSizeIndex = 40,    // "ProfileVec" start index location for the secondary size field of ICC Profile.
+		profileBlockSizeIndex = 2,		// "ProfileBlockVec" start index location for the 2 byte block size field.
+		profileCountIndex = 138,		// Start index location in main profile, where we store the value of the total number of inserted ICC profile headers.
+		profileDataSizeIndex = 144;		// Start index location in main profile, where we store the file size value of the user's data file.
 
 	// Where we see +4 (-4) or +2, these values are the number of bytes at the start of vector "ProfileVec" (4 bytes: 0xFF, 0xD8, 0xFF, 0xE2) 
 	// and "ProfileBlockVec" (2 bytes: 0xFF, 0xE2), just before the default "BLOCK_SIZE" bytes: 0xFF, 0xFF, where the block count starts from. 
 	// We need to count or subtract these bytes where relevant.
 
-	if (BLOCK_SIZE + 4 >= VECTOR_SIZE) {
+	if (BLOCK_SIZE + PROFILE_HEADER_SIZE + 4 >= VECTOR_SIZE) {
 
 		// Seems we are dealing with a small data file. All data content fits within the main 65KB profile block. 
 		// Finish up, skip the "While loop" and write the "embedded" image out to file, exit program.
 
-		// Update profile block size of vector "ProfileVec", as it is smaller than the set default value (0xFFFF).
-		update->Value(jdv.ProfileVec, ProfileHeaderBlock, profileMainBlockSizeIndex, VECTOR_SIZE - 4, bits, false);
+		const size_t PROFILE_MAIN_BLOCK_SIZE = VECTOR_SIZE - (PROFILE_HEADER_SIZE + 4);
+		const size_t PROFILE_SECONDARY_BLOCK_SIZE = PROFILE_MAIN_BLOCK_SIZE - 16;
 
-		// Even though no more profile header blocks are required, so as to prevent the app GIMP from displaying an error message regarding an invalid ICC profile, 
-		// we will insert a single "ProfileBlockVec" with a minimum size of 16 bytes at the end of the data file, just before start of JPG image.
-
-		update->Value(jdv.ProfileVec, ProfileHeaderBlock, profileBlockSizeIndex, (PROFILE_HEADER_SIZE - 2), bits, true);
-
-		jdv.ProfileVec.insert(jdv.ProfileVec.begin() + VECTOR_SIZE, &ProfileHeaderBlock[0], &ProfileHeaderBlock[PROFILE_HEADER_SIZE]); // Insert last "ProfileBlockVec" header.
-
-		profileCount = 1; // One will always be the minimum number of ICC profile headers. 
-
-		// Insert final profileCount value into vector "Profile". // 1
-		update->Value(jdv.ProfileVec, ProfileHeaderBlock, profileCountIndex, profileCount, bits, false);
-
+		// Update profile main block size of vector "ProfileVec", as it is smaller than the set default value (0xFFFF).
+		update->Value(jdv.ProfileVec, ProfileHeaderBlock, profileMainBlockSizeIndex, PROFILE_MAIN_BLOCK_SIZE, bits, false);
+		update->Value(jdv.ProfileVec, ProfileHeaderBlock, profileSecondaryBlockSizeIndex, PROFILE_SECONDARY_BLOCK_SIZE, bits, false);
+		
 		bits = 32;
 
 		// Insert file size value of user's data file into vector "ProfileVec".
@@ -541,7 +562,7 @@ void insertProfileBlocks(jdvStruct& jdv) {
 	}
 
 	// Insert "ProfileBlockVec" vector header contents into data file at every "BLOCK_SIZE", or whatever size remains, that is below "BLOCK_SIZE", until end of file.
-	if (VECTOR_SIZE > BLOCK_SIZE + 4) {
+	if (VECTOR_SIZE > BLOCK_SIZE + PROFILE_HEADER_SIZE + 4) {
 
 		bool isMoreData = true;
 
@@ -585,7 +606,7 @@ void insertProfileBlocks(jdvStruct& jdv) {
 	jdv.ImageVec.insert(jdv.ImageVec.begin(), jdv.ProfileVec.begin(), jdv.ProfileVec.end());
 
 	std::string diffVal = std::to_string(jdv.subVal - jdv.imgVal);	// If we embed multiple data files (max 6), each outputted image will be differentiated 
-	// by a number in the name, e.g. jdv_img1.jpg, jdv_img2.jpg, jdv_img3.jpg.
+									// by a number in the name, e.g. jdv_img1.jpg, jdv_img2.jpg, jdv_img3.jpg.
 	jdv.FILE_NAME = "jdv_img" + diffVal + ".jpg";
 
 	writeOutFile(jdv);
@@ -601,27 +622,33 @@ void writeOutFile(jdvStruct& jdv) {
 	}
 
 	if (jdv.MODE == "-i") {
+
 		// Write out to disk image file embedded with the encrypted data file.
 		writeFile.write((char*)&jdv.ImageVec[0], jdv.ImageVec.size());
+
 		std::cout << "\nCreated output file: \"" + jdv.FILE_NAME + " " << jdv.ImageVec.size() << " " << "Bytes\"\n";
 		std::string msgSizeWarning =
 			"\n**Warning**\n\nDue to the file size of your \"file-embedded\" JPG image,\nyou will only be able to share " + jdv.FILE_NAME + " on the following platforms: \n\n"
-			"Flickr, ImgPile, ImgBB, ImageShack, PostImage, *Reddit (Desktop only) & Imgur";
+			"Flickr, ImgPile, ImgBB, ImageShack, PostImage, Imgur & *Reddit (*Desktop only, Reddit mobile app not supported)";
+
 		const size_t
 			msgLen = msgSizeWarning.length(),
 			imgSize = jdv.ImageVec.size(),
+							// Twitter 9.5KB .Not really supported because of the tiny size requirement, but if your data file is this size 
+							// (9.5KB, 9800bytes) or lower, then you should be able to use Twitter to share/tweet the "file-embedded" image.
 			mastodonSize = 8388608,		// 8MB
 			imgurRedditSize = 20971520,	// 20MB
 			postImageSize = 25165824,	// 24MB
 			imageShackSize = 26214400,	// 25MB
 			imgbbSize = 33554432,		// 32MB
 			imgPileSize = 104857600;	// 100MB
+							// Flickr is 200MB, our max.
 
-		msgSizeWarning = (imgSize > imgurRedditSize && imgSize <= postImageSize ? msgSizeWarning.substr(0, msgLen - 16)
-			: (imgSize > postImageSize && imgSize <= imageShackSize ? msgSizeWarning.substr(0, msgLen - 27)
-				: (imgSize > imageShackSize && imgSize <= imgbbSize ? msgSizeWarning.substr(0, msgLen - 39)
-					: (imgSize > imgbbSize && imgSize <= imgPileSize ? msgSizeWarning.substr(0, msgLen - 46)
-						: (imgSize > imgPileSize ? msgSizeWarning.substr(0, msgLen - 55) : msgSizeWarning)))));
+		msgSizeWarning = (imgSize > imgurRedditSize && imgSize <= postImageSize ? msgSizeWarning.substr(0, msgLen - 66)
+			: (imgSize > postImageSize && imgSize <= imageShackSize ? msgSizeWarning.substr(0, msgLen - 77)
+				: (imgSize > imageShackSize && imgSize <= imgbbSize ? msgSizeWarning.substr(0, msgLen - 89)
+					: (imgSize > imgbbSize && imgSize <= imgPileSize ? msgSizeWarning.substr(0, msgLen - 96)
+						: (imgSize > imgPileSize ? msgSizeWarning.substr(0, msgLen - 105) : msgSizeWarning)))));
 
 		if (imgSize > mastodonSize) {
 			std::cerr << msgSizeWarning << ".\n";
@@ -653,7 +680,10 @@ You can upload and share your data-embedded JPG image file on compatible social 
 
 *Imgur issue: Data is still retained when the file-embedded JPG image is over 5MB, but Imgur reduces the dimension size of the image.
  
-jdvrif data-embedded images will not work with Twitter. For Twitter, please use pdvzip (PNG only).
+*Reddit issue: Desktop only. Does not work with mobile app. Mobile app converts images to Webp format.
+
+*Twitter: If your data file is only 9KB or lower, you can also use Twitter to share your "file-embedded" JPG image.
+To share larger files on Twitter, (up to 5MB), please use pdvzip (PNG only).
 
 This program works on Linux and Windows.
 
