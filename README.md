@@ -13,7 +13,7 @@ jdvrif partly derives from the ***[technique](https://www.vice.com/en/article/bj
 
 **\*Imgur issue:** Data is still retained when the "*file-embedded*" *JPG* image is over *5MB*, but Imgur reduces the dimension size of the image.
 
-**\*Twitter:** If your data file is only *9KB or lower*, you can also use Twitter to share your "*file-embedded*" JPG image.  
+**\*Twitter:** If your data file is only *9KB or smaller*, you can also use Twitter to share your "*file-embedded*" JPG image.  
 To share larger files on Twitter, *(up to 5MB)*, please use [pdvzip](https://github.com/CleasbyCode/pdvzip) (*PNG* only).
 
 ![Demo Image](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/img.jpg)  
