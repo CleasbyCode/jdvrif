@@ -665,7 +665,7 @@ void writeOutFile(jdvStruct& jdv) {
 		const size_t
 			msgLen = msgSizeWarning.length(),
 			imgSize = jdv.ImageVec.size(),
-							// Twitter 9.5KB. Not really supported because of the tiny size requirement, but if your data file is this size 
+			// Twitter = 9.5KB. Not really supported because of the tiny size requirement, but if your data file is this size 
 							// (9.5KB, 9800bytes) or smaller, then you should be able to use Twitter to share/tweet the "file-embedded" image.
 			mastodonSize = 8388608,		// 8MB
 			imgurRedditSize = 20971520,	// 20MB
