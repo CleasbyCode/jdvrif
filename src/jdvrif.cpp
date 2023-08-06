@@ -1,8 +1,9 @@
 //	JPG Data Vehicle for Reddit, Imgur, Flickr & other compatible social media / image hosting sites. (jdvrif v1.2). 
 //	Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
 
-// To compile program (Linux): 
+// To compile program (Linux):
 // $ g++ jdvrif.cpp -lz -s -o jdvrif
+
 // Run it:
 // $ ./jdvrif
 
