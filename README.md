@@ -7,7 +7,7 @@ jdvrif partly derives from the ***[technique](https://www.vice.com/en/article/bj
 
 \*Size limit per JPG image is platform dependant:-  
 * ***Flickr (200MB), ImgPile (100MB), ImgBB (32MB), ImageShack (25MB)***,
-* ***PostImage (24MB), \*Reddit (Desktop only) & \*Imgur (20MB), Mastodon (8MB)***.
+* ***PostImage (24MB), \*Reddit (Desktop only) & \*Imgur (20MB), Mastodon (16MB)***.
   
 **\*Reddit issue:** Desktop only. Does not work with mobile app. Mobile app converts images to *Webp* format.   
 
