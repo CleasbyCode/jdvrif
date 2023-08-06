@@ -18,7 +18,7 @@ To share larger files on Twitter, *(up to 5MB)*, please use [pdvzip](https://git
 
 ![Demo Image](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/rain_img.jpg)  
 Image Credit: [Sophia Kramer Art](https://twitter.com/sophiakramerart/status/1688014531807584256)  
-{***Image contains encrypted FLAC music file (18MB) / extract with ./jdvrif -x rain_img.jpg***}   
+{***Image contains encrypted FLAC music file (18MB) / extract:  jdvrif  -x  rain_img.jpg***}   
 
 **Video Demos**  
 
