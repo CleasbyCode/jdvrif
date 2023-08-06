@@ -9,7 +9,7 @@ jdvrif partly derives from the ***[technique](https://www.vice.com/en/article/bj
 * ***Flickr (200MB), ImgPile (100MB), ImgBB (32MB), ImageShack (25MB)***,
 * ***PostImage (24MB), \*Reddit (Desktop only) & \*Imgur (20MB), Mastodon (16MB)***.
   
-**\*Reddit issue:** Desktop only. Does not work with mobile app. Mobile app converts images to *Webp* format.   
+**\*Reddit issue:** Desktop only. Does not work with mobile app. 
 
 **\*Imgur issue:** Data is still retained when the "*file-embedded*" *JPG* image is over *5MB*, but Imgur reduces the dimension size of the image.
 
