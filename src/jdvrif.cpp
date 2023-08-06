@@ -663,25 +663,25 @@ void writeOutFile(jdvStruct& jdv) {
 			"Flickr, ImgPile, ImgBB, ImageShack, PostImage, Imgur & *Reddit (*Desktop only, Reddit mobile app not supported)";
 
 		const size_t
-			msgLen = msgSizeWarning.length(),
-			imgSize = jdv.ImageVec.size(),
-			// Twitter = 9.5KB. Not really supported because of the tiny size requirement, but if your data file is this size 
-							// (9.5KB, 9800bytes) or smaller, then you should be able to use Twitter to share/tweet the "file-embedded" image.
-			mastodonSize = 8388608,		// 8MB
-			imgurRedditSize = 20971520,	// 20MB
-			postImageSize = 25165824,	// 24MB
-			imageShackSize = 26214400,	// 25MB
-			imgbbSize = 33554432,		// 32MB
-			imgPileSize = 104857600;	// 100MB
-							// Flickr is 200MB, our max.
+			MSG_LEN = msgSizeWarning.length(),
+			IMG_SIZE = jdv.ImageVec.size(),
+			// TWITTER_MAX_SIZE = 9.5KB. Not really supported because of the tiny size requirement, but if your data file is this size 
+			// (9.5KB) or lower, then you should be able to use Twitter to share/tweet the "file-embedded" image.
+			MASTODON_MAX_SIZE		= 16777216,		// 16MB
+			IMGUR_REDDIT_MAX_SIZE		= 20971520,		// 20MB
+			POST_IMG_MAX_SIZE		= 25165824,		// 24MB
+			IMG_SHACK_MAX_SIZE		= 26214400,		// 25MB
+			IMG_BB_MAX_SIZE			= 33554432,		// 32MB
+			IMG_PILE_MAX_SIZE		= 104857600;		// 100MB
+			// Flickr is 200MB, this programs max size, no need to to make a variable for it.
+		
+		msgSizeWarning = (IMG_SIZE > IMGUR_REDDIT_MAX_SIZE && IMG_SIZE <= POST_IMG_MAX_SIZE ? msgSizeWarning.substr(0, MSG_LEN - 66)
+			: (IMG_SIZE > POST_IMG_MAX_SIZE && IMG_SIZE <= IMG_SHACK_MAX_SIZE ? msgSizeWarning.substr(0, MSG_LEN - 77)
+				: (IMG_SIZE > IMG_SHACK_MAX_SIZE && IMG_SIZE <= IMG_BB_MAX_SIZE ? msgSizeWarning.substr(0, MSG_LEN - 89)
+					: (IMG_SIZE > IMG_BB_MAX_SIZE && IMG_SIZE <= IMG_PILE_MAX_SIZE ? msgSizeWarning.substr(0, MSG_LEN - 96)
+						: (IMG_SIZE > IMG_PILE_MAX_SIZE ? msgSizeWarning.substr(0, MSG_LEN - 105) : msgSizeWarning)))));
 
-		msgSizeWarning = (imgSize > imgurRedditSize && imgSize <= postImageSize ? msgSizeWarning.substr(0, msgLen - 66)
-			: (imgSize > postImageSize && imgSize <= imageShackSize ? msgSizeWarning.substr(0, msgLen - 77)
-				: (imgSize > imageShackSize && imgSize <= imgbbSize ? msgSizeWarning.substr(0, msgLen - 89)
-					: (imgSize > imgbbSize && imgSize <= imgPileSize ? msgSizeWarning.substr(0, msgLen - 96)
-						: (imgSize > imgPileSize ? msgSizeWarning.substr(0, msgLen - 105) : msgSizeWarning)))));
-
-		if (imgSize > mastodonSize) {
+		if (IMG_SIZE > MASTODON_MAX_SIZE) {
 			std::cerr << msgSizeWarning << ".\n";
 		}
 
