@@ -708,7 +708,7 @@ You can upload and share your data-embedded JPG image file on compatible social 
 *Size limit per JPG image is platform dependant:-
 
   Flickr (200MB), ImgPile (100MB), ImgBB (32MB), ImageShack (25MB),
-  PostImage (24MB), *Reddit (Desktop only) & *Imgur (20MB), Mastodon (8MB).
+  PostImage (24MB), *Reddit (Desktop only) & *Imgur (20MB), Mastodon (16MB).
 
 *Imgur issue: Data is still retained when the file-embedded JPG image is over 5MB, but Imgur reduces the dimension size of the image.
  
