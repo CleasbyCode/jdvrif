@@ -2,7 +2,6 @@
 
 Command-line tool to embed & extract any file type (up to *200MB) via a JPG image.  
 Share the "*file-embedded*" image on compatible social media & image hosting sites.
-
 ![Demo Image](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/song.jpg)  
 Image Credit: [Sophia Kramer Art](https://twitter.com/sophiakramerart/status/1688014531807584256)  
 {***Image contains encrypted FLAC music file (18MB) / extract:  jdvrif  -x  rain_img.jpg***}   
