@@ -28,11 +28,9 @@ To share larger files on Twitter, *(up to 5MB)*, please use [pdvzip](https://git
 
 This program can be used on Linux and Windows.
 
-Your data file is inserted and preserved within multiple 65KB ICC Profile blocks in the JPG image file.
+Your data file is encrypted & inserted within multiple 65KB ICC Profile blocks in the JPG image file.
 
 ![ICC](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/icc.png)  
-
-Your embedded file is encrypted and *compressed (zlib, deflate). *Compression not always used, depends on data.  
 
 Using **jdvrif**, you can insert up to six files at a time (outputs one image per file).  
 
@@ -44,7 +42,7 @@ Compile and run the program under Windows or **Linux**.
 
 ```c
 
-$ g++ jdvrif.cpp -lz -s -o jdvrif
+$ g++ jdvrif.cpp -s -o jdvrif
 $
 $ ./jdvrif 
 
