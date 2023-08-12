@@ -101,7 +101,7 @@ int main(int argc, char** argv) {
 		}
 	}
 	else {
-		std::cout << "\nUsage:\t\bjdvrif -i <jpg-image>  <file(s)>\n\t\bjdvrif -x <jpg-image(s)>\n\t\bjdvrif --info\n\n";
+		std::cout << "\nUsage:\tjdvrif -i <jpg-image>  <file(s)>\n\tjdvrif -x <jpg-image(s)>\n\tjdvrif --info\n\n";
 		argc = 0;
 	}
 	if (argc != 0) {
