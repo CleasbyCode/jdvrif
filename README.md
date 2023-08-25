@@ -22,7 +22,6 @@ To share larger files on Twitter, *(up to 5MB)*, please use [pdvzip](https://git
 
 **Video Demos**  
 
-[***Flickr Upload - Encrypted MP3 Music File Embedded in JPG Image***](https://youtu.be/pc5h6AGCstI)  
 [***Mastodon Upload - Encrypted ZIP File Embedded in JPG Image***](https://youtu.be/rYAMNy5uPh8)  
 [***Reddit Upload - Encrypted PNG Image Embedded in JPG Image***](https://youtu.be/6-BDwFJG8Cw)
 
