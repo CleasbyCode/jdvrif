@@ -59,7 +59,7 @@ public:
 void openFiles(char* [], jdvStruct& jdv);
 
 // Function finds all the inserted iCC Profile headers in the "file-embedded" image and saves their index locations within vector "ProfileHeaderIndexVec".
-// We will later used these index locations to skip the profile headers when decrypting the file, so that they don't get included within the extracted data file.
+// We will later use these index locations to skip the profile headers when decrypting the file, so that they don't get included within the extracted data file.
 void findProfileHeaders(jdvStruct& jdv);
 
 // Encrypt or decrypt user's data file and its filename.
