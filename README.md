@@ -31,9 +31,9 @@ Your data file is encrypted & inserted within multiple 65KB ICC Profile blocks i
 
 ![ICC](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/icc.png)  
 
-Using **jdvrif**, you can insert up to six files at a time (outputs one image per file).  
+Using **jdvrif**, you can insert up to eight files at a time (outputs one image per file).  
 
-You can also extract files from up to six images at a time.
+You can also extract files from up to eight images at a time.
 
 Compile and run the program under Windows or **Linux**.
 
