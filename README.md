@@ -22,8 +22,8 @@ Image Credit: [Sophia Kramer Art](https://twitter.com/sophiakramerart/status/168
 
 **Video Demos**  
 
-[***Mastodon - JPG Image Embedded With Encrypted FLAC Music File (15MB)***](https://youtu.be/S7O6-93vS_o)  
-[***Reddit - JPG Image Embedded With Encrypted FLAC Music File (19MB)***](https://youtu.be/s_ejm3bd2Qg)
+[***Mastodon - JPG Image Embedded with Encrypted FLAC Music File (15MB)***](https://youtu.be/S7O6-93vS_o)  
+[***Reddit - JPG Image Embedded with Encrypted FLAC Music File (19MB)***](https://youtu.be/s_ejm3bd2Qg)
 
 This program can be used on Linux and Windows.
 
