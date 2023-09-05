@@ -1,17 +1,17 @@
 # jdvrif
 
-Command-line tool to embed & extract any file type (up to *200MB) via a JPG image.  
-Share the "*file-embedded*" image on compatible social media & image hosting sites.  
+Command-line tool to embed & extract any file type via a JPG image.  
+Share your "*file-embedded*" image on the following compatible sites.  
+
+Size limit per JPG image is platform dependant:-  
+* ***Flickr (200MB), ImgPile (100MB), ImgBB (32MB), ImageShack (25MB)***,
+* ***PostImage (24MB), \*Reddit (Desktop only) & \*Imgur (20MB), Mastodon (16MB)***.
 
 ![Demo Image](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/song.jpg)  
 Image Credit: [Sophia Kramer Art](https://twitter.com/sophiakramerart/status/1688014531807584256)  
 {***Image contains encrypted FLAC music file (18MB) / extract:  jdvrif  -x  rain_img.jpg***}   
 
 **jdvrif** partly derives from the ***[technique](https://www.vice.com/en/article/bj4wxm/tiny-picture-twitter-complete-works-of-shakespeare-steganography)*** discovered by security researcher ***[David Buchanan](https://www.da.vidbuchanan.co.uk/).*** 
-
-\*Size limit per JPG image is platform dependant:-  
-* ***Flickr (200MB), ImgPile (100MB), ImgBB (32MB), ImageShack (25MB)***,
-* ***PostImage (24MB), \*Reddit (Desktop only) & \*Imgur (20MB), Mastodon (16MB)***.
 
 **\*Twitter:** If your data file is only *9KB or smaller*, you can also use Twitter to share your "*file-embedded*" JPG image.  
 To share larger files on Twitter, *(up to 5MB)*, please use [pdvzip](https://github.com/CleasbyCode/pdvzip) (*PNG* only).
