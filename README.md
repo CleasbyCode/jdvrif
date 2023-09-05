@@ -37,7 +37,7 @@ You can also extract files from up to eight images at a time.
 
 Compile and run the program under Windows or **Linux**.
 
-## Usage (Linux - Insert & Extract file from JPG image)
+## Usage Demo
 
 ```c
 
