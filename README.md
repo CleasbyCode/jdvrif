@@ -15,8 +15,10 @@ Image Credit: [Sophia Kramer Art](https://twitter.com/sophiakramerart/status/168
 
 **\*Twitter:** If your data file is only *9KB or smaller*, you can also use Twitter to share your "*file-embedded*" JPG image.  
 To share larger files on Twitter, *(up to 5MB)*, please use [pdvzip](https://github.com/CleasbyCode/pdvzip) (*PNG* only).
-  
-***Issues: **Reddit** Desktop only. Does not work with Reddit's mobile app. **Imgur** Keeps data, but reduces the dimension size of images over 5MB***
+
+**Issues:**
+* **Reddit -** ***Does not work with Reddit's mobile app. Desktop only.*** 
+* **Imgur -** ***Keeps data, but reduces the dimension size of images over 5MB.***
 
 **Video Demos**  
 
