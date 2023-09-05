@@ -1,6 +1,6 @@
 # jdvrif
 
-A simple command-line tool to embed & extract any file type via a JPG image file.  
+A simple command-line tool to embed and extract any file type via a JPG image file.  
 Share your "*file-embedded*" image on the following compatible sites.  
 
 Image size limit is platform dependant:-  
