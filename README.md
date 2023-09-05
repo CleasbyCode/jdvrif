@@ -18,7 +18,7 @@ Image Credit: [Sophia Kramer Art](https://twitter.com/sophiakramerart/status/168
 
 **Issues:**
 * **Reddit -** ***Does not work with Reddit's mobile app. Desktop only.*** 
-* **Imgur -** ***Keeps data, but reduces the dimension size of images over 5MB.***
+* **Imgur -** ***Keeps embedded data, but reduces the dimension size of images over 5MB.***
 
 **Video Demos**  
 
