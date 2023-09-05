@@ -1,6 +1,7 @@
 # jdvrif
 
-Command-line tool to embed & extract any file type via a JPG image. Share your "*file-embedded*" image on the following compatible sites.  
+A simple command-line tool to embed & extract any file type via a JPG image file.  
+Share your "*file-embedded*" image on the following compatible sites.  
 
 Image size limit is platform dependant:-  
 * ***Flickr (200MB), ImgPile (100MB), ImgBB (32MB), ImageShack (25MB)***,
