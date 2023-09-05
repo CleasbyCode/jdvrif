@@ -7,7 +7,7 @@ Image size limit is platform dependant:-
 * ***Flickr (200MB), ImgPile (100MB), ImgBB (32MB), ImageShack (25MB)***,
 * ***PostImage (24MB), \*Reddit (Desktop only) & \*Imgur (20MB), Mastodon (16MB)***.
 
-**\*Twitter:** ***If your data file is only *9KB or smaller*, you can also use Twitter to share your "*file-embedded*" JPG image.  
+**Twitter:** ***If your data file under 10KB, you can also use Twitter to share your "*file-embedded*" JPG image.  
 To share larger files on Twitter, *(up to 5MB)*, please use [pdvzip](https://github.com/CleasbyCode/pdvzip).***
 
 ![Demo Image](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/song.jpg)  
