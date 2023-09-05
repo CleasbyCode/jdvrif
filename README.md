@@ -22,8 +22,8 @@ To share larger files on Twitter, *(up to 5MB)*, please use [pdvzip](https://git
 
 **Video Demos**  
 
-[***Mastodon Upload - Encrypted ZIP File Embedded in JPG Image***](https://youtu.be/rYAMNy5uPh8)  
-[***Reddit Upload - Encrypted PNG Image Embedded in JPG Image***](https://youtu.be/6-BDwFJG8Cw)
+[***Mastodon - JPG Image Embedded With Encrypted FLAC Music File (15MB)***](https://youtu.be/S7O6-93vS_o)  
+[***Reddit - JPG Image Embedded With Encrypted FLAC Music File (19MB)***](https://youtu.be/s_ejm3bd2Qg)
 
 This program can be used on Linux and Windows.
 
