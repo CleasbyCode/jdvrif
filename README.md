@@ -7,9 +7,6 @@ Image size limit is platform dependant:-
 * ***Flickr (200MB), ImgPile (100MB), ImgBB (32MB), ImageShack (25MB)***,
 * ***PostImage (24MB), \*Reddit (Desktop only) & \*Imgur (20MB), Mastodon (16MB)***.
 
-**Twitter:** ***If your data file is under 10KB, you can also use Twitter to share your "*file-embedded*" JPG image.  
-To share larger files on Twitter, *(up to 5MB)*, please use [pdvzip](https://github.com/CleasbyCode/pdvzip).***  
-
 **jdvrif** partly derives from the ***[technique](https://www.vice.com/en/article/bj4wxm/tiny-picture-twitter-complete-works-of-shakespeare-steganography)*** discovered by security researcher ***[David Buchanan](https://www.da.vidbuchanan.co.uk/).*** 
 
 ![Demo Image](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/song.jpg)  
@@ -20,6 +17,9 @@ Image Credit: [Sophia Kramer Art](https://twitter.com/sophiakramerart/status/168
 
 [***Mastodon - JPG Image Embedded with Encrypted FLAC Music File (15MB)***](https://youtu.be/S7O6-93vS_o)  
 [***Reddit - JPG Image Embedded with Encrypted FLAC Music File (19MB)***](https://youtu.be/s_ejm3bd2Qg)
+
+**Twitter:** ***If your data file is under 10KB, you can also use Twitter to share your "*file-embedded*" JPG image.  
+To share larger files on Twitter, *(up to 5MB)*, please use [pdvzip](https://github.com/CleasbyCode/pdvzip).***  
 
 This program can be used on Linux and Windows.
 
