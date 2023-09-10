@@ -1,9 +1,9 @@
 # jdvrif
 
-A simple command-line tool to embed and extract any file type via a JPG image file.  
-Share your "*file-embedded*" image on the following compatible sites.  
+A simple command-line tool to embed and extract any file type via a JPG image.  
 
-Image size limit is platform dependant:-  
+Share your *file-embedded* image on the following compatible sites.  
+
 * ***Flickr (200MB), ImgPile (100MB), ImgBB (32MB), ImageShack (25MB)***,
 * ***PostImage (24MB), \*Reddit (Desktop only) & \*Imgur (20MB), Mastodon (16MB)***.
 
@@ -18,7 +18,7 @@ Image Credit: [Sophia Kramer Art](https://twitter.com/sophiakramerart/status/168
 [***Mastodon - JPG Image Embedded with Encrypted FLAC Music File (15MB)***](https://youtu.be/S7O6-93vS_o)  
 [***Reddit - JPG Image Embedded with Encrypted FLAC Music File (19MB)***](https://youtu.be/s_ejm3bd2Qg)
 
-**Twitter:** ***If your data file is under 10KB, you can also use Twitter to share your "*file-embedded*" JPG image.  
+**Twitter:** ***If your data file is under 10KB, you can also use Twitter to share your *file-embedded* JPG image.  
 To share larger files on Twitter, *(up to 5MB)*, please use [pdvzip](https://github.com/CleasbyCode/pdvzip).***  
 
 This program can be used on Linux and Windows.
