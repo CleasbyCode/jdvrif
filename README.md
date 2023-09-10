@@ -16,10 +16,6 @@ To share larger files on Twitter, *(up to 5MB)*, please use [pdvzip](https://git
 Image Credit: [Sophia Kramer Art](https://twitter.com/sophiakramerart/status/1688014531807584256)  
 {***Image contains encrypted FLAC music file (18MB) / extract:  jdvrif  -x  rain_img.jpg***}   
 
-**Issues:**
-* **Reddit -** ***Does not work with Reddit's mobile app. Desktop only.*** 
-* **Imgur -** ***Keeps embedded data, but reduces the dimension size of images over 5MB.***
-
 **Video Demos**  
 
 [***Mastodon - JPG Image Embedded with Encrypted FLAC Music File (15MB)***](https://youtu.be/S7O6-93vS_o)  
@@ -92,6 +88,9 @@ Extracted file: "Clowns.part3.rar 10485760 Bytes"
 Complete! Please check your extracted file(s).
 
 ```
+**Issues:**
+* **Reddit -** ***Does not work with Reddit's mobile app. Desktop only.*** 
+* **Imgur -** ***Keeps embedded data, but reduces the dimension size of images over 5MB.***
 
 My other programs you may find useful:-  
 
