@@ -30,9 +30,7 @@ struct jdvStruct {
 class ValueUpdater {
 public:
 	void Value(std::vector<BYTE>& vect, uint32_t Value_Insert_Index, const uint32_t VALUE, uint8_t Bits) {
-
 		while (Bits) vect[Value_Insert_Index++] = (VALUE >> (Bits -= 8)) & 0xff;
-
 	}
 } *update;
 
@@ -359,7 +357,7 @@ void encryptDecrypt(jdvStruct& jdv) {
 
 	const std::string In_Name = jdv.FILE_NAME;
 
-	std::string	Out_Name;
+	std::string Out_Name;
 
 	const uint8_t
 		Xor_Key_Start_Pos = 0,
@@ -367,7 +365,7 @@ void encryptDecrypt(jdvStruct& jdv) {
 
 	uint8_t
 		Xor_Key_Pos = Xor_Key_Start_Pos,	// Character position variable for XOR_KEY string.
-		Name_Key_Pos = Name_Key_Start_Pos;	// Character position variable for filename string (outName / inName).
+		Name_Key_Pos = Name_Key_Start_Pos;	// Character position variable for filename string (Out_Name / In_Name).
 
 	if (NAME_LENGTH > FILE_SIZE) {			// File size needs to be greater than filename length.
 		std::cerr << "\nFile Size Error: File size is too small.\n\n";
@@ -384,17 +382,17 @@ void encryptDecrypt(jdvStruct& jdv) {
 		else {
 			Xor_Key_Pos = Xor_Key_Pos > XOR_KEY_LENGTH ? Xor_Key_Start_Pos : Xor_Key_Pos;	// Reset XOR_KEY position to the start if it has reached last character.
 			Out_Name += In_Name[Index_Pos] ^ XOR_KEY[Xor_Key_Pos++];			// XOR each character of filename against characters of XOR_KEY string. Store output characters in "outName".
-																							// Depending on Mode, filename is either encrypted or decrypted.
+													// Depending on Mode, filename is either encrypted or decrypted.
 		}
 
 		if (jdv.MODE == "-i") {
-			// Encrypt data file. XOR each byte of the data file within "jdv.FileVec" against each character of the encrypted filename, "outName". 
+			// Encrypt data file. XOR each byte of the data file within "jdv.FileVec" against each character of the encrypted filename, "Out_Name". 
 			// Store encrypted output in vector "jdv.EncryptedVec".
 			jdv.EncryptedVec.emplace_back(jdv.FileVec[Index_Pos++] ^ Out_Name[Name_Key_Pos++]);
 		}
 
 		else {
-			// Decrypt data file: XOR each byte of the data file within vector "jdv.ImageVec" against each character of the encrypted filename, "inName". 
+			// Decrypt data file: XOR each byte of the data file within vector "jdv.ImageVec" against each character of the encrypted filename, "In_Name". 
 			// Store decrypted output in vector "jdv.DecryptedVec".
 		    jdv.DecryptedVec.emplace_back(jdv.ImageVec[Index_Pos++] ^ In_Name[Name_Key_Pos++]);
 
@@ -511,10 +509,10 @@ void insertProfileHeaders(jdvStruct& jdv) {
 		
 		while (PROFILE_VECTOR_SIZE > Byte_Index) {
 			
-			// Store byte at "byteIndex" location of vector "ProfileVec" within vector "FinalVec".	
+			// Store byte at "Byte_Index" location of vector "ProfileVec" within vector "FinalVec".	
 			jdv.FinalVec.emplace_back(jdv.ProfileVec[Byte_Index++]);
 
-			// Does the current "byteIndex" value match the the current "tallySize" value?
+			// Does the current "Byte_Index" value match the the current "Tally_Size" value?
 			// If match is found, we will insert a profile header into the data at the current location.
 			if (Byte_Index == Tally_Size) {
 
@@ -524,7 +522,7 @@ void insertProfileHeaders(jdvStruct& jdv) {
 				// Update profile count value after inserting the above profile header. 
 				Profile_Count++;
 
-				// Increment tallySize by another BLOCK_SIZE
+				// Increment Tally_Size by another BLOCK_SIZE
 				Tally_Size += BLOCK_SIZE + 2;
 
 			}
@@ -537,14 +535,14 @@ void insertProfileHeaders(jdvStruct& jdv) {
 		// Most files should be delt with in this "if" branch. Other "edge cases" will be delt with in the "else" branch.
 		if (Tally_Size > PROFILE_VECTOR_SIZE + (Profile_Count * jdv.PROFILE_HEADER_LENGTH) + 2) {
 
-			// The while loop leaves us with an extra "tallySize += BLOCK_SIZE =2", which is one too many for this section, so we correct it here.
+			// The while loop leaves us with an extra "Tally_Size += BLOCK_SIZE +2", which is one too many for this section, so we correct it here.
 			Tally_Size -= BLOCK_SIZE + 2;
 			
 			// Update the 2 byte size field of the final profile header (last profile header has already been inserted from the above "while-loop").
 			update->Value(jdv.FinalVec, Tally_Size + 2, PROFILE_VECTOR_SIZE - Tally_Size + (Profile_Count * jdv.PROFILE_HEADER_LENGTH) - 2, Bits);
 		}
 		else 
-		{  // For this branch we keep the extra "tallySize += BLOCK_SIZE +2", as we need to insert one more profile header into the file.
+		{  // For this branch we keep the extra "Tally_Size += BLOCK_SIZE +2", as we need to insert one more profile header into the file.
 
 			// Insert last profile header, required for the data file.
 			jdv.FinalVec.insert(jdv.FinalVec.begin() + Tally_Size, ICC_PROFILE_HEADER.begin(), ICC_PROFILE_HEADER.end());
@@ -556,7 +554,7 @@ void insertProfileHeaders(jdvStruct& jdv) {
 			update->Value(jdv.FinalVec, Tally_Size + 2, PROFILE_VECTOR_SIZE - Tally_Size + (Profile_Count * jdv.PROFILE_HEADER_LENGTH) - 2, Bits);
 		}
 
-		// Store the total profileCount value into vector "FinalVec", within the main profile. This value is required for when extracting the data file.
+		// Store the total Profile_Count value into vector "FinalVec", within the main profile. This value is required for when extracting the data file.
 		update->Value(jdv.FinalVec, Profile_Count_Index, Profile_Count, Bits);
 	}
 
