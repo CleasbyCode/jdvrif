@@ -115,8 +115,7 @@ void openFiles(char* argv[], jdvStruct& jdv) {
 	jdv.IMAGE_SIZE = fs::file_size(jdv.IMAGE_NAME);
 
 	// Read-in and store JPG image (or "file-embedded" image file) into vector "ImageVec".
-	jdv.ImageVec.resize(jdv.IMAGE_SIZE / sizeof(BYTE));
-	readImage.read((char*)jdv.ImageVec.data(), jdv.IMAGE_SIZE);
+	jdv.ImageVec.assign(std::istreambuf_iterator<char>(readImage), std::istreambuf_iterator<char>());
 
 	if (jdv.MODE == "-x") { // Extract mode.
 
@@ -205,8 +204,7 @@ void openFiles(char* argv[], jdvStruct& jdv) {
 		};
 
 		// Read-in and store user's data file into vector "FileVec".
-		jdv.FileVec.resize(jdv.FILE_SIZE / sizeof(BYTE));
-		readFile.read((char*)jdv.FileVec.data(), jdv.FILE_SIZE);
+		jdv.FileVec.assign(std::istreambuf_iterator<char>(readFile), std::istreambuf_iterator<char>());
 
 		// This vector will be used to store the users encrypted data file.
 		jdv.EncryptedVec.reserve(jdv.FILE_SIZE);
