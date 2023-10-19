@@ -1,7 +1,7 @@
 //	JPG Data Vehicle (jdvrif v1.2) Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
 //
 //	To compile program (Linux):
-// 	$ g++ jdvrif.cpp -s -o jdvrif
+// 	$ g++ jdvrif.cpp -O2 -s -o jdvrif
 
 // 	Run it:
 // 	$ ./jdvrif
