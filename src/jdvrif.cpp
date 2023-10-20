@@ -10,10 +10,7 @@
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <filesystem>
 #include <vector>
-
-namespace fs = std::filesystem;
 
 typedef unsigned char BYTE;
 
@@ -111,11 +108,11 @@ void openFiles(char* argv[], jdvStruct& jdv) {
 		std::exit(EXIT_FAILURE);
 	}
 	
-	// Get size of image file (or "file-embedded" image file), update variable.
-	jdv.IMAGE_SIZE = fs::file_size(jdv.IMAGE_NAME);
-
 	// Read-in and store JPG image (or "file-embedded" image file) into vector "ImageVec".
 	jdv.ImageVec.assign(std::istreambuf_iterator<char>(readImage), std::istreambuf_iterator<char>());
+
+	// Get size of image file (or "file-embedded" image file).
+	jdv.IMAGE_SIZE = jdv.ImageVec.size();
 
 	if (jdv.MODE == "-x") { // Extract mode.
 
@@ -146,21 +143,7 @@ void openFiles(char* argv[], jdvStruct& jdv) {
 	}
 
 	else {	// Insert mode.
-
-		// jdv.IMAGE_SIZE = static_cast<uint32_t>(fs::file_size(jdv.IMAGE_NAME));
-		jdv.FILE_SIZE = fs::file_size(jdv.FILE_NAME);
-
-		const uint32_t MAX_FILE_SIZE = 0xC800000; // 200MB file size limit for this program. 
-
-		if (jdv.IMAGE_SIZE + jdv.FILE_SIZE + (jdv.FILE_SIZE / 65535 * jdv.PROFILE_HEADER_LENGTH + jdv.PROFILE_HEADER_LENGTH) > MAX_FILE_SIZE) {
-
-			// File size check failure, display error message and exit program.
-			std::cerr <<	"\nFile Size Error: Your data file size must not exceed 200MB (209715200 Bytes).\n\n" <<
-					"The data file size includes the image file size and the total size of profile headers,\n(18 bytes for every 65KB of the data file).\n\n";
-
-			std::exit(EXIT_FAILURE);
-		}
-
+		
 		// The first 434 bytes (0x1B2) of this vector contains the main (basic) iCC Profile.
 		jdv.ProfileVec.reserve(jdv.FILE_SIZE + 0x1B2 + 0xE290);
 		jdv.ProfileVec = {
@@ -205,6 +188,20 @@ void openFiles(char* argv[], jdvStruct& jdv) {
 
 		// Read-in and store user's data file into vector "FileVec".
 		jdv.FileVec.assign(std::istreambuf_iterator<char>(readFile), std::istreambuf_iterator<char>());
+		
+		// Get size of data file.
+		jdv.FILE_SIZE = jdv.FileVec.size();
+
+		const uint32_t MAX_FILE_SIZE = 0xC800000; // 200MB file size limit for this program. 
+
+		if (jdv.IMAGE_SIZE + jdv.FILE_SIZE + (jdv.FILE_SIZE / 65535 * jdv.PROFILE_HEADER_LENGTH + jdv.PROFILE_HEADER_LENGTH) > MAX_FILE_SIZE) {
+
+			// File size check failure, display error message and exit program.
+			std::cerr <<	"\nFile Size Error: Your data file size must not exceed 200MB (209715200 Bytes).\n\n" <<
+					"The data file size includes the image file size and the total size of profile headers,\n(18 bytes for every 65KB of the data file).\n\n";
+
+			std::exit(EXIT_FAILURE);
+		}
 
 		// This vector will be used to store the users encrypted data file.
 		jdv.EncryptedVec.reserve(jdv.FILE_SIZE);
