@@ -37,7 +37,7 @@ Compile and run the program under Windows or **Linux**.
 
 ```bash
 
-$ g++ jdvrif.cpp -s -o jdvrif
+$ g++ jdvrif.cpp -O2 -s -o jdvrif
 $
 $ ./jdvrif 
 
