@@ -613,10 +613,10 @@ void writeOutFile(jdvStruct& jdv) {
 			// Flickr is 200MB, this programs max size, no need to to make a variable for it.
 
 		Msg_Size_Warning = (IMG_SIZE > IMGUR_REDDIT_MAX_SIZE && IMG_SIZE <= POST_IMG_MAX_SIZE ? Msg_Size_Warning.substr(0, MSG_LEN - 0x42)
-							: (IMG_SIZE > POST_IMG_MAX_SIZE && IMG_SIZE <= IMG_SHACK_MAX_SIZE ? Msg_Size_Warning.substr(0, MSG_LEN - 0x4D)
-							: (IMG_SIZE > IMG_SHACK_MAX_SIZE && IMG_SIZE <= IMG_BB_MAX_SIZE ? Msg_Size_Warning.substr(0, MSG_LEN - 0x59)
-							: (IMG_SIZE > IMG_BB_MAX_SIZE && IMG_SIZE <= IMG_PILE_MAX_SIZE ? Msg_Size_Warning.substr(0, MSG_LEN - 0x60)
-							: (IMG_SIZE > IMG_PILE_MAX_SIZE ? Msg_Size_Warning.substr(0, MSG_LEN - 0x69) : Msg_Size_Warning)))));
+					: (IMG_SIZE > POST_IMG_MAX_SIZE && IMG_SIZE <= IMG_SHACK_MAX_SIZE ? Msg_Size_Warning.substr(0, MSG_LEN - 0x4D)
+					: (IMG_SIZE > IMG_SHACK_MAX_SIZE && IMG_SIZE <= IMG_BB_MAX_SIZE ? Msg_Size_Warning.substr(0, MSG_LEN - 0x59)
+					: (IMG_SIZE > IMG_BB_MAX_SIZE && IMG_SIZE <= IMG_PILE_MAX_SIZE ? Msg_Size_Warning.substr(0, MSG_LEN - 0x60)
+					: (IMG_SIZE > IMG_PILE_MAX_SIZE ? Msg_Size_Warning.substr(0, MSG_LEN - 0x69) : Msg_Size_Warning)))));
 
 		if (IMG_SIZE > MASTODON_MAX_SIZE) {
 			std::cerr << Msg_Size_Warning << ".\n";
