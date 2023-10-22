@@ -21,16 +21,14 @@ struct jdvStruct {
 	uint64_t IMAGE_SIZE{}, FILE_SIZE{};
 	const uint8_t PROFILE_HEADER_LENGTH = 0x12;
 	uint8_t Img_Value{}, Sub_Value{};
-	bool Insert_Mode = false;
+	bool Insert_File = false, Extract_File = false;
 };
 
 // Update values, such as block size, file sizes and other values and write them into the relevant vector index locations. Overwrites previous values.
 class ValueUpdater {
 public:
 	void Value(std::vector<BYTE>& vect, uint32_t Value_Insert_Index, const uint32_t VALUE, uint8_t Bits) {
-
 		while (Bits) vect[Value_Insert_Index++] = (VALUE >> (Bits -= 8)) & 0xff;
-
 	}
 } *update;
 
@@ -62,7 +60,7 @@ int main(int argc, char** argv) {
 		displayInfo();
 	}
 	else if (argc >= 4 && argc < 12 && std::string(argv[1]) == "-i") { // Insert file mode.
-		jdv.Insert_Mode = true, jdv.Sub_Value = argc - 1, jdv.IMAGE_NAME = argv[2];
+		jdv.Insert_File = true, jdv.Sub_Value = argc - 1, jdv.IMAGE_NAME = argv[2];
 		argc -= 2;
 		while (argc != 1) {  // We can insert up to 8 files at a time (outputs one image for each file).
 			jdv.Img_Value = argc, jdv.FILE_NAME = argv[3];
@@ -72,6 +70,7 @@ int main(int argc, char** argv) {
 		argc = 1;
 	}
 	else if (argc >= 3 && argc < 11 && std::string(argv[1]) == "-x") { // Extract file mode.
+		jdv.Extract_File = true;
 		while (argc >= 3) {  // We can extract files from up to 8 embedded images at a time.
 			jdv.IMAGE_NAME = argv[2];
 			openFiles(argv++, jdv);
@@ -99,7 +98,7 @@ void openFiles(char* argv[], jdvStruct& jdv) {
 		readImage(jdv.IMAGE_NAME, std::ios::binary),
 		readFile(jdv.FILE_NAME, std::ios::binary);
 
-	if (jdv.Insert_Mode && (!readImage || !readFile) || !jdv.Insert_Mode && !readImage) {
+	if (jdv.Insert_File && (!readImage || !readFile) || !jdv.Extract_File && !readImage) {
 
 		// Open file failure, display relevant error message and exit program.
 		const std::string
@@ -116,7 +115,7 @@ void openFiles(char* argv[], jdvStruct& jdv) {
 	// Get size of image file (or "file-embedded" image file), update variable.
 	jdv.IMAGE_SIZE = jdv.ImageVec.size();
 
-	if (!jdv.Insert_Mode) { // Extract mode.
+	if (jdv.Extract_File) { // Extract mode.
 
 		const uint8_t
 			JPG_HEADER_SIZE = 0x12,
@@ -267,11 +266,11 @@ void findProfileHeaders(jdvStruct& jdv) {
 	std::cout << "\nOK, jdvrif \"file-embedded\" image found!\n";
 
 	const uint8_t
-		NAME_LENGTH_INDEX = 0x50,	// Index location within vector "ImageVec" for length value of filename for user's data file.
+		NAME_LENGTH_INDEX = 0x50,			// Index location within vector "ImageVec" for length value of filename for user's data file.
 		NAME_LENGTH = jdv.ImageVec[NAME_LENGTH_INDEX],	// Get embedded value of filename length from "ImageVec", stored within the main profile.
-		NAME_INDEX = 0x51,		// Start index location within vector "ImageVec" of filename for user's data file.
-		PROFILE_COUNT_INDEX = 0x8A,	// Value index location within vector "ImageVec" for the total number of inserted iCC Profile headers.
-		FILE_SIZE_INDEX = 0x90;		// Start index location within vector "ImageVec" for the file size value of the user's data file.
+		NAME_INDEX = 0x51,				// Start index location within vector "ImageVec" of filename for user's data file.
+		PROFILE_COUNT_INDEX = 0x8A,			// Value index location within vector "ImageVec" for the total number of inserted iCC Profile headers.
+		FILE_SIZE_INDEX = 0x90;				// Start index location within vector "ImageVec" for the file size value of the user's data file.
 
 	const uint16_t
 		FILE_INDEX = 0x1B2; 	// Start index location within vector "ImageVec" for the user's data file.
@@ -318,7 +317,7 @@ void findProfileHeaders(jdvStruct& jdv) {
 
 void encryptDecrypt(jdvStruct& jdv) {
 
-	if (jdv.Insert_Mode) { // Insert mode.
+	if (jdv.Insert_File) { 
 
 		// Before we encrypt user's data filename, check for and remove "./" or ".\" characters at the start of the filename. 
 		const uint32_t Last_Slash_Pos = static_cast<uint32_t>(jdv.FILE_NAME.find_last_of("\\/"));
@@ -332,7 +331,7 @@ void encryptDecrypt(jdvStruct& jdv) {
 	const std::string XOR_KEY = "\xFF\xD8\xFF\xE2\xFF\xFF";	// String used to XOR encrypt/decrypt the filename of user's data file.
 
 	uint32_t 
-		FILE_SIZE = jdv.Insert_Mode ? static_cast<uint32_t>(jdv.FileVec.size()) : static_cast<uint32_t>(jdv.ImageVec.size()),	 // File size of user's data file.
+		FILE_SIZE = jdv.Insert_File ? static_cast<uint32_t>(jdv.FileVec.size()) : static_cast<uint32_t>(jdv.ImageVec.size()),	 // File size of user's data file.
 		Index_Pos = 0;		// When encrypting/decrypting the filename, this variable stores the index character position of the filename,
 					// When encrypting/decrypting the user's data file, this variable is used as the index position of where to 
 					// insert each byte of the data file into the relevant "encrypted" or "decrypted" vectors.
@@ -353,7 +352,7 @@ void encryptDecrypt(jdvStruct& jdv) {
 
 	const std::string In_Name = jdv.FILE_NAME;
 
-	std::string Out_Name;
+	std::string	Out_Name;
 
 	const uint8_t
 		Xor_Key_Start_Pos = 0,
@@ -381,7 +380,7 @@ void encryptDecrypt(jdvStruct& jdv) {
 																							// Depending on Mode, filename is either encrypted or decrypted.
 		}
 
-		if (jdv.Insert_Mode) {
+		if (jdv.Insert_File) {
 			// Encrypt data file. XOR each byte of the data file within "jdv.FileVec" against each character of the encrypted filename, "outName". 
 			// Store encrypted output in vector "jdv.EncryptedVec".
 			jdv.EncryptedVec.emplace_back(jdv.FileVec[Index_Pos++] ^ Out_Name[Name_Key_Pos++]);
@@ -397,14 +396,14 @@ void encryptDecrypt(jdvStruct& jdv) {
 
 				// We have found a location for a profile header. Skip over it so that we don't include it within the decrypted output file.
 				// Skipping the profile headers is much quicker than removing them with the Vector erase command.
-				Index_Pos += jdv.PROFILE_HEADER_LENGTH; 	// From the current location, skip the 18 byte profile header.
-				FILE_SIZE += jdv.PROFILE_HEADER_LENGTH; 	// Increase FILE_SIZE variable by 18 bytes to keep things in alignment.
-				Offset_Index++; 				// Move to the next profile header offset index location value within vector "ProfileHeaderOffsetVec".
+				Index_Pos += jdv.PROFILE_HEADER_LENGTH; // From the current location, skip the 18 byte profile header.
+				FILE_SIZE += jdv.PROFILE_HEADER_LENGTH; // Increase FILE_SIZE variable by 18 bytes to keep things in alignment.
+				Offset_Index++; 			// Move to the next profile header offset index location value within vector "ProfileHeaderOffsetVec".
 			}
 		}
 	}
 
-	if (jdv.Insert_Mode) { // Insert mode.
+	if (jdv.Insert_File) { 
 
 		const uint16_t
 			PROFILE_NAME_LENGTH_INDEX = 0x50,	// Location index within the main profile "ProfileVec" to store the filename length value of the user's data file.
@@ -431,7 +430,7 @@ void encryptDecrypt(jdvStruct& jdv) {
 		// Call function to insert profile headers into the user's data file, so as to split the data into 65KB (or smaller) profile blocks.
 		insertProfileHeaders(jdv);
 	}
-	else { // Extract mode.
+	else { // Extract 
 
 		// Update string variable with the decrypted filename.
 		jdv.FILE_NAME = Out_Name;
@@ -452,10 +451,10 @@ void insertProfileHeaders(jdvStruct& jdv) {
 
 	const uint16_t BLOCK_SIZE = 0xFFFF;	// Profile default block size 65KB (0xFFFF).
 
-	uint32_t Tally_Size = 0x14;	// A value used in conjunction with the user's data file size. We keep incrementing this value by BLOCK_SIZE until
-					// we reach near end of the file, which will be a value less than BLOCK_SIZE, the last iCC Profile block.
+	uint32_t Tally_Size = 0x14;		// A value used in conjunction with the user's data file size. We keep incrementing this value by BLOCK_SIZE until
+						// we reach near end of the file, which will be a value less than BLOCK_SIZE, the last iCC Profile block.
 	
-	uint16_t Profile_Count = 0;	// Keep count of how many profile headers that have been inserted into user's data file. We use this value when removing the headers.
+	uint16_t Profile_Count = 0;		// Keep count of how many profile headers that have been inserted into user's data file. We use this value when removing the headers.
 
 	const uint8_t		
 		Profile_Header_Start_Index = 0x14,	// Start index location within "ProfileVec" of the profile header (18 bytes).
@@ -588,7 +587,7 @@ void writeOutFile(jdvStruct& jdv) {
 		std::exit(EXIT_FAILURE);
 	}
 
-	if (jdv.Insert_Mode) {
+	if (jdv.Insert_File) {
 
 		// Write out to disk image file embedded with the encrypted data file.
 		writeFile.write((char*)&jdv.ImageVec[0], jdv.ImageVec.size());
@@ -614,10 +613,10 @@ void writeOutFile(jdvStruct& jdv) {
 			// Flickr is 200MB, this programs max size, no need to to make a variable for it.
 
 		Msg_Size_Warning = (IMG_SIZE > IMGUR_REDDIT_MAX_SIZE && IMG_SIZE <= POST_IMG_MAX_SIZE ? Msg_Size_Warning.substr(0, MSG_LEN - 0x42)
-					: (IMG_SIZE > POST_IMG_MAX_SIZE && IMG_SIZE <= IMG_SHACK_MAX_SIZE ? Msg_Size_Warning.substr(0, MSG_LEN - 0x4D)
-					: (IMG_SIZE > IMG_SHACK_MAX_SIZE && IMG_SIZE <= IMG_BB_MAX_SIZE ? Msg_Size_Warning.substr(0, MSG_LEN - 0x59)
-					: (IMG_SIZE > IMG_BB_MAX_SIZE && IMG_SIZE <= IMG_PILE_MAX_SIZE ? Msg_Size_Warning.substr(0, MSG_LEN - 0x60)
-					: (IMG_SIZE > IMG_PILE_MAX_SIZE ? Msg_Size_Warning.substr(0, MSG_LEN - 0x69) : Msg_Size_Warning)))));
+							: (IMG_SIZE > POST_IMG_MAX_SIZE && IMG_SIZE <= IMG_SHACK_MAX_SIZE ? Msg_Size_Warning.substr(0, MSG_LEN - 0x4D)
+							: (IMG_SIZE > IMG_SHACK_MAX_SIZE && IMG_SIZE <= IMG_BB_MAX_SIZE ? Msg_Size_Warning.substr(0, MSG_LEN - 0x59)
+							: (IMG_SIZE > IMG_BB_MAX_SIZE && IMG_SIZE <= IMG_PILE_MAX_SIZE ? Msg_Size_Warning.substr(0, MSG_LEN - 0x60)
+							: (IMG_SIZE > IMG_PILE_MAX_SIZE ? Msg_Size_Warning.substr(0, MSG_LEN - 0x69) : Msg_Size_Warning)))));
 
 		if (IMG_SIZE > MASTODON_MAX_SIZE) {
 			std::cerr << Msg_Size_Warning << ".\n";
