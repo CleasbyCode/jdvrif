@@ -272,8 +272,7 @@ void findProfileHeaders(jdvStruct& jdv) {
 		PROFILE_COUNT_INDEX = 0x8A,			// Value index location within vector "ImageVec" for the total number of inserted iCC Profile headers.
 		FILE_SIZE_INDEX = 0x90;				// Start index location within vector "ImageVec" for the file size value of the user's data file.
 
-	const uint16_t
-		FILE_INDEX = 0x1B2; 	// Start index location within vector "ImageVec" for the user's data file.
+	const uint16_t FILE_INDEX = 0x1B2; 	// Start index location within vector "ImageVec" for the user's data file.
 
 	// From the relevant index location, get size value of user's data file from "ImageVec", stored within the main profile.
 	const uint32_t FILE_SIZE = jdv.ImageVec[FILE_SIZE_INDEX] << 24 | jdv.ImageVec[FILE_SIZE_INDEX + 1] << 16 | jdv.ImageVec[FILE_SIZE_INDEX + 2] << 8 | jdv.ImageVec[FILE_SIZE_INDEX + 3];
