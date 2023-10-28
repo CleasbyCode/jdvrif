@@ -4,8 +4,8 @@ A simple command-line tool to embed and extract any file type via a JPG image.
 
 Share your *file-embedded* image on the following compatible sites.  
 
-* ***Flickr (200MB), ImgPile (100MB), ImgBB (32MB), ImageShack (25MB)***,
-* ***PostImage (24MB), \*Reddit (Desktop/browser only) & \*Imgur (20MB), Mastodon (16MB)***.
+* ***Flickr (200MB), ImgPile (100MB), ImgBB (32MB), PostImage (24MB)***,
+* ***\*Reddit (20MB / Browser only), \*Imgur (20MB), Mastodon (16MB)***.
 
 **jdvrif** partly derives from the ***[technique](https://www.vice.com/en/article/bj4wxm/tiny-picture-twitter-complete-works-of-shakespeare-steganography)*** discovered by security researcher ***[David Buchanan](https://www.da.vidbuchanan.co.uk/).*** 
 
