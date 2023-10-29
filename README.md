@@ -4,7 +4,7 @@ A simple command-line tool to embed and extract any file type via a JPG image.
 
 Share your *file-embedded* image on the following compatible sites.  
 
-* ***Flickr (200MB), ImgPile (100MB), ImgBB (32MB), PostImage (24MB)***,
+* ***Flickr (200MB), \*ImgPile (100MB), ImgBB (32MB), PostImage (24MB)***,
 * ***\*Reddit (20MB / Browser only), \*Imgur (20MB), Mastodon (16MB)***.
 
 **jdvrif** partly derives from the ***[technique](https://www.vice.com/en/article/bj4wxm/tiny-picture-twitter-complete-works-of-shakespeare-steganography)*** discovered by security researcher ***[David Buchanan](https://www.da.vidbuchanan.co.uk/).*** 
@@ -13,10 +13,11 @@ Share your *file-embedded* image on the following compatible sites.
 Image Credit: [Sophia Kramer Art](https://twitter.com/sophiakramerart/status/1688014531807584256)  
 {***Image contains encrypted FLAC music file (18MB) / extract:  jdvrif  -x  rain_img.jpg***}   
 
-**Video Demos**  
+[***Video Demo 1: Mastodon - JPG Image Embedded with Encrypted FLAC Music File (15MB)***](https://youtu.be/S7O6-93vS_o)  
+[***Video Demo 2: Reddit - JPG Image Embedded with Encrypted FLAC Music File (19MB)***](https://youtu.be/s_ejm3bd2Qg)  
 
-[***Mastodon - JPG Image Embedded with Encrypted FLAC Music File (15MB)***](https://youtu.be/S7O6-93vS_o)  
-[***Reddit - JPG Image Embedded with Encrypted FLAC Music File (19MB)***](https://youtu.be/s_ejm3bd2Qg)
+**\*ImgPile** - *You must sign in to an account before sharing your data-embedded PNG image on **ImgPile**.  
+Sharing your image without logging in, your embedded data will not be preserved.*
 
 **Twitter:** ***If your data file is under 10KB, you can also use Twitter to share your *file-embedded* JPG image.  
 To share larger files on Twitter, *(up to 5MB)*, please use [pdvzip](https://github.com/CleasbyCode/pdvzip).***  
