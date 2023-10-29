@@ -36,57 +36,59 @@ Compile and run the program under Windows or **Linux**.
 
 ## Usage Demo
 
-```bash
+```console
 
-$ g++ jdvrif.cpp -O2 -s -o jdvrif
-$
-$ ./jdvrif 
+user1@linuxbox:~/Desktop$ g++ jdvrif.cpp -O2 -s -o jdvrif
+user1@linuxbox:~/Desktop$
+user1@linuxbox:~/Desktop$ ./jdvrif 
 
-Usage:  jdvrif -i <jpg-image>  <file(s)>  
+Usage:  jdvrif -i <jpg-image> <file(s)>  
 	jdvrif -x <jpg-image(s)>  
 	jdvrif --info
 
-$ ./jdvrif -i image.jpg  document.pdf
+user1@linuxbox:~/Desktop$ ./jdvrif -i rabbit.jpg document.pdf
   
-Created output file: "jdv_img1.jpg 1243153 Bytes"  
+Insert mode selected.
 
-Complete!  
+Reading files. Please wait...
 
-You can now post your "file-embedded" JPG image(s) to the relevant supported platforms.
- 
-$ ./jdvrif
+Encrypting data file.
 
-Usage:  jdvrif -i <jpg-image>  <file(s)>  
-	jdvrif -x <jpg-image(s)>  
-	jdvrif --info
-        
-$ ./jdvrif -x jdv_img1.jpg
+Embedding data file within the ICC Profile of the JPG image.
 
-Extracted file: "document.pdf 1242153 Bytes"
+Writing data-embedded JPG image out to disk.
 
-Complete! Please check your extracted file(s).
-
-$ ./jdvrif -i toy.jpg  Clowns.part1.rar  Clowns.part2.rar  Clowns.part3.rar 
-
-Created output file: "jdv_img1.jpg 10489760 Bytes"
-
-Created output file: "jdv_img2.jpg 10489760 Bytes"
-
-Created output file: "jdv_img3.jpg 10489760 Bytes"
+Created data-embedded JPG image: "jdv_img1.jpg" Size: "1218285 Bytes".
 
 Complete!
 
-You can now post your "file-embedded" JPG image(s) to the relevant supported platforms.
+You can now post your data-embedded JPG image(s) to the relevant supported platforms.
+ 
+user1@linuxbox:~/Desktop$ ./jdvrif
 
-$ ./jdvrif -x jdv_img1.jpg  jdv_img2.jpg  jdv_img3.jpg  
+Usage:  jdvrif -i <jpg-image> <file(s)>  
+	jdvrif -x <jpg-image(s)>  
+	jdvrif --info
+        
+user1@linuxbox:~/Desktop$ ./jdvrif -x jdv_img1.jpg
 
-Extracted file: "Clowns.part1.rar 10485760 Bytes"
+Extract mode selected.
 
-Extracted file: "Clowns.part2.rar 10485760 Bytes"
+Reading embedded JPG image file. Please wait...
 
-Extracted file: "Clowns.part3.rar 10485760 Bytes"
+Found jdvrif embedded data file.
+
+Extracting encrypted data file from the JPG image.
+
+Decrypting extracted data file.
+
+Writing decrypted data file out to disk.
+
+Saved file: "document.pdf" Size: "1016540 Bytes"
 
 Complete! Please check your extracted file(s).
+
+user1@linuxbox:~/Desktop$ 
 
 ```
 **Issues:**
