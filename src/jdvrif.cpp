@@ -334,9 +334,9 @@ void encryptDecrypt(jdvStruct& jdv) {
 
 	uint32_t 
 		File_Size = jdv.Insert_File ? static_cast<uint32_t>(jdv.FileVec.size()) : static_cast<uint32_t>(jdv.ImageVec.size()),	 // File size of user's data file.
-		Index_Pos = 0;		// When encrypting/decrypting the filename, this variable stores the index character position of the filename,
-					// When encrypting/decrypting the user's data file, this variable is used as the index position of where to 
-					// insert each byte of the data file into the relevant "encrypted" or "decrypted" vectors.
+		Index_Pos = 0;	// When encrypting/decrypting the filename, this variable stores the index character position of the filename,
+				// When encrypting/decrypting the user's data file, this variable is used as the index position of where to 
+				// insert each byte of the data file into the relevant "encrypted" or "decrypted" vectors.
 
 	const uint8_t 
 		MAX_FILENAME_LENGTH = 23, 
@@ -361,10 +361,10 @@ void encryptDecrypt(jdvStruct& jdv) {
 		Name_Key_Start_Pos = 0;
 
 	uint8_t
-		Xor_Key_Pos = Xor_Key_Start_Pos,		// Character position variable for XOR_KEY string.
-		Name_Key_Pos = Name_Key_Start_Pos;		// Character position variable for filename string (outName / inName).
+		Xor_Key_Pos = Xor_Key_Start_Pos,	// Character position variable for XOR_KEY string.
+		Name_Key_Pos = Name_Key_Start_Pos;	// Character position variable for filename string (Output_Name / INPUT_NAME).
 
-	if (NAME_LENGTH > File_Size) {				// File size needs to be greater than filename length.
+	if (NAME_LENGTH > File_Size) {	// File size needs to be greater than filename length.
 		std::cerr << "\nFile Size Error: File size is too small.\n\n";
 		std::exit(EXIT_FAILURE);
 	}
@@ -383,7 +383,7 @@ void encryptDecrypt(jdvStruct& jdv) {
 		}
 
 		if (jdv.Insert_File) {
-			// Encrypt data file. XOR each byte of the data file within "jdv.FileVec" against each character of the encrypted filename, "outName". 
+			// Encrypt data file. XOR each byte of the data file within "jdv.FileVec" against each character of the encrypted filename, "Output_Name". 
 			// Store encrypted output in vector "jdv.EncryptedVec".
 			jdv.EncryptedVec.emplace_back(jdv.FileVec[Index_Pos++] ^ Output_Name[Name_Key_Pos++]);
 		}
