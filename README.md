@@ -16,7 +16,7 @@ Image Credit: [Sophia Kramer Art](https://twitter.com/sophiakramerart/status/168
 [***Video Demo 1: Mastodon - JPG Image Embedded with Encrypted FLAC Music File (15MB)***](https://youtu.be/S7O6-93vS_o)  
 [***Video Demo 2: Reddit - JPG Image Embedded with Encrypted FLAC Music File (19MB)***](https://youtu.be/s_ejm3bd2Qg)  
 
-**\*ImgPile** - *You must sign in to an account before sharing your data-embedded PNG image on **ImgPile**.  
+**\*ImgPile** - *You must sign in to an account before sharing your data-embedded JPG image on **ImgPile**.  
 Sharing your image without logging in, your embedded data will not be preserved.*
 
 **Twitter:** ***If your data file is under 10KB, you can also use Twitter to share your *file-embedded* JPG image.  
