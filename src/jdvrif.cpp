@@ -307,7 +307,7 @@ void findProfileHeaders(jdvStruct& jdv) {
 
 	if (Profile_Count) { // If one or more profiles.
 		
-		jdv.ProfileHeaderOffsetVec.reserve(0x200000); // 2MB.
+		jdv.ProfileHeaderOffsetVec.reserve(4194304); // 4MB.
 
 		// Within "ImageVec" find all occurrences of the 18 byte profile headers & store their offset / index location within vector "ProfileHeaderOffsetVec".
 		while (Profile_Count--) {
