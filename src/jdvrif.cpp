@@ -363,13 +363,12 @@ void Encrypt_Decrypt(JDV_STRUCT& jdv) {
 				// When encrypting/decrypting the user's data file, this variable is used as the index position of where to 
 				// insert each byte of the data file into the relevant "encrypted" or "decrypted" vectors.
 
-	const uint8_t XOR_KEY_LENGTH = static_cast<uint8_t>(XOR_KEY.length());
-
-	uint16_t offset_index = 0;	// Index of offset location value within vector "Profile_Header_Offset_Vec".
-
-	const uint8_t
+	const uint8_t 
+		XOR_KEY_LENGTH = static_cast<uint8_t>(XOR_KEY.length()),
 		XOR_KEY_START_POS = 0,
 		NAME_KEY_START_POS = 0;
+
+	uint16_t offset_index = 0;	// Index of offset location value within vector "Profile_Header_Offset_Vec".
 
 	uint8_t
 		xor_key_pos = XOR_KEY_START_POS,	// Character position variable for XOR_KEY string.
@@ -413,13 +412,14 @@ void Encrypt_Decrypt(JDV_STRUCT& jdv) {
 
 	if (jdv.insert_file) {
 
-		const uint16_t
-			PROFILE_NAME_LENGTH_INDEX = 80,	// Location index within the main profile "Profile_Vec" to store the filename length value of the user's data file.
-			PROFILE_NAME_INDEX = 81,	// Location index within the main profile "Profile_Vec" to store the filename of the user's data file.
-			PROFILE_VEC_SIZE = 434;		// Byte size of main profile within vector "Profile_Vec". User's encrypted data file is stored at the end of the main profile.
+		const uint16_t PROFILE_VEC_SIZE = 434;	// Byte size of main profile within vector "Profile_Vec". User's encrypted data file is stored at the end of the main profile.
 
+		const uint8_t
+			PROFILE_NAME_LENGTH_INDEX = 80,	// Location index within the main profile "Profile_Vec" to store the filename length value of the user's data file.
+			PROFILE_NAME_INDEX = 81;	// Location index within the main profile "Profile_Vec" to store the filename of the user's data file.
+			
 		// Update the character length value of the filename for user's data file. Write this value into the main profile of vector "Profile_Vec".
-		jdv.Profile_Vec[PROFILE_NAME_LENGTH_INDEX] = static_cast<int>(INPUT_NAME.length());
+		jdv.Profile_Vec[PROFILE_NAME_LENGTH_INDEX] = static_cast<uint8_t>(INPUT_NAME.length());
 
 		// Make space for the filename by removing equivalent length of characters from main profile within vector "Profile_Vec".
 		jdv.Profile_Vec.erase(jdv.Profile_Vec.begin() + PROFILE_NAME_INDEX, jdv.Profile_Vec.begin() + INPUT_NAME.length() + PROFILE_NAME_INDEX);
