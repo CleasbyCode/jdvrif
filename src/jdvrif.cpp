@@ -460,7 +460,7 @@ void Insert_Profile_Headers(JDV_STRUCT& jdv) {
 	uint32_t tally_size = 20;	// A value used in conjunction with the user's data file size. We keep incrementing this value by BLOCK_SIZE until
 					// we reach near end of the file, which will be a value less than BLOCK_SIZE, the last iCC Profile block.
 
-	uint16_t profile_count = 0;		// Keep count of how many profile headers that have been inserted into user's data file. We use this value when removing the headers.
+	uint16_t profile_count = 0;	// Keep count of how many profile headers that have been inserted into user's data file. We use this value when removing the headers.
 
 	const uint8_t
 		PROFILE_HEADER_INDEX = 20,	// Start index location within "Profile_Vec" of the profile header (18 bytes).
