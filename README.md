@@ -42,8 +42,8 @@ user1@linuxbox:~/Desktop$ g++ jdvrif.cpp -O2 -s -o jdvrif
 user1@linuxbox:~/Desktop$
 user1@linuxbox:~/Desktop$ ./jdvrif 
 
-Usage:  jdvrif -i <jpg-image> <file(s)>  
-	jdvrif -x <jpg-image(s)>  
+Usage:  jdvrif -i <jpg_image> <file(s)>  
+	jdvrif -x <jpg_image(s)>  
 	jdvrif --info
 
 user1@linuxbox:~/Desktop$ ./jdvrif -i rabbit.jpg document.pdf
@@ -66,8 +66,8 @@ You can now post your data-embedded JPG image(s) to the relevant supported platf
  
 user1@linuxbox:~/Desktop$ ./jdvrif
 
-Usage:  jdvrif -i <jpg-image> <file(s)>  
-	jdvrif -x <jpg-image(s)>  
+Usage:  jdvrif -i <jpg_image> <file(s)>  
+	jdvrif -x <jpg_image(s)>  
 	jdvrif --info
         
 user1@linuxbox:~/Desktop$ ./jdvrif -x jdv_img1.jpg
