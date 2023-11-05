@@ -79,7 +79,7 @@ int main(int argc, char** argv) {
 		}
 	}
 	else {
-		std::cout << "\nUsage: jdvrif -i <jpg-image> <file(s)>\n\t\bjdvrif -x <jpg-image(s)>\n\t\bjdvrif --info\n\n";
+		std::cout << "\nUsage: jdvrif -i <jpg_image> <file(s)>\n\t\bjdvrif -x <jpg_image(s)>\n\t\bjdvrif --info\n\n";
 		argc = 0;
 	}
 	if (argc != 0) {
