@@ -10,6 +10,7 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+// #include <cstdint>	// Uncomment if required.
 #include <vector>
 
 typedef unsigned char BYTE;
