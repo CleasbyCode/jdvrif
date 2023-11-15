@@ -607,10 +607,10 @@ void Write_Out_File(JDV_STRUCT& jdv) {
 		std::string size_warning =
 			"\n**Warning**\n\nDue to the file size of your data-embedded JPG image,\nyou will only be able to share this image on the following platforms: \n\n"
 			"Flickr, ImgPile, ImgBB, PostImage, Imgur & *Reddit (Desktop/Browser only)";
-
-		const auto MSG_LEN = size_warning.length();
-
-		const size_t IMG_SIZE = jdv.Image_Vec.size();
+		
+		const size_t 
+			IMG_SIZE = jdv.Image_Vec.size(),
+			MSG_LEN = size_warning.length();
 
 		const uint_fast32_t
 			// Twitter 9.5KB. Not really supported because of the tiny size requirement, but if your data file is this size 
