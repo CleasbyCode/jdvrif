@@ -237,7 +237,7 @@ void Open_Files(char* argv[], JDV_STRUCT& jdv) {
 		const size_t EXIF_START_POS = std::search(jdv.Image_Vec.begin(), jdv.Image_Vec.end(), EXIF_SIG.begin(), EXIF_SIG.end()) - jdv.Image_Vec.begin();
 		if (jdv.Image_Vec.size() > EXIF_START_POS) {
 			// Get size of "Exif" block
-			const uint32_t EXIF_BLOCK_SIZE = jdv.Image_Vec[EXIF_START_POS - 2] << 8 | jdv.Image_Vec[EXIF_START_POS - 1];
+			const uint_fast16_t EXIF_BLOCK_SIZE = jdv.Image_Vec[EXIF_START_POS - 2] << 8 | jdv.Image_Vec[EXIF_START_POS - 1];
 			// Remove it.
 			jdv.Image_Vec.erase(jdv.Image_Vec.begin(), jdv.Image_Vec.begin() + EXIF_BLOCK_SIZE - 2);
 		}
