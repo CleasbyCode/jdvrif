@@ -26,7 +26,7 @@ This program can be used on Linux and Windows.
 
 Your data file is encrypted & inserted within multiple 65KB ICC Profile blocks in the JPG image file.
 
-![ICC](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/icc.png)  
+![ICC](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/icc_jdv.png)  
 
 Using **jdvrif**, you can insert up to eight files at a time (outputs one image per file).  
 
