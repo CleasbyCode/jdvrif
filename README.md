@@ -13,8 +13,8 @@ Share your *file-embedded* image on the following compatible sites.
 Image Credit: [Sophia Kramer Art](https://twitter.com/sophiakramerart/status/1688014531807584256)  
 {***Image contains encrypted FLAC music file (18MB) / extract:  jdvrif  -x  rain_img.jpg***}   
 
-[***Video Demo 1: Mastodon - JPG Image Embedded with Encrypted FLAC Music File (15MB)***](https://youtu.be/S7O6-93vS_o)  
-[***Video Demo 2: Reddit - JPG Image Embedded with Encrypted FLAC Music File (19MB)***](https://youtu.be/s_ejm3bd2Qg)  
+Video Demo 1: [***Mastodon***](https://youtu.be/S7O6-93vS_o)  
+Video Demo 2: [***Reddit***](https://youtu.be/s_ejm3bd2Qg)  
 
 **\*ImgPile** - *You must sign in to an account before sharing your data-embedded JPG image on **ImgPile**.  
 Sharing your image without logging in, your embedded data will not be preserved.*
@@ -100,7 +100,7 @@ My other programs you may find useful:-
 * [pdvzip: CLI tool to embed a ZIP file within a tweetable and "executable" PNG-ZIP polyglot image.](https://github.com/CleasbyCode/pdvzip)
 * [imgprmt: CLI tool to embed an image prompt (e.g. "Midjourney") within a tweetable JPG-HTML polyglot image.](https://github.com/CleasbyCode/imgprmt)
 * [pdvrdt: CLI tool to encrypt, compress & embed any file type within a PNG image.](https://github.com/CleasbyCode/pdvrdt)
-* [xif: CLI tool to embed small files (e.g. "workflow.json") within a tweetable JPG-ZIP polyglot image.](https://github.com/CleasbyCode/xif) 
+* [jzp: CLI tool to embed small files (e.g. "workflow.json") within a tweetable JPG-ZIP polyglot image.](https://github.com/CleasbyCode/jzp) 
 * [pdvps: PowerShell / C++ CLI tool to encrypt & embed any file type within a tweetable and "executable" PNG image](https://github.com/CleasbyCode/pdvps)   
 
 ##
