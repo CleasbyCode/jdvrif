@@ -16,8 +16,6 @@ Image Credit: [@shikoba_86](https://twitter.com/shikoba_86/status/17244913274363
 Video Demo 1: [***Mastodon***](https://youtu.be/S7O6-93vS_o)  
 Video Demo 2: [***Reddit***](https://youtu.be/s_ejm3bd2Qg)  
 
-This program can be used on Linux and Windows.
-
 Your data file is encrypted & inserted within multiple 65KB ICC Profile blocks in the JPG image file.
 
 ![ICC](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/icc_jdv.png)  
