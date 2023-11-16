@@ -10,7 +10,7 @@ Share your *file-embedded* image on the following compatible sites.
 **jdvrif** partly derives from the ***[technique](https://www.vice.com/en/article/bj4wxm/tiny-picture-twitter-complete-works-of-shakespeare-steganography)*** discovered by security researcher ***[David Buchanan](https://www.da.vidbuchanan.co.uk/).*** 
 
 ![Demo Image](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/wolf_demo.jpg)  
-Image Credit: [@shikoba_86](https://twitter.com/shikoba_86/status/1724491327436386662) 
+Image Credit: [@shikoba_86](https://twitter.com/shikoba_86/status/1724491327436386662)  
 {***Image contains encrypted jdvrif source code file. Extract:  jdvrif -x wolf_demo.jpg***}   
 
 Video Demo 1: [***Mastodon***](https://youtu.be/S7O6-93vS_o)  
