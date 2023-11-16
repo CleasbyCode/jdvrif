@@ -85,7 +85,7 @@ user1@linuxbox:~/Desktop$
 ```
 **Issues:**
 * **Reddit -** *Does not work with Reddit's mobile app. Desktop/browser only.*
-* **Imgur/Reddit -** *Retains embedded data, but reduces the dimension size of images over 5MB.*
+* **Imgur -** *Retains embedded data, but reduces the dimension size of images over 5MB.*
 * **ImgPile -** *You must sign in to an account before sharing your data-embedded JPG image on ImgPile*.  
 *Sharing your image without logging in, your embedded data will not be preserved.*
 
