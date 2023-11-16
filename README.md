@@ -5,7 +5,7 @@ A simple command-line tool to embed and extract any file type via a JPG image.
 Share your *file-embedded* image on the following compatible sites.  
 
 * ***Flickr (200MB), \*ImgPile (100MB), ImgBB (32MB), PostImage (24MB)***,
-* ***\*Reddit (20MB), \*Imgur (20MB), Mastodon (16MB)***.
+* ***\*Reddit (20MB), \*Imgur (20MB), Mastodon (16MB), Twitter (10KB)***
 
 **jdvrif** partly derives from the ***[technique](https://www.vice.com/en/article/bj4wxm/tiny-picture-twitter-complete-works-of-shakespeare-steganography)*** discovered by security researcher ***[David Buchanan](https://www.da.vidbuchanan.co.uk/).*** 
 
@@ -18,9 +18,6 @@ Video Demo 2: [***Reddit***](https://youtu.be/s_ejm3bd2Qg)
 
 **\*ImgPile** - *You must sign in to an account before sharing your data-embedded JPG image on **ImgPile**.  
 Sharing your image without logging in, your embedded data will not be preserved.*
-
-**Twitter:** ***If your data file is under 10KB, you can also use Twitter to share your *file-embedded* JPG image.  
-To share larger files on Twitter, *(up to 5MB)*, please use [pdvzip](https://github.com/CleasbyCode/pdvzip).***  
 
 This program can be used on Linux and Windows.
 
