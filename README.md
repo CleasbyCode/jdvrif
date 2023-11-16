@@ -5,7 +5,7 @@ A simple command-line tool to embed and extract any file type via a JPG image.
 Share your *file-embedded* image on the following compatible sites.  
 
 * ***Flickr (200MB), \*ImgPile (100MB), ImgBB (32MB), PostImage (24MB)***,
-* ***\*Reddit (20MB), \*Imgur (20MB), Mastodon (16MB), Twitter (10KB)***
+* ***\*Reddit (20MB), \*Imgur (20MB), Mastodon (16MB), Twitter (10KB).***
 
 **jdvrif** partly derives from the ***[technique](https://www.vice.com/en/article/bj4wxm/tiny-picture-twitter-complete-works-of-shakespeare-steganography)*** discovered by security researcher ***[David Buchanan](https://www.da.vidbuchanan.co.uk/).*** 
 
@@ -15,9 +15,6 @@ Image Credit: [@shikoba_86](https://twitter.com/shikoba_86/status/17244913274363
 
 Video Demo 1: [***Mastodon***](https://youtu.be/S7O6-93vS_o)  
 Video Demo 2: [***Reddit***](https://youtu.be/s_ejm3bd2Qg)  
-
-**\*ImgPile** - *You must sign in to an account before sharing your data-embedded JPG image on **ImgPile**.  
-Sharing your image without logging in, your embedded data will not be preserved.*
 
 This program can be used on Linux and Windows.
 
@@ -90,7 +87,9 @@ user1@linuxbox:~/Desktop$
 ```
 **Issues:**
 * **Reddit -** ***Does not work with Reddit's mobile app. Desktop/browser only.*** 
-* **Imgur -** ***Keeps embedded data, but reduces the dimension size of images over 5MB.***
+* **Imgur/Reddit -** ***Retains embedded data, but reduces the dimension size of images over 5MB.***
+* **ImgPile -** ***You must sign in to an account before sharing your data-embedded JPG image on ImgPile***.  
+Sharing your image without logging in, your embedded data will not be preserved.*
 
 My other programs you may find useful:-  
 
