@@ -54,7 +54,7 @@ Created data-embedded JPG image: "jdv_img1.jpg" Size: "1218285 Bytes".
 
 Complete!
 
-You can now post your data-embedded JPG image(s) to the relevant supported platforms.
+You can now post your data-embedded JPG image(s) on the relevant supported platforms.
  
 user1@linuxbox:~/Desktop$ ./jdvrif
 
