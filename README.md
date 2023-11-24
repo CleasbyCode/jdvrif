@@ -15,6 +15,7 @@ Image credit: [@shikoba_86](https://twitter.com/shikoba_86/status/17244913274363
 
 Video Demo 1: [***Mastodon***](https://youtu.be/S7O6-93vS_o)  
 Video Demo 2: [***Reddit***](https://youtu.be/s_ejm3bd2Qg)  
+Video Demo 3: [***Multiple files***](https://studio.youtube.com/video/S8oSZ-BjrCk/edit)
 
 Your data file is encrypted & inserted within multiple 65KB ICC Profile blocks in the JPG image file.
 
