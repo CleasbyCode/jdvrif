@@ -13,7 +13,7 @@ Post & share your *file-embedded* JPG image(s) on the following compatible sites
 Image credit: [@shikoba_86](https://twitter.com/shikoba_86/status/1724491327436386662)  
 {***Image embedded with encrypted mp3 music file. [***Extract:***](https://youtu.be/dwa_3DjiXPs)  jdvrif -x wolf.jpg***}   
 
-Video Demos: [***Mastodon***](https://youtu.be/S7O6-93vS_o) / [***Reddit***](https://youtu.be/s_ejm3bd2Qg) / [***Multiple files***](https://youtu.be/S8oSZ-BjrCk)
+Video Demos: [***Mastodon***](https://youtu.be/S7O6-93vS_o) / [***Reddit***](https://youtu.be/s_ejm3bd2Qg) / [***Twitter***](https://youtu.be/jHk2Tpjr848) / [***Multiple files***](https://youtu.be/S8oSZ-BjrCk)
 
 Your data file is encrypted & inserted within multiple 65KB ICC Profile blocks in the JPG image file.
 
