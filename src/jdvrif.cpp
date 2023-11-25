@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <fstream>
+#include <regex>
 #include <iostream>
 #include <string>
 #include <cstdint>
@@ -45,8 +46,11 @@ void
 	// Depending on more, write out to file the embedded image file or the extracted data file.
 	Write_Out_File(JDV_STRUCT& jdv),
 
-	// Display program infomation
+	// Display program infomation.
 	Display_Info();
+
+// Check args input for invalid data.
+std::string Check_Input(std::string&);
 
 int main(int argc, char** argv) {
 
@@ -58,19 +62,12 @@ int main(int argc, char** argv) {
 	}
 	else if (argc >= 4 && argc < 12 && std::string(argv[1]) == "-i") { // Insert file mode.
 		jdv.insert_file = true, jdv.sub_file_count = argc - 1, jdv.image_name = argv[2];
+		jdv.image_name = Check_Input(jdv.image_name);
 		argc -= 2;
 		while (argc != 1) {  // We can insert up to 8 files at a time (outputs one image for each file).
-			ptrdiff_t
-				stdin_astring_pos = 0,
-				stdin_bstring_pos = 0;
-			jdv.file_count = argc, jdv.file_name = argv[3];
-			stdin_astring_pos = jdv.image_name.find("stdin", 0);
-			stdin_bstring_pos = jdv.file_name.find("stdin", 0);
-			if (stdin_astring_pos >= 0 || stdin_bstring_pos >=0) {
-				std::cerr << "\nUnexpected Input Error: Invalid file name(s).\n\n";
-				std::exit(EXIT_FAILURE);
-			}
-
+			jdv.file_count = argc;
+			jdv.file_name = argv[3];
+			jdv.file_name = Check_Input(jdv.file_name);
 			Open_Files(argv++, jdv);
 			argc--;
 		}
@@ -79,14 +76,8 @@ int main(int argc, char** argv) {
 	else if (argc >= 3 && argc < 11 && std::string(argv[1]) == "-x") { // Extract file mode.
 		jdv.extract_file = true;
 		while (argc >= 3) {  // We can extract files from up to 8 embedded images at a time.
-			ptrdiff_t stdin_string_pos = 0;
 			jdv.image_name = argv[2];
-			stdin_string_pos = jdv.image_name.find("stdin", 0);
-		    if (stdin_string_pos >= 0) {
-				std::cerr << "\nUnexpected Input Error: Invalid file name(s).\n\n";
-				std::exit(EXIT_FAILURE);
-			}
-
+			jdv.image_name = Check_Input(jdv.image_name);
 			 Open_Files(argv++, jdv);
 			argc--;
 		}
@@ -121,16 +112,14 @@ void Open_Files(char* argv[], JDV_STRUCT& jdv) {
 			ERR_MSG_IMAGE = "\nFile Error: Unable to open embedded image or file is empty: ",
 		
 		ERR_MSG = jdv.insert_file && !read_image_fs || jdv.insert_file && read_image_fs.peek() == EOF ? ERR_MSG_COVER + "\"" + jdv.image_name + "\"\n\n" 
-				: jdv.insert_file && !read_file_fs || jdv.insert_file && read_file_fs.peek() == EOF ? ERR_MSG_DATA + "\"" + jdv.file_name + "\"\n\n"
-				: ERR_MSG_IMAGE + "\"" + jdv.image_name + "\"\n\n";
-
+					: jdv.insert_file && !read_file_fs || jdv.insert_file && read_file_fs.peek() == EOF ? ERR_MSG_DATA + "\"" + jdv.file_name + "\"\n\n"
+					: ERR_MSG_IMAGE + "\"" + jdv.image_name + "\"\n\n";
 		std::cerr << ERR_MSG;
 		std::exit(EXIT_FAILURE);
 	}
 
 	const std::string START_MSG = jdv.insert_file ? "\nInsert mode selected.\n\nReading files. Please wait...\n"
-		: "\nExtract mode selected.\n\nReading embedded JPG image file. Please wait...\n";
-
+				: "\nExtract mode selected.\n\nReading embedded JPG image file. Please wait...\n";
 	std::cout << START_MSG;
 
 	// Read-in and store JPG image (or data-embedded image file) into vector "Image_Vec".
@@ -187,7 +176,7 @@ void Open_Files(char* argv[], JDV_STRUCT& jdv) {
 
 			// 663 bytes of this vector contains the main iCC-Profile (434 bytes), 
 			// with the remining 229 bytes being fake JPG image data (FFDB, FFC2, FFC4, FFDA, etc), 
-			// in order to make it look (somewhat) normal.
+			// in order to look (somewhat) normal.
 			// The user's encrypted data file will be added to the end of this profile.
 			jdv.Profile_Vec = {
 				0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 0x4A, 0x46, 0x49, 0x46, 0x00, 0x01,
@@ -283,7 +272,7 @@ void Open_Files(char* argv[], JDV_STRUCT& jdv) {
 
 		const size_t 
 			DQT_POS = std::search(jdv.Image_Vec.begin(), jdv.Image_Vec.end(), DQT_SIG.begin(), DQT_SIG.end()) - jdv.Image_Vec.begin(), // Find location in vector "Image_Vec" of first DQT index location of the image file.
-			LAST_SLASH_POS = jdv.file_name.find_last_of("\\/"),
+			// LAST_SLASH_POS = jdv.file_name.find_last_of("\\/"),
 			MAX_FILE_SIZE = 209715200; // 200MB file size limit for this program. 
 
 		// Erase the first n bytes of the JPG header before the DQT position. We later replace the erased header with the contents of vector "Profile_Vec".
@@ -302,24 +291,18 @@ void Open_Files(char* argv[], JDV_STRUCT& jdv) {
 			std::exit(EXIT_FAILURE);
 		}
 
-		// Check for and remove "./" or ".\" characters at the start of the filename. 
-		if (LAST_SLASH_POS <= jdv.file_name.length()) {
-			const std::string_view NO_SLASH_NAME(jdv.file_name.c_str() + (LAST_SLASH_POS + 1), jdv.file_name.length() - (LAST_SLASH_POS + 1));
-			jdv.file_name = NO_SLASH_NAME;
-		}
-
 		const uint_fast8_t MAX_FILENAME_LENGTH = 23;
 
 		// Make sure character length of filename does not exceed set maximum.
 		if (jdv.file_name.length() > MAX_FILENAME_LENGTH) {
-			std::cerr << "\nFile Error: Filename length of your data file is too long.\n"
-				"\nFor compatibility requirements, your filename must be under 24 characters.\nPlease try again with a shorter filename.\n\n";
+			std::cerr << 	"\nFile Error: Filename length of your data file is too long.\n"
+					"\nFor compatibility requirements, your filename must be under 24 characters.\nPlease try again with a shorter filename.\n\n";
 			std::exit(EXIT_FAILURE);
 		}
 		// File size needs to be greater than filename length.
 		else if (jdv.file_name.length() > jdv.file_size) {
-			std::cerr << "\nFile Size Error: File size is too small.\n"
-				"\nFor compatibility requirements, data file size must be greater than filename length.\n\n";
+			std::cerr << 	"\nFile Size Error: File size is too small.\n"
+					"\nFor compatibility requirements, data file size must be greater than filename length.\n\n";
 			std::exit(EXIT_FAILURE);
 		}
 		else {
@@ -483,7 +466,7 @@ void Insert_Profile_Headers(JDV_STRUCT& jdv) {
 	const uint_fast16_t BLOCK_SIZE = 65535;	// Profile default block size 65KB (0xFFFF).
 
 	size_t tally_size = 20;	// A value used in conjunction with the user's data file size. We keep incrementing this value by BLOCK_SIZE until
-	// we reach near end of the file, which will be a value less than BLOCK_SIZE, the last iCC-Profile block.
+				// we reach near end of the file, which will be a value less than BLOCK_SIZE, the last iCC-Profile block.
 
 	uint_fast16_t profile_count = 0;	// Keep count of how many profile headers that have been inserted into user's data file. We use this value when removing the headers.
 
@@ -675,6 +658,26 @@ void Value_Updater(std::vector<BYTE>& vec, size_t value_insert_index, const size
 	while (bits) {
 		vec[value_insert_index++] = (VALUE >> (bits -= 8)) & 0xff;
 	}
+}
+
+std::string Check_Input(std::string& name) {
+
+	const size_t LAST_SLASH_POS = name.find_last_of("\\/");
+
+	// Check for and remove "./" or ".\" characters at the start of the filename. 
+	if (LAST_SLASH_POS <= name.length()) {
+		const std::string_view NO_SLASH_NAME(name.c_str() + (LAST_SLASH_POS + 1), name.length() - (LAST_SLASH_POS + 1));
+		name = NO_SLASH_NAME;
+	}
+
+	const std::regex REG_EXP("[a-zA-Z_0-9]*\\.[a-zA-Z0-9]+");
+
+	if (!regex_match(name, REG_EXP)) {
+		std::cerr << "\nInvalid Input Error: This program does not like your filename \"" + name + "\".\n\n";
+		std::exit(EXIT_FAILURE);
+	}
+
+	return name;
 }
 
 void Display_Info() {
