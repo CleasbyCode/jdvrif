@@ -11,7 +11,7 @@ Post & share your *file-embedded* JPG image(s) on the following compatible sites
 
 ![Demo Image](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/wolf.jpg)  
 Image credit: [@shikoba_86](https://twitter.com/shikoba_86/status/1724491327436386662)  
-{***Image embedded with encrypted mp3 music file. Extract:  jdvrif -x wolf.jpg***}   
+{***Image embedded with encrypted mp3 music file. [***Extract:***](https://youtu.be/dwa_3DjiXPs)  jdvrif -x wolf.jpg***}   
 
 Video Demos: [***Mastodon***](https://youtu.be/S7O6-93vS_o) / [***Reddit***](https://youtu.be/s_ejm3bd2Qg) / [***Multiple files***](https://youtu.be/S8oSZ-BjrCk)
 
