@@ -2,7 +2,7 @@
 
 A simple command-line tool used to embed or extract any file type via a JPG image.  
 
-You can share your *file-embedded* JPG image(s) on the following compatible sites.  
+Post & share your *file-embedded* JPG image(s) on the following compatible sites.  
 
 * ***Flickr (200MB), \*ImgPile (100MB), ImgBB (32MB), PostImage (24MB)***,
 * ***\*Reddit (20MB), \*Imgur (20MB), Mastodon (16MB), Twitter (10KB).***
@@ -13,9 +13,7 @@ You can share your *file-embedded* JPG image(s) on the following compatible site
 Image credit: [@shikoba_86](https://twitter.com/shikoba_86/status/1724491327436386662)  
 {***Image embedded with encrypted mp3 music file. Extract:  jdvrif -x wolf.jpg***}   
 
-Video Demo 1: [***Mastodon***](https://youtu.be/S7O6-93vS_o)  
-Video Demo 2: [***Reddit***](https://youtu.be/s_ejm3bd2Qg)  
-Video Demo 3: [***Multiple files***](https://youtu.be/S8oSZ-BjrCk)
+Video Demos: [***Mastodon***](https://youtu.be/S7O6-93vS_o) [***Reddit***](https://youtu.be/s_ejm3bd2Qg) [***Multiple files***](https://youtu.be/S8oSZ-BjrCk)
 
 Your data file is encrypted & inserted within multiple 65KB ICC Profile blocks in the JPG image file.
 
