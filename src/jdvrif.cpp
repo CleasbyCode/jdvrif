@@ -187,7 +187,7 @@ void Open_Files(char* argv[], JDV_STRUCT& jdv) {
 
 			// 663 bytes of this vector contains the main iCC-Profile (434 bytes), 
 			// with the remining 229 bytes being fake JPG image data (FFDB, FFC2, FFC4, FFDA, etc), 
-			// in order to introduce some basic plausible deniability / obfuscation.
+			// in order to make it look (somewhat) normal.
 			// The user's encrypted data file will be added to the end of this profile.
 			jdv.Profile_Vec = {
 				0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 0x4A, 0x46, 0x49, 0x46, 0x00, 0x01,
