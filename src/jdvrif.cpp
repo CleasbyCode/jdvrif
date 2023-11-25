@@ -271,8 +271,8 @@ void Open_Files(char* argv[], JDV_STRUCT& jdv) {
 		const auto DQT_SIG = { 0xFF, 0xDB };
 
 		const size_t 
-			DQT_POS = std::search(jdv.Image_Vec.begin(), jdv.Image_Vec.end(), DQT_SIG.begin(), DQT_SIG.end()) - jdv.Image_Vec.begin(), // Find location in vector "Image_Vec" of first DQT index location of the image file.
-			// LAST_SLASH_POS = jdv.file_name.find_last_of("\\/"),
+			// Find location in vector "Image_Vec" of first DQT index location of the image file.
+			DQT_POS = std::search(jdv.Image_Vec.begin(), jdv.Image_Vec.end(), DQT_SIG.begin(), DQT_SIG.end()) - jdv.Image_Vec.begin(), 
 			MAX_FILE_SIZE = 209715200; // 200MB file size limit for this program. 
 
 		// Erase the first n bytes of the JPG header before the DQT position. We later replace the erased header with the contents of vector "Profile_Vec".
@@ -661,7 +661,7 @@ void Value_Updater(std::vector<BYTE>& vec, size_t value_insert_index, const size
 }
 
 std::string Check_Input(std::string& name) {
-
+	
 	const size_t LAST_SLASH_POS = name.find_last_of("\\/");
 
 	// Check for and remove "./" or ".\" characters at the start of the filename. 
