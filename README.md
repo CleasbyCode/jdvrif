@@ -32,7 +32,6 @@ Compile and run the program under Windows or **Linux**.
 ```console
 
 user1@linuxbox:~/Desktop$ g++ jdvrif.cpp -O2 -s -o jdvrif
-user1@linuxbox:~/Desktop$
 user1@linuxbox:~/Desktop$ ./jdvrif 
 
 Usage: jdvrif -i <jpg_image> <file(s)>  
@@ -56,13 +55,7 @@ Created data-embedded JPG image: "jdv_img1.jpg" Size: "1218285 Bytes".
 Complete!
 
 You can now post your data-embedded JPG image(s) on the relevant supported platforms.
- 
-user1@linuxbox:~/Desktop$ ./jdvrif
 
-Usage: jdvrif -i <jpg_image> <file(s)>  
-       jdvrif -x <jpg_image(s)>  
-       jdvrif --info
-        
 user1@linuxbox:~/Desktop$ ./jdvrif -x jdv_img1.jpg
 
 Extract mode selected.
