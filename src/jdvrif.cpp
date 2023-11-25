@@ -670,7 +670,7 @@ std::string Check_Input(std::string& name) {
 		name = NO_SLASH_NAME;
 	}
 
-	const std::regex REG_EXP("[a-zA-Z_0-9]*\\.[a-zA-Z0-9]+");
+	const std::regex REG_EXP("[a-zA-Z_0-9-]+(\\.[a-zA-Z0-9]+)?");
 
 	if (!regex_match(name, REG_EXP)) {
 		std::cerr << "\nInvalid Input Error: This program does not like your filename \"" + name + "\".\n\n";
