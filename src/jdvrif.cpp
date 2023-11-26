@@ -103,7 +103,7 @@ void Open_Files(char* argv[], JDV_STRUCT& jdv) {
 		read_image_fs(jdv.image_name, std::ios::binary),
 		read_file_fs(jdv.file_name, std::ios::binary);
 
-	const std::string IMAGE_EXT = jdv.image_name.substr(jdv.image_name.length() - 4, 4);
+	const std::string IMAGE_EXT = jdv.image_name.length() > 3 ? jdv.image_name.substr(jdv.image_name.length() - 4, 4) : jdv.image_name;
 
 	bool img_ext_valid = (IMAGE_EXT == ".jpg") || (IMAGE_EXT == "jpeg") || (IMAGE_EXT == "jiff");
 
