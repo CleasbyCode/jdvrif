@@ -34,7 +34,7 @@ Compile and run the program under Windows or **Linux**.
 user1@linuxbox:~/Desktop$ g++ jdvrif.cpp -O2 -s -o jdvrif
 user1@linuxbox:~/Desktop$ ./jdvrif 
 
-Usage: jdvrif -i <jpg_image> <file(s)>  
+Usage: jdvrif -i <jpg_image> <data_file(s)>  
        jdvrif -x <jpg_image(s)>  
        jdvrif --info
 
