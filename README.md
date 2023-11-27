@@ -16,7 +16,6 @@ Image credit: [@shikoba_86](https://twitter.com/shikoba_86/status/17244913274363
 Video Demos: [***Mastodon***](https://youtu.be/S7O6-93vS_o) / [***Reddit***](https://youtu.be/s_ejm3bd2Qg) / [***Twitter***](https://youtu.be/jHk2Tpjr848) / [***Multiple files***](https://youtu.be/S8oSZ-BjrCk)
 
 Your data file is encrypted & inserted within multiple 65KB ICC Profile blocks in the JPG image file.
-
 ![ICC](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/icc.png)  
 
 Using **jdvrif**, you can insert up to eight files at a time (outputs one image per file).  
