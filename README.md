@@ -27,7 +27,7 @@ You can also extract files from up to eight images at a time.
 
 **When posting a jdvrif JPG image on Reddit, always select the ***"Image & Video"*** box.**  
 
-![POST](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/reddit_post75.png)  
+![POST](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/reddit_post50.png)  
 
 When saving a jdvrif JPG image from Twitter, always click the image first to fully expand it, before saving.
 
