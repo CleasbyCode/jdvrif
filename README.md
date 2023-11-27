@@ -25,6 +25,12 @@ Using **jdvrif**, you can insert up to eight files at a time (outputs one image 
 You can also extract files from up to eight images at a time.  
 *(jdvrif -x jdv_img1.jpg jdv_img2.jpg jdv_img3.jpg, etc.)*  
 
+***When posting a jdvrif JPG image on Reddit, always select the "Image & Video" box.***  
+
+
+
+When saving a jdvrif JPG image from Twitter, always click the image first to fully expand it, before saving.
+
 Compile and run the program under Windows or **Linux**.
 
 ## Usage Demo
