@@ -15,7 +15,8 @@ Image credit: [@shikoba_86](https://twitter.com/shikoba_86/status/17244913274363
 
 Video Demos: [***Mastodon***](https://youtu.be/S7O6-93vS_o) / [***Reddit***](https://youtu.be/s_ejm3bd2Qg) / [***Twitter***](https://youtu.be/jHk2Tpjr848) / [***Multiple files***](https://youtu.be/S8oSZ-BjrCk)
 
-Your data file is encrypted & inserted within multiple 65KB ICC Profile blocks in the JPG image file.
+Your data file is encrypted & inserted within multiple 65KB ICC Profile blocks in the JPG image file.  
+
 ![ICC](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/icc.png)  
 
 Using **jdvrif**, you can insert up to eight files at a time (outputs one image per file).  
@@ -24,9 +25,9 @@ Using **jdvrif**, you can insert up to eight files at a time (outputs one image 
 You can also extract files from up to eight images at a time.  
 *(jdvrif -x jdv_img1.jpg jdv_img2.jpg jdv_img3.jpg, etc.)*  
 
-***When posting a jdvrif JPG image on Reddit, always select the "Image & Video" box.***  
+**When posting a jdvrif JPG image on Reddit, always select the ***"Image & Video"*** box.**  
 
-
+![POST](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/reddit_post.png)  
 
 When saving a jdvrif JPG image from Twitter, always click the image first to fully expand it, before saving.
 
