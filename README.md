@@ -45,8 +45,8 @@ Compile and run the program under Windows or **Linux**.
 user1@linuxbox:~/Desktop$ g++ jdvrif.cpp -O2 -s -o jdvrif
 user1@linuxbox:~/Desktop$ ./jdvrif 
 
-Usage: jdvrif -i <jpg_image> <data_file(s)>  
-       jdvrif -x <jpg_image(s)>  
+Usage: jdvrif -i <cover_image> <data_file>  
+       jdvrif -x <embedded_image>  
        jdvrif --info
 
 user1@linuxbox:~/Desktop$ ./jdvrif -i rabbit.jpg document.pdf
