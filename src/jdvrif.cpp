@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <fstream>
+#include <filesystem>	// C++17 or later.
 #include <regex>
 #include <iostream>
 #include <string>
@@ -18,6 +19,7 @@ typedef unsigned char BYTE;
 
 struct JDV_STRUCT {
 	const uint_fast8_t PROFILE_HEADER_LENGTH = 18;
+	const size_t MAX_FILE_SIZE = 209715200;
 	std::vector<BYTE> Image_Vec, File_Vec, Profile_Vec, Image_Header_Vec, Encrypted_Vec, Decrypted_Vec;
 	std::vector<size_t> Profile_Header_Offset_Vec;
 	std::string image_name, file_name;
@@ -30,27 +32,36 @@ void
 	// Update values, such as chunk lengths, crc, file sizes and other values. Writes them into the relevant vector index locations.
 	Value_Updater(std::vector<BYTE>&, size_t, const size_t&, uint_fast8_t),
 
-	// Open user image & data file or just embedded image file (depends on selected mode). Display error & exit program if any file fails to open.
-	Open_Files(char* [], JDV_STRUCT& jdv),
+	// Attempt to open user image & data file (or just embedded image file). Display error & exit program if any file fails to open.
+	Open_Files(char* [], JDV_STRUCT&),
+
+	// Some basic checks to make sure we are dealing with a valid JPG image that meets program requirements.
+	Check_Image_File(JDV_STRUCT&, std::ifstream&, std::ifstream&),
+
+	// Some basic checks to make sure user data file meets program requirements.
+	Check_Data_File(JDV_STRUCT&, std::ifstream&),
+
+	// Fill vector with our special ICC Profile data.
+	Load_Profile_Vec(JDV_STRUCT&),
 
 	// Finds all the inserted iCC-Profile headers in the "file-embedded" image and stores their index locations within vector "Profile_Header_Offset_Vec".
 	// We will later use these index locations to skip the profile headers when decrypting the file, so that they don't get included within the extracted data file.
-	Find_Profile_Headers(JDV_STRUCT& jdv),
+	Find_Profile_Headers(JDV_STRUCT&),
 
 	// Depending on mode, encrypt or decrypt user's data file and its filename.
-	Encrypt_Decrypt(JDV_STRUCT& jdv),
+	Encrypt_Decrypt(JDV_STRUCT&),
 
 	// Function splits user's data file into 65KB (or smaller) blocks by inserting iCC-Profile headers throughout the data file.
-	Insert_Profile_Headers(JDV_STRUCT& jdv),
+	Insert_Profile_Headers(JDV_STRUCT&),
 
 	// Depending on more, write out to file the embedded image file or the extracted data file.
-	Write_Out_File(JDV_STRUCT& jdv),
+	Write_Out_File(JDV_STRUCT&),
 
 	// Display program infomation.
 	Display_Info(),
 
 	// Check args input for invalid data.
-	Check_Input(const std::string&);
+	Check_Arguments_Input(const std::string&);
 
 int main(int argc, char** argv) {
 
@@ -62,12 +73,12 @@ int main(int argc, char** argv) {
 	}
 	else if (argc >= 4 && argc < 12 && std::string(argv[1]) == "-i") { // Insert file mode.
 		jdv.insert_file = true, jdv.sub_file_count = argc - 1, jdv.image_name = argv[2];
-		Check_Input(jdv.image_name);
+		Check_Arguments_Input(jdv.image_name);
 		argc -= 2;
 		while (argc != 1) {  // We can insert up to 8 files at a time (outputs one image for each file).
 			jdv.file_count = argc;
 			jdv.file_name = argv[3];
-			Check_Input(jdv.file_name);
+			Check_Arguments_Input(jdv.file_name);
 			Open_Files(argv++, jdv);
 			argc--;
 		}
@@ -77,13 +88,13 @@ int main(int argc, char** argv) {
 		jdv.extract_file = true;
 		while (argc >= 3) {  // We can extract files from up to 8 embedded images at a time.
 			jdv.image_name = argv[2];
-			Check_Input(jdv.image_name);
+			Check_Arguments_Input(jdv.image_name);
 			Open_Files(argv++, jdv);
 			argc--;
 		}
 	}
 	else {
-		std::cout << "\nUsage: jdvrif -i <jpg_image> <data_file(s)>\n\t\bjdvrif -x <jpg_image(s)>\n\t\bjdvrif --info\n\n";
+		std::cout << "\nUsage: jdvrif -i <cover_image> <data_file>\n\t\bjdvrif -x <embedded_image>\n\t\bjdvrif --info\n\n";
 		argc = 0;
 	}
 	if (argc != 0) {
@@ -103,57 +114,123 @@ void Open_Files(char* argv[], JDV_STRUCT& jdv) {
 		read_image_fs(jdv.image_name, std::ios::binary),
 		read_file_fs(jdv.file_name, std::ios::binary);
 
-	const std::string IMAGE_EXT = jdv.image_name.length() > 3 ? jdv.image_name.substr(jdv.image_name.length() - 4, 4) : jdv.image_name;
+	// First, make sure files have been opened successfully.
+	if (jdv.insert_file && (!read_image_fs || !read_file_fs) || jdv.extract_file && !read_image_fs) {
 
-	bool img_ext_valid = (IMAGE_EXT == ".jpg") || (IMAGE_EXT == "jpeg") || (IMAGE_EXT == "jiff");
-
-	if (jdv.insert_file && (!read_image_fs || read_image_fs.peek() == EOF || !img_ext_valid || !read_file_fs || read_file_fs.peek() == EOF) || jdv.extract_file && !read_image_fs || jdv.extract_file && read_image_fs.peek() == EOF || !img_ext_valid) {
-
-		// Open file failure, empty image/data file, invalid image extension - display relevant error message and exit program.
-		std::string
-			ERR_MSG_COVER = "\nImage File Error: Unable to open cover image or file is empty: ",
-			ERR_MSG_DATA = "\nData File Error: Unable to open data file or file is empty: ",
-			ERR_MSG_IMAGE = "\nImage File Error: Unable to open embedded image or file is empty: ",
-			ERR_MSG_EXTENSION = "\nImage File Error: Image file does not contain a valid extension: ",
-
-			ERR_MSG = jdv.insert_file && !read_image_fs || jdv.insert_file && read_image_fs.peek() == EOF ? ERR_MSG_COVER + "\"" + jdv.image_name + "\".\n\n"
-			: jdv.insert_file && !read_file_fs || jdv.insert_file && read_file_fs.peek() == EOF ? ERR_MSG_DATA + "\"" + jdv.file_name + "\".\n\n"
-			: jdv.extract_file && !read_image_fs || jdv.extract_file && read_image_fs.peek() == EOF ? ERR_MSG_IMAGE + "\"" + jdv.image_name + "\".\n\n"
-			: ERR_MSG_EXTENSION + "\"" + jdv.image_name + "\".\n\n";
+		// Open file failure, display relevant error message and exit program.
+		const std::string
+			READ_ERR_MSG = "\nFile Error: Unable to open file: ",
+			ERR_MSG = !read_image_fs ? READ_ERR_MSG + "\"" + jdv.image_name + "\"\n\n" : READ_ERR_MSG + "\"" + jdv.file_name + "\"\n\n";
 
 		std::cerr << ERR_MSG;
 		std::exit(EXIT_FAILURE);
 	}
 
+	Check_Image_File(jdv, read_image_fs, read_file_fs);
+}
+
+void Check_Image_File(JDV_STRUCT& jdv, std::ifstream& read_image_fs, std::ifstream& read_file_fs) {
+
+	// Check JPG image for valid file extension.
+	const std::string GET_JPG_EXTENSION = jdv.image_name.length() > 3 ? jdv.image_name.substr(jdv.image_name.length() - 4) : jdv.image_name;
+
+	if (GET_JPG_EXTENSION != ".jpg" && GET_JPG_EXTENSION != "jpeg" && GET_JPG_EXTENSION != "jiff") {
+		// No valid extension or filename too short for valid extension. Display relevent error messsage and exit program.
+		std::cerr << "\nImage File Error: Image file does not contain a valid JPG extension.\n\n";
+		std::exit(EXIT_FAILURE);
+	}
+
+	// Check JPG image for valid file size requirements.
+	const size_t
+		JPG_IMAGE_SIZE = std::filesystem::file_size(jdv.image_name),
+		JPG_MIN_SIZE = 134;	// May still not be a valid JPG with this minimum size, but good enough for our later checks after storing the image within a vector.
+
+	if (JPG_IMAGE_SIZE > jdv.MAX_FILE_SIZE || JPG_MIN_SIZE > JPG_IMAGE_SIZE) {
+		// Image size is smaller or larger than the set size limits. Display relevent error message and exit program.
+		const std::string
+			MIN_SIZE_ERR_MSG = "\nImage File Error: Size of image is too small to be a valid JPG image.\n\n",
+			MAX_SIZE_ERR_MSG = "\nImage File Error: Size of image exceeds the maximum limit for this program.\n\n";
+
+		std::cerr << (JPG_IMAGE_SIZE > jdv.MAX_FILE_SIZE ? MAX_SIZE_ERR_MSG : MIN_SIZE_ERR_MSG);
+		std::exit(EXIT_FAILURE);
+	}
+
 	const std::string START_MSG = jdv.insert_file ? "\nInsert mode selected.\n\nReading files. Please wait...\n"
-					: "\nExtract mode selected.\n\nReading embedded JPG image file. Please wait...\n";
+		: "\nExtract mode selected.\n\nReading embedded JPG image file. Please wait...\n";
 	std::cout << START_MSG;
 
-	// Read-in and store JPG image (or data-embedded image file) into vector "Image_Vec".
+	// Store JPG image (or data-embedded image file) into vector "Image_Vec".
 	jdv.Image_Vec.assign(std::istreambuf_iterator<char>(read_image_fs), std::istreambuf_iterator<char>());
 
-	// Get size of image file (or "file-embedded" image file).
+	// Update image size variable with vector size of the standard image file or the "file-embedded" image file.
 	jdv.image_size = jdv.Image_Vec.size();
 
-	if (jdv.image_size < 134) {
-		std::cerr << "\nImage Error: Invalid JPG image file.\n\n";
-		std::exit(EXIT_FAILURE);
-	}
-
+	// Now that the image is stored within a vector, we can continue with our checks on the image file.
 	const std::string
-		JPG_SIG = "\xFF\xD8\xFF",	// JPG image signature. 
-	    	GET_JPG_SIG{ jdv.Image_Vec.begin(), jdv.Image_Vec.begin() + JPG_SIG.length() };	// Get image header from vector. 
+		JPG_START_SIG = "\xFF\xD8\xFF",	// JPG image header signature. 
+		JPG_END_SIG = "\xFF\xD9",	// JPG end of image file signature.	
+		IMAGE_START_SIG{ jdv.Image_Vec.begin(), jdv.Image_Vec.begin() + JPG_START_SIG.length() },	// Get image header signature from vector. 
+		IMAGE_END_SIG{ jdv.Image_Vec.end() - JPG_END_SIG.length(), jdv.Image_Vec.end() };		// Get image end signature from vector.
 
 	// Make sure we are dealing with a valid JPG image file.
-	if (GET_JPG_SIG != JPG_SIG) {
+	if (IMAGE_START_SIG != JPG_START_SIG || IMAGE_END_SIG != JPG_END_SIG) {
 		// File requirements check failure, display relevant error message and exit program.
-		std::cerr << "\nImage Error: File does not appear to be a valid JPG image.\n\n";
+		std::cerr << "\nImage File Error: This is not a valid JPG image.\n\n";
 		std::exit(EXIT_FAILURE);
 	}
 
-	if (jdv.extract_file) { // Extract mode.
+	if (jdv.insert_file) {
 
-		 const uint_fast8_t
+		// An embedded JPG thumbnail will cause problems with this program. Search and remove blocks like "Exif" that may contain a JPG thumbnail.
+		const std::string
+			EXIF_SIG = "Exif\x00\x00II",
+			EXIF_END_SIG = "xpacket end",
+			ICC_PROFILE_SIG = "ICC_PROFILE";
+
+		// Check for an iCC Profile and delete all content before the beginning of the profile. This removes any embedded JPG thumbnail. Profile deleted later.
+		const size_t ICC_PROFILE_POS = std::search(jdv.Image_Vec.begin(), jdv.Image_Vec.end(), ICC_PROFILE_SIG.begin(), ICC_PROFILE_SIG.end()) - jdv.Image_Vec.begin();
+
+		if (jdv.Image_Vec.size() > ICC_PROFILE_POS) {
+			jdv.Image_Vec.erase(jdv.Image_Vec.begin(), jdv.Image_Vec.begin() + ICC_PROFILE_POS);
+		}
+
+		// If no profile found, search for "Exif2 block (look for end signature "xpacket end") and remove the block.
+		const size_t EXIF_END_POS = std::search(jdv.Image_Vec.begin(), jdv.Image_Vec.end(), EXIF_END_SIG.begin(), EXIF_END_SIG.end()) - jdv.Image_Vec.begin();
+		if (jdv.Image_Vec.size() > EXIF_END_POS) {
+			jdv.Image_Vec.erase(jdv.Image_Vec.begin(), jdv.Image_Vec.begin() + (EXIF_END_POS + 17));
+		}
+
+		// Remove "Exif" block that has no "xpacket end" signature.
+		const size_t EXIF_START_POS = std::search(jdv.Image_Vec.begin(), jdv.Image_Vec.end(), EXIF_SIG.begin(), EXIF_SIG.end()) - jdv.Image_Vec.begin();
+
+		if (jdv.Image_Vec.size() > EXIF_START_POS) {
+			// Get size of "Exif" block
+			const uint_fast16_t EXIF_BLOCK_SIZE = jdv.Image_Vec[EXIF_START_POS - 2] << 8 | jdv.Image_Vec[EXIF_START_POS - 1];
+			// Remove it.
+			jdv.Image_Vec.erase(jdv.Image_Vec.begin(), jdv.Image_Vec.begin() + EXIF_BLOCK_SIZE - 2);
+		}
+
+		// ^ Any JPG embedded thumbnail should have now been removed.
+
+		// Signature for Define Quantization Table(s) 
+		const auto DQT_SIG = { 0xFF, 0xDB };
+
+		// Find location in vector "Image_Vec" of first DQT index location of the image file.
+		const size_t DQT_POS = std::search(jdv.Image_Vec.begin(), jdv.Image_Vec.end(), DQT_SIG.begin(), DQT_SIG.end()) - jdv.Image_Vec.begin();
+
+		// Erase the first n bytes of the JPG header before the DQT position. We later replace the erased header with the contents of vector "Profile_Vec".
+		jdv.Image_Vec.erase(jdv.Image_Vec.begin(), jdv.Image_Vec.begin() + DQT_POS);
+
+		// Update image size
+		jdv.image_size = jdv.Image_Vec.size();
+
+		Check_Data_File(jdv, read_file_fs);
+	}
+	else {
+
+		// We are in extract mode, so first check to make sure we have a valid jdvrif embedded image.
+
+		const uint_fast8_t
 			JPG_HEADER_SIZE = jdv.PROFILE_HEADER_LENGTH,
 			JDV_SIG_INDEX = 42,		// Standard signature index location within vector "Image_Vec"
 			JDV_SIG_INDEX_IMGUR = 24;	// Shorter signature index location within vector "Image_Vec". 
@@ -162,7 +239,7 @@ void Open_Files(char* argv[], JDV_STRUCT& jdv) {
 		if (jdv.Image_Vec[JDV_SIG_INDEX] != 'J' && jdv.Image_Vec[JDV_SIG_INDEX + 5] != 'F'
 			&& jdv.Image_Vec[JDV_SIG_INDEX_IMGUR] != 'J' && jdv.Image_Vec[JDV_SIG_INDEX_IMGUR + 5] != 'F') {
 
-			std::cerr << "\nImage Error: File is not a jdvrif data-embedded image.\n\n";
+			std::cerr << "\nImage File Error: This is not a valid jdvrif data-embedded JPG image.\n\n";
 			std::exit(EXIT_FAILURE);
 		}
 
@@ -179,159 +256,120 @@ void Open_Files(char* argv[], JDV_STRUCT& jdv) {
 
 		Find_Profile_Headers(jdv);
 	}
+}
 
-	else {	// Insert mode.
+void Check_Data_File(JDV_STRUCT& jdv, std::ifstream& read_file_fs) {
 
-		// Read-in and store user's data file into vector "File_Vec".
-		jdv.File_Vec.assign(std::istreambuf_iterator<char>(read_file_fs), std::istreambuf_iterator<char>());
-		jdv.file_size = jdv.File_Vec.size();
-
-		// 663 bytes of this vector contains the main iCC-Profile (434 bytes), 
-		// with the remining 229 bytes being fake JPG image data (FFDB, FFC2, FFC4, FFDA, etc), 
-		// in order to look (somewhat) normal.
-		// The user's encrypted data file will be added to the end of this profile.
-		jdv.Profile_Vec = {
-			0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 0x4A, 0x46, 0x49, 0x46, 0x00, 0x01,
-			0x01, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00, 0xFF, 0xE2, 0xFF, 0xFF,
-			0x49, 0x43, 0x43, 0x5F, 0x50, 0x52, 0x4F, 0x46, 0x49, 0x4C, 0x45, 0x00,
-			0x01, 0x01, 0x00, 0x00, 0xFF, 0xEF, 0x4A, 0x44, 0x56, 0x52, 0x69, 0x46,
-			0x00, 0x00, 0x6D, 0x6E, 0x74, 0x72, 0x52, 0x47, 0x42, 0x20, 0x58, 0x59,
-			0x5A, 0x20, 0x07, 0xE0, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00,
-			0x00, 0x00, 0x61, 0x63, 0x73, 0x70, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00,
-			0xF6, 0xD6, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0xD3, 0x2D, 0x00, 0x00,
-			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-			0x00, 0x09, 0x64, 0x65, 0x73, 0x63, 0x00, 0x00, 0x00, 0xF0, 0x00, 0x00,
-			0x00, 0x24, 0x72, 0x58, 0x59, 0x5A, 0x00, 0x00, 0x01, 0x14, 0x00, 0x00,
-			0x00, 0x14, 0x67, 0x58, 0x59, 0x5A, 0x00, 0x00, 0x01, 0x28, 0x00, 0x00,
-			0x00, 0x14, 0x62, 0x58, 0x59, 0x5A, 0x00, 0x00, 0x01, 0x3C, 0x00, 0x00,
-			0x00, 0x14, 0x77, 0x74, 0x70, 0x74, 0x00, 0x00, 0x01, 0x50, 0x00, 0x00,
-			0x00, 0x14, 0x72, 0x54, 0x52, 0x43, 0x00, 0x00, 0x01, 0x64, 0x00, 0x00,
-			0x00, 0x28, 0x67, 0x54, 0x52, 0x43, 0x00, 0x00, 0x01, 0x64, 0x00, 0x00,
-			0x00, 0x28, 0x62, 0x54, 0x52, 0x43, 0x00, 0x00, 0x01, 0x64, 0x00, 0x00,
-			0x00, 0x28, 0x63, 0x70, 0x72, 0x74, 0x00, 0x00, 0x01, 0x8C, 0x00, 0x00,
-			0x00, 0x00, 0x6D, 0x6C, 0x75, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-			0x00, 0x01, 0x00, 0x00, 0x00, 0x0C, 0x65, 0x6E, 0x55, 0x53, 0x00, 0x00,
-			0x00, 0x08, 0x00, 0x00, 0x00, 0x1C, 0x00, 0x73, 0x00, 0x52, 0x00, 0x47,
-			0x00, 0x42, 0x58, 0x59, 0x5A, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-			0x6F, 0xA2, 0x00, 0x00, 0x38, 0xF5, 0x00, 0x00, 0x03, 0x90, 0x58, 0x59,
-			0x5A, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x62, 0x99, 0x00, 0x00,
-			0xB7, 0x85, 0x00, 0x00, 0x18, 0xDA, 0x58, 0x59, 0x5A, 0x20, 0x00, 0x00,
-			0x00, 0x00, 0x00, 0x00, 0x24, 0xA0, 0x00, 0x00, 0x0F, 0x84, 0x00, 0x00,
-			0xB6, 0xCF, 0x58, 0x59, 0x5A, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-			0xF6, 0xD6, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0xD3, 0x2D, 0x70, 0x61,
-			0x72, 0x61, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x02,
-			0x66, 0x66, 0x00, 0x00, 0xF2, 0xA7, 0x00, 0x00, 0x0D, 0x59, 0x00, 0x00,
-			0x13, 0xD0, 0x00, 0x00, 0x0A, 0x5B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-			0x00, 0x00, 0xFF, 0xDB, 0x00, 0x43, 0x00, 0x04, 0x04, 0x04, 0x04, 0x04,
-			0x04, 0x07, 0x04, 0x04, 0x07, 0x0A, 0x07, 0x07, 0x07, 0x0A, 0x0D, 0x0A,
-			0x0A, 0x0A, 0x0A, 0x0D, 0x10, 0x0D, 0x0D, 0x0D, 0x0D, 0x0D, 0x10, 0x14,
-			0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14,
-			0x14, 0x14, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x1C, 0x1C, 0x1C, 0x1C,
-			0x1C, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0xFF,
-			0xDB, 0x00, 0x43, 0x01, 0x05, 0x05, 0x05, 0x08, 0x07, 0x08, 0x0E, 0x07,
-			0x07, 0x0E, 0x20, 0x16, 0x12, 0x16, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14,
-			0x14, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14,
-			0x14, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14,
-			0x14, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14,
-			0x14, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14, 0xFF, 0xC2, 0x00, 0x11,
-			0x08, 0x04, 0x00, 0x04, 0x00, 0x03, 0x01, 0x22, 0x00, 0x02, 0x11, 0x01,
-			0x03, 0x11, 0x01, 0xFF, 0xC4, 0x00, 0x1C, 0x00, 0x00, 0x01, 0x05, 0x01,
-			0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-			0x01, 0x00, 0x02, 0x04, 0x05, 0x06, 0x03, 0x07, 0x08, 0xFF, 0xC4, 0x00,
-			0x1A, 0x01, 0x00, 0x03, 0x01, 0x01, 0x01, 0x01, 0x00, 0x00, 0x00, 0x00,
-			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x03, 0x02, 0x04, 0x05,
-			0x06, 0xFF, 0xDA, 0x00, 0x0C, 0x03, 0x01, 0x00, 0x02, 0x10, 0x03, 0x10,
-			0x00, 0x00, 0x01
-		};
-
-		const std::string
-			EXIF_SIG = "Exif\x00\x00II",
-			EXIF_END_SIG = "xpacket end",
-			ICC_PROFILE_SIG = "ICC_PROFILE";
-
-		// An embedded JPG thumbnail will cause problems with this program. Search and remove blocks like "Exif" that may contain a JPG thumbnail.
-
-		// Check for an iCC Profile and delete all content before the beginning of the profile. This removes any embedded JPG thumbnail. Profile deleted later.
-		const size_t ICC_PROFILE_POS = std::search(jdv.Image_Vec.begin(), jdv.Image_Vec.end(), ICC_PROFILE_SIG.begin(), ICC_PROFILE_SIG.end()) - jdv.Image_Vec.begin();
-		if (jdv.Image_Vec.size() > ICC_PROFILE_POS) {
-			jdv.Image_Vec.erase(jdv.Image_Vec.begin(), jdv.Image_Vec.begin() + ICC_PROFILE_POS);
-		}
-
-		// If no profile found, search for "Exif2 block (look for end signature "xpacket end") and remove the block.
-		const size_t EXIF_END_POS = std::search(jdv.Image_Vec.begin(), jdv.Image_Vec.end(), EXIF_END_SIG.begin(), EXIF_END_SIG.end()) - jdv.Image_Vec.begin();
-		if (jdv.Image_Vec.size() > EXIF_END_POS) {
-			jdv.Image_Vec.erase(jdv.Image_Vec.begin(), jdv.Image_Vec.begin() + (EXIF_END_POS + 17));
-		}
-
-		// Remove "Exif" block that has no "xpacket end" signature.
-		const size_t EXIF_START_POS = std::search(jdv.Image_Vec.begin(), jdv.Image_Vec.end(), EXIF_SIG.begin(), EXIF_SIG.end()) - jdv.Image_Vec.begin();
-		if (jdv.Image_Vec.size() > EXIF_START_POS) {
-			// Get size of "Exif" block
-			const uint_fast16_t EXIF_BLOCK_SIZE = jdv.Image_Vec[EXIF_START_POS - 2] << 8 | jdv.Image_Vec[EXIF_START_POS - 1];
-			// Remove it.
-			jdv.Image_Vec.erase(jdv.Image_Vec.begin(), jdv.Image_Vec.begin() + EXIF_BLOCK_SIZE - 2);
-		}
-
-		// ^ Any JPG embedded thumbnail should have now been removed.
-
-		// Signature for Define Quantization Table(s) 
-		const auto DQT_SIG = { 0xFF, 0xDB };
-
-		const size_t
-			DQT_POS = std::search(jdv.Image_Vec.begin(), jdv.Image_Vec.end(), DQT_SIG.begin(), DQT_SIG.end()) - jdv.Image_Vec.begin(), // Find location in vector "Image_Vec" of first DQT index location of the image file.
-			// LAST_SLASH_POS = jdv.file_name.find_last_of("\\/"),
-			MAX_FILE_SIZE = 209715200; // 200MB file size limit for this program. 
-
-		// Erase the first n bytes of the JPG header before the DQT position. We later replace the erased header with the contents of vector "Profile_Vec".
-		jdv.Image_Vec.erase(jdv.Image_Vec.begin(), jdv.Image_Vec.begin() + DQT_POS);
-
-		// Update image size
-		jdv.image_size = jdv.Image_Vec.size();
-
-		// Image size + File Size + Inserted Profile Header Size (18 bytes for every 65K of the data file).
-		if (jdv.image_size + jdv.file_size + (jdv.file_size / 65535 * jdv.PROFILE_HEADER_LENGTH + jdv.PROFILE_HEADER_LENGTH) > MAX_FILE_SIZE) {	 // Division approx. Don't care about remainder.
-
-			// File size check failure, display error message and exit program.
-			std::cerr << 	"\nFile Size Error: Your data file size must not exceed 200MB (209715200 Bytes).\n\n" <<
-					"The data file size includes the image file size and the total size of profile headers,\n(18 bytes for every 65KB of the data file).\n\n";
-
-			std::exit(EXIT_FAILURE);
-		}
-
-		const size_t LAST_SLASH_POS = jdv.file_name.find_last_of("\\/");
-
-		// Check for and remove "./" or ".\" characters at the start of the filename. 
-		if (LAST_SLASH_POS <= jdv.file_name.length()) {
-			const std::string_view NO_SLASH_NAME(jdv.file_name.c_str() + (LAST_SLASH_POS + 1), jdv.file_name.length() - (LAST_SLASH_POS + 1));
-			jdv.file_name = NO_SLASH_NAME;
-		}
-
-		const uint_fast8_t MAX_FILENAME_LENGTH = 23;
-
-		// Make sure character length of filename does not exceed set maximum.
-		if (jdv.file_name.length() > MAX_FILENAME_LENGTH) {
-			std::cerr << 	"\nFile Error: Filename length of your data file is too long.\n"
-					"\nFor compatibility requirements, your filename must be under 24 characters.\nPlease try again with a shorter filename.\n\n";
-			std::exit(EXIT_FAILURE);
-		}
-		// File size needs to be greater than filename length.
-		else if (jdv.file_name.length() > jdv.file_size) {
-			std::cerr << 	"\nFile Size Error: File size is too small.\n"
-					"\nFor compatibility requirements, data file size must be greater than filename length.\n\n";
-			std::exit(EXIT_FAILURE);
-		}
-		else {
-			std::cout << "\nEncrypting data file.\n";
-
-			// Encrypt the user's data file and its filename.
-			Encrypt_Decrypt(jdv);
-		}
+	// Now do some checks on the data file.
+	
+	const size_t LAST_SLASH_POS = jdv.file_name.find_last_of("\\/");
+	
+	// Check for and remove "./" or ".\" characters at the start of the filename. 
+	if (LAST_SLASH_POS <= jdv.file_name.length()) {
+		const std::string_view NO_SLASH_NAME(jdv.file_name.c_str() + (LAST_SLASH_POS + 1), jdv.file_name.length() - (LAST_SLASH_POS + 1));
+		jdv.file_name = NO_SLASH_NAME;
 	}
+
+	// Check file size and length of file name.
+	const size_t
+		DATA_FILE_SIZE = std::filesystem::file_size(jdv.file_name),
+		FILE_NAME_LENGTH = jdv.file_name.length(),
+		MAX_FILENAME_LENGTH = 23;
+
+	if (DATA_FILE_SIZE > jdv.MAX_FILE_SIZE || FILE_NAME_LENGTH > DATA_FILE_SIZE || FILE_NAME_LENGTH > MAX_FILENAME_LENGTH) {
+		// Image size is smaller or larger than the set size limits. Display relevent error message and exit program.
+		const std::string
+			MIN_SIZE_ERR_MSG = "\nData File Error: Size of file is too small.\n\nFor compatibility requirements, file size must be greater than the length of the file name.\n\n",
+			MAX_SIZE_ERR_MSG = "\nData File Error: Size of file exceeds the maximum limit for this program.\n\n",
+			MAX_FILE_NAME_LENGTH_ERR_MSG = "\nData File Error: Length of file name is too long.\n\nFor compatibility requirements, length of file name must be under 24 characters.\n\n";
+
+		std::cerr << (DATA_FILE_SIZE > jdv.MAX_FILE_SIZE ? MAX_SIZE_ERR_MSG : (FILE_NAME_LENGTH > DATA_FILE_SIZE) ? MIN_SIZE_ERR_MSG : MAX_FILE_NAME_LENGTH_ERR_MSG);
+		std::exit(EXIT_FAILURE);
+	}
+
+	// Read-in and store user's data file into vector "File_Vec".
+	jdv.File_Vec.assign(std::istreambuf_iterator<char>(read_file_fs), std::istreambuf_iterator<char>());
+	jdv.file_size = jdv.File_Vec.size();
+
+	// Combined file size check.
+	// Image size + File Size + Inserted Profile Header Size (18 bytes for every 65K of the data file).
+	if (jdv.image_size + jdv.file_size + (jdv.file_size / 65535 * jdv.PROFILE_HEADER_LENGTH + jdv.PROFILE_HEADER_LENGTH) > jdv.MAX_FILE_SIZE) {	 // Division approx. Don't care about remainder.
+
+		// File size check failure, display error message and exit program.
+		std::cerr << "\nImage File Error: The combined size of your image file + data file exceeds the maximum limit (200MB) for this program.\n\n";
+		std::exit(EXIT_FAILURE);
+	}
+
+	Load_Profile_Vec(jdv);
+}
+
+void Load_Profile_Vec(JDV_STRUCT& jdv) {
+	
+	// 663 bytes of this vector contains the main iCC-Profile (434 bytes), 
+	// with the remining 229 bytes being fake JPG image data (FFDB, FFC2, FFC4, FFDA, etc), 
+	// in order to look (somewhat) normal.
+	// The user's encrypted data file will be added to the end of this profile.
+	jdv.Profile_Vec = {
+		0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 0x4A, 0x46, 0x49, 0x46, 0x00, 0x01,
+		0x01, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00, 0xFF, 0xE2, 0xFF, 0xFF,
+		0x49, 0x43, 0x43, 0x5F, 0x50, 0x52, 0x4F, 0x46, 0x49, 0x4C, 0x45, 0x00,
+		0x01, 0x01, 0x00, 0x00, 0xFF, 0xEF, 0x4A, 0x44, 0x56, 0x52, 0x69, 0x46,
+		0x00, 0x00, 0x6D, 0x6E, 0x74, 0x72, 0x52, 0x47, 0x42, 0x20, 0x58, 0x59,
+		0x5A, 0x20, 0x07, 0xE0, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x61, 0x63, 0x73, 0x70, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00,
+		0xF6, 0xD6, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0xD3, 0x2D, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		0x00, 0x09, 0x64, 0x65, 0x73, 0x63, 0x00, 0x00, 0x00, 0xF0, 0x00, 0x00,
+		0x00, 0x24, 0x72, 0x58, 0x59, 0x5A, 0x00, 0x00, 0x01, 0x14, 0x00, 0x00,
+		0x00, 0x14, 0x67, 0x58, 0x59, 0x5A, 0x00, 0x00, 0x01, 0x28, 0x00, 0x00,
+		0x00, 0x14, 0x62, 0x58, 0x59, 0x5A, 0x00, 0x00, 0x01, 0x3C, 0x00, 0x00,
+		0x00, 0x14, 0x77, 0x74, 0x70, 0x74, 0x00, 0x00, 0x01, 0x50, 0x00, 0x00,
+		0x00, 0x14, 0x72, 0x54, 0x52, 0x43, 0x00, 0x00, 0x01, 0x64, 0x00, 0x00,
+		0x00, 0x28, 0x67, 0x54, 0x52, 0x43, 0x00, 0x00, 0x01, 0x64, 0x00, 0x00,
+		0x00, 0x28, 0x62, 0x54, 0x52, 0x43, 0x00, 0x00, 0x01, 0x64, 0x00, 0x00,
+		0x00, 0x28, 0x63, 0x70, 0x72, 0x74, 0x00, 0x00, 0x01, 0x8C, 0x00, 0x00,
+		0x00, 0x00, 0x6D, 0x6C, 0x75, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		0x00, 0x01, 0x00, 0x00, 0x00, 0x0C, 0x65, 0x6E, 0x55, 0x53, 0x00, 0x00,
+		0x00, 0x08, 0x00, 0x00, 0x00, 0x1C, 0x00, 0x73, 0x00, 0x52, 0x00, 0x47,
+		0x00, 0x42, 0x58, 0x59, 0x5A, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		0x6F, 0xA2, 0x00, 0x00, 0x38, 0xF5, 0x00, 0x00, 0x03, 0x90, 0x58, 0x59,
+		0x5A, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x62, 0x99, 0x00, 0x00,
+		0xB7, 0x85, 0x00, 0x00, 0x18, 0xDA, 0x58, 0x59, 0x5A, 0x20, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x24, 0xA0, 0x00, 0x00, 0x0F, 0x84, 0x00, 0x00,
+		0xB6, 0xCF, 0x58, 0x59, 0x5A, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		0xF6, 0xD6, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0xD3, 0x2D, 0x70, 0x61,
+		0x72, 0x61, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x02,
+		0x66, 0x66, 0x00, 0x00, 0xF2, 0xA7, 0x00, 0x00, 0x0D, 0x59, 0x00, 0x00,
+		0x13, 0xD0, 0x00, 0x00, 0x0A, 0x5B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0xFF, 0xDB, 0x00, 0x43, 0x00, 0x04, 0x04, 0x04, 0x04, 0x04,
+		0x04, 0x07, 0x04, 0x04, 0x07, 0x0A, 0x07, 0x07, 0x07, 0x0A, 0x0D, 0x0A,
+		0x0A, 0x0A, 0x0A, 0x0D, 0x10, 0x0D, 0x0D, 0x0D, 0x0D, 0x0D, 0x10, 0x14,
+		0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14,
+		0x14, 0x14, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x1C, 0x1C, 0x1C, 0x1C,
+		0x1C, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0xFF,
+		0xDB, 0x00, 0x43, 0x01, 0x05, 0x05, 0x05, 0x08, 0x07, 0x08, 0x0E, 0x07,
+		0x07, 0x0E, 0x20, 0x16, 0x12, 0x16, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14,
+		0x14, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14,
+		0x14, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14,
+		0x14, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14,
+		0x14, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14, 0xFF, 0xC2, 0x00, 0x11,
+		0x08, 0x04, 0x00, 0x04, 0x00, 0x03, 0x01, 0x22, 0x00, 0x02, 0x11, 0x01,
+		0x03, 0x11, 0x01, 0xFF, 0xC4, 0x00, 0x1C, 0x00, 0x00, 0x01, 0x05, 0x01,
+		0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		0x01, 0x00, 0x02, 0x04, 0x05, 0x06, 0x03, 0x07, 0x08, 0xFF, 0xC4, 0x00,
+		0x1A, 0x01, 0x00, 0x03, 0x01, 0x01, 0x01, 0x01, 0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x03, 0x02, 0x04, 0x05,
+		0x06, 0xFF, 0xDA, 0x00, 0x0C, 0x03, 0x01, 0x00, 0x02, 0x10, 0x03, 0x10,
+		0x00, 0x00, 0x01
+	};
+
+	// Encrypt the user's data file and its file name.
+	Encrypt_Decrypt(jdv);
 }
 
 void Find_Profile_Headers(JDV_STRUCT& jdv) {
@@ -383,6 +421,8 @@ void Find_Profile_Headers(JDV_STRUCT& jdv) {
 }
 
 void Encrypt_Decrypt(JDV_STRUCT& jdv) {
+
+	std::cout << "\nEncrypting data file.\n";
 
 	const std::string
 		XOR_KEY = "\xFF\xD8\xFF\xE2\xFF\xFF",	// String used to XOR encrypt/decrypt the filename of user's data file.
@@ -486,7 +526,7 @@ void Insert_Profile_Headers(JDV_STRUCT& jdv) {
 	const uint_fast16_t BLOCK_SIZE = 65535;	// Profile default block size 65KB (0xFFFF).
 
 	size_t tally_size = 20;	// A value used in conjunction with the user's data file size. We keep incrementing this value by BLOCK_SIZE until
-				// we reach near end of the file, which will be a value less than BLOCK_SIZE, the last iCC-Profile block.
+	// we reach near end of the file, which will be a value less than BLOCK_SIZE, the last iCC-Profile block.
 
 	uint_fast16_t profile_count = 0;	// Keep count of how many profile headers that have been inserted into user's data file. We use this value when removing the headers.
 
@@ -644,7 +684,7 @@ void Write_Out_File(JDV_STRUCT& jdv) {
 			POST_IMG_SIZE = 25165824,	// 24MB
 			IMGBB_SIZE = 33554432,		// 32MB
 			IMG_PILE_SIZE = 104857600;	// 100MB
-		// Flickr is 200MB, this programs max size, no need to to make a variable for it.
+			// Flickr is 200MB, this programs max size, no need to to make a variable for it.
 
 		size_warning = (IMG_SIZE > IMGUR_REDDIT_SIZE && IMG_SIZE <= POST_IMG_SIZE ? size_warning.substr(0, MSG_LEN - 40)
 				: (IMG_SIZE > POST_IMG_SIZE && IMG_SIZE <= IMGBB_SIZE ? size_warning.substr(0, MSG_LEN - 51)
@@ -680,12 +720,12 @@ void Value_Updater(std::vector<BYTE>& vec, size_t value_insert_index, const size
 	}
 }
 
-void Check_Input(const std::string& FILE_NAME_INPUT) {
+void Check_Arguments_Input(const std::string& FILE_NAME_INPUT) {
 
 	const std::regex REG_EXP("(\\.[a-zA-Z_0-9\\\\\\s\\-\\/]+)?[a-zA-Z_0-9\\\\\\s\\-\\/]+?(\\.[a-zA-Z0-9]+)?");
 
 	if (!regex_match(FILE_NAME_INPUT, REG_EXP)) {
-		std::cerr << "\nInvalid Input Error: This program does not like your filename \"" + FILE_NAME_INPUT + "\".\n\n";
+		std::cerr << "\nInvalid Input Error: Your file name: \"" + FILE_NAME_INPUT + "\" contains characters not supported by this program.\n\n";
 		std::exit(EXIT_FAILURE);
 	}
 }
