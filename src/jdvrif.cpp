@@ -262,19 +262,20 @@ void Check_Data_File(JDV_STRUCT& jdv, std::ifstream& read_file_fs) {
 
 	// Now do some checks on the data file.
 	
-	const size_t LAST_SLASH_POS = jdv.file_name.find_last_of("\\/");
-	
+	const size_t 
+		DATA_FILE_SIZE = std::filesystem::file_size(jdv.file_name),
+		LAST_SLASH_POS = jdv.file_name.find_last_of("\\/");
+
 	// Check for and remove "./" or ".\" characters at the start of the filename. 
 	if (LAST_SLASH_POS <= jdv.file_name.length()) {
 		const std::string_view NO_SLASH_NAME(jdv.file_name.c_str() + (LAST_SLASH_POS + 1), jdv.file_name.length() - (LAST_SLASH_POS + 1));
 		jdv.file_name = NO_SLASH_NAME;
 	}
+	
+	const size_t FILE_NAME_LENGTH = jdv.file_name.length();
 
 	// Check file size and length of file name.
-	const size_t
-		DATA_FILE_SIZE = std::filesystem::file_size(jdv.file_name),
-		FILE_NAME_LENGTH = jdv.file_name.length(),
-		MAX_FILENAME_LENGTH = 23;
+	const uint_fast8_t MAX_FILENAME_LENGTH = 23;
 
 	if (DATA_FILE_SIZE > jdv.MAX_FILE_SIZE || FILE_NAME_LENGTH > DATA_FILE_SIZE || FILE_NAME_LENGTH > MAX_FILENAME_LENGTH) {
 		// Image size is smaller or larger than the set size limits. Display relevent error message and exit program.
