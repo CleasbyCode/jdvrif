@@ -23,12 +23,6 @@ social media and image hosting sites, with the embedded-data being retained.
 
 ![ICC](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/icc.png)  
 
-Using **jdvrif**, you can insert up to eight files at a time (outputs one image per file).  
-*(jdvrif -i image.jpg file1.mp3 file2.doc file3.zip, etc.)*  
-
-You can also extract files from up to eight images at a time.  
-*(jdvrif -x jdv_img1.jpg jdv_img2.jpg jdv_img3.jpg, etc.)*  
-
 When **posting** a jdvrif JPG image on **Reddit**, always select the ***"Image & Video"*** box.
 
 ![POST](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/reddit_post50.png)  
