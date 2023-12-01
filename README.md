@@ -86,6 +86,12 @@ Complete! Please check your extracted file(s).
 user1@linuxbox:~/Desktop$ 
 
 ```
+Using **jdvrif**, you can insert up to eight files at a time (outputs one image per file).  
+*(jdvrif -i image.jpg file1.mp3 file2.doc file3.zip, etc.)*  
+
+You can also extract files from up to eight images at a time.  
+*(jdvrif -x jdv_img1.jpg jdv_img2.jpg jdv_img3.jpg, etc.)*  
+
 **Issues:**
 * **Reddit -** *Does not work with Reddit's mobile app. Desktop/browser only.*
 * **Imgur -** *Retains embedded data, but reduces the dimension size of images over 5MB.*
