@@ -14,7 +14,13 @@ Post & share your *file-embedded* JPG image(s) on the following compatible sites
 
 Video Demos: [***Mastodon***](https://youtu.be/S7O6-93vS_o) / [***Reddit***](https://youtu.be/s_ejm3bd2Qg) / [***Twitter***](https://youtu.be/jHk2Tpjr848) / [***Multiple files***](https://youtu.be/S8oSZ-BjrCk)
 
-Your data file is encrypted & inserted within multiple 65KB ICC Profile blocks in the JPG image file.  
+The method jdvrif uses to store your data is not typical steganography, such as LSB.  
+Your data file is encrypted & inserted within multiple 65KB ICC_Profile blocks in the JPG image.  
+
+Several benefits of sing this method:  
+
+It is easier to implement, there is no image distortion, we can embed more data & images are sharable  
+over various social media and image hosting sites, with the embedded-data being retained.
 
 ![ICC](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/icc.png)  
 
