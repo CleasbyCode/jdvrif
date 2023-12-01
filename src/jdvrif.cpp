@@ -368,7 +368,9 @@ void Load_Profile_Vec(JDV_STRUCT& jdv) {
 		0x06, 0xFF, 0xDA, 0x00, 0x0C, 0x03, 0x01, 0x00, 0x02, 0x10, 0x03, 0x10,
 		0x00, 0x00, 0x01
 	};
-
+	
+	std::cout << "\nEncrypting data file.\n";
+	
 	// Encrypt the user's data file and its file name.
 	Encrypt_Decrypt(jdv);
 }
@@ -422,8 +424,6 @@ void Find_Profile_Headers(JDV_STRUCT& jdv) {
 }
 
 void Encrypt_Decrypt(JDV_STRUCT& jdv) {
-
-	std::cout << "\nEncrypting data file.\n";
 
 	const std::string
 		XOR_KEY = "\xFF\xD8\xFF\xE2\xFF\xFF",	// String used to XOR encrypt/decrypt the filename of user's data file.
