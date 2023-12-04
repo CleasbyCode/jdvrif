@@ -54,7 +54,7 @@ void
 	// Function splits user's data file into 65KB (or smaller) blocks by inserting iCC-Profile headers throughout the data file.
 	Insert_Profile_Headers(JDV_STRUCT&),
 
-	// Depending on more, write out to file the embedded image file or the extracted data file.
+	// Depending on mode, write out to file the embedded image file or the extracted data file.
 	Write_Out_File(JDV_STRUCT&),
 
 	// Display program infomation.
