@@ -51,7 +51,7 @@ void
 	// Depending on mode, encrypt or decrypt user's data file and its filename.
 	Encrypt_Decrypt(JDV_STRUCT&),
 
-	// Function splits user's data file into 65KB (or smaller) blocks by inserting iCC-Profile headers throughout the data file.
+	// Function splits user's data file into 65KB (or smaller) blocks by inserting ICC_Profile headers throughout the data file.
 	Insert_Profile_Headers(JDV_STRUCT&),
 
 	// Depending on mode, write out to file the embedded image file or the extracted data file.
