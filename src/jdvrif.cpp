@@ -8,7 +8,7 @@
 
 #include <algorithm>
 #include <fstream>
-#include <filesystem>	// C++17 or later.
+#include <filesystem>	
 #include <regex>
 #include <iostream>
 #include <string>
@@ -723,7 +723,7 @@ void Value_Updater(std::vector<BYTE>& vec, size_t value_insert_index, const size
 
 void Check_Arguments_Input(const std::string& FILE_NAME_INPUT) {
 
-	const std::regex REG_EXP("(\\.[a-zA-Z_0-9\\\\\\s\\-\\/]+)?[a-zA-Z_0-9\\\\\\s\\-\\/]+?(\\.[a-zA-Z0-9]+)?");
+	const std::regex REG_EXP("(\\.[a-zA-Z_0-9\\.\\\\\\s\\-\\/]+)?[a-zA-Z_0-9\\.\\\\\\s\\-\\/]+?(\\.[a-zA-Z0-9]+)?");
 
 	if (!regex_match(FILE_NAME_INPUT, REG_EXP)) {
 		std::cerr << "\nInvalid Input Error: Your file name: \"" + FILE_NAME_INPUT + "\" contains characters not supported by this program.\n\n";
