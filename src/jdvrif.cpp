@@ -205,7 +205,8 @@ void Check_Image_File(JDV_STRUCT& jdv, std::ifstream& read_image_fs, std::ifstre
 
 		if (jdv.Image_Vec.size() > EXIF_START_POS) {
 			// Get size of "Exif" block
-			const uint_fast16_t EXIF_BLOCK_SIZE = jdv.Image_Vec[EXIF_START_POS - 2] << 8 | jdv.Image_Vec[EXIF_START_POS - 1];
+			const uint_fast16_t  EXIF_BLOCK_SIZE = (static_cast<size_t>(jdv.Image_Vec[EXIF_START_POS - 2]) << 8)
+							| (static_cast<size_t>(jdv.Image_Vec[EXIF_START_POS - 1]));
 			// Remove it.
 			jdv.Image_Vec.erase(jdv.Image_Vec.begin(), jdv.Image_Vec.begin() + EXIF_BLOCK_SIZE - 2);
 		}
@@ -396,7 +397,8 @@ void Find_Profile_Headers(JDV_STRUCT& jdv) {
 	const std::string PROFILE_SIG = "ICC_PROFILE";
 
 	// From vector "Image_Vec", get the total number of embedded profile headers value, stored within the main profile.
-	uint_fast16_t profile_count = jdv.Image_Vec[PROFILE_COUNT_INDEX] << 8 | jdv.Image_Vec[PROFILE_COUNT_INDEX + 1];
+	uint_fast16_t profile_count = (static_cast<size_t>(jdv.Image_Vec[PROFILE_COUNT_INDEX]) << 8) 
+				| (static_cast<size_t>(jdv.Image_Vec[PROFILE_COUNT_INDEX + 1]));
 
 	// Get the encrypted filename from vector "Image_Vec", stored within the main profile.
 	jdv.file_name = { jdv.Image_Vec.begin() + NAME_INDEX, jdv.Image_Vec.begin() + NAME_INDEX + jdv.Image_Vec[NAME_LENGTH_INDEX] };
