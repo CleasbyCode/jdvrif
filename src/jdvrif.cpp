@@ -382,9 +382,9 @@ void Find_Profile_Headers(JDV_STRUCT& jdv) {
 
 	// From the relevant index location, get size value of user's data file from "Image_Vec", stored within the main profile.
 	const uint_fast32_t EMBEDDED_FILE_SIZE = ((static_cast<size_t>(jdv.Image_Vec[FILE_SIZE_INDEX]) << 24) 
-									| (static_cast<size_t>(jdv.Image_Vec[FILE_SIZE_INDEX + 1]) << 16) 
-									| (static_cast<size_t>(jdv.Image_Vec[FILE_SIZE_INDEX + 2]) << 8) 
-									| (static_cast<size_t>(jdv.Image_Vec[FILE_SIZE_INDEX + 3])));
+					| (static_cast<size_t>(jdv.Image_Vec[FILE_SIZE_INDEX + 1]) << 16) 
+					| (static_cast<size_t>(jdv.Image_Vec[FILE_SIZE_INDEX + 2]) << 8) 
+					| (static_cast<size_t>(jdv.Image_Vec[FILE_SIZE_INDEX + 3])));
 
 	// Signature string for the embedded profile headers we need to find within the user's data file.
 	const std::string PROFILE_SIG = "ICC_PROFILE";
