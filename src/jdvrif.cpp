@@ -110,7 +110,7 @@ void Check_Image_File(JDV_STRUCT& jdv) {
 	// Make sure image file opened successfully.
 	if (!read_image_fs) {
 		// Open file failure, display relevant error message and exit program.
-		std::cerr << "\nRead File Error: Unabe to open image file.\n\n";
+		std::cerr << "\nRead File Error: Unable to open image file.\n\n";
 		std::exit(EXIT_FAILURE);
 	}
 
@@ -251,7 +251,7 @@ void Check_Data_File(JDV_STRUCT& jdv) {
 	// First, make sure data file opened successfully.
 	if (!read_file_fs) {
 		// Open file failure, display relevant error message and exit program.
-		std::cerr << "\nRead File Error: Unabe to open data file.\n\n";
+		std::cerr << "\nRead File Error: Unable to open data file.\n\n";
 		std::exit(EXIT_FAILURE);
 	}
 
