@@ -19,7 +19,7 @@ typedef unsigned char BYTE;
 
 struct JDV_STRUCT {
 	const uint_fast8_t PROFILE_HEADER_LENGTH = 18;
-	const size_t MAX_FILE_SIZE = 209715200;
+	const size_t MAX_FILE_SIZE = 209715200, MIN_FILE_SIZE = 134;
 	std::vector<BYTE> Image_Vec, File_Vec, Profile_Vec, Image_Header_Vec, Encrypted_Vec, Decrypted_Vec;
 	std::vector<size_t> Profile_Header_Offset_Vec;
 	std::string image_name, file_name;
@@ -29,11 +29,10 @@ struct JDV_STRUCT {
 };
 
 void
-
-	// Attempt to open image file, followed by some basic checks to make sure we are dealing with a valid JPG image that meets program requirements.
+	// Attempt to open image file, followed by some basic checks to make sure user's image file meets program requiremensts.
 	Check_Image_File(JDV_STRUCT&),
 
-	// Attempt to open data file, followed by Some basic checks to make sure user data file meets program requirements.
+	// Some basic checks to make sure user data file meets program requirements.
 	Check_Data_File(JDV_STRUCT&),
 
 	// Fill vector with our special ICC Profile data.
@@ -97,7 +96,7 @@ int main(int argc, char** argv) {
 		if (argc == 2) {
 			std::cout << "\nComplete! Please check your extracted file(s).\n\n";
 		} else {
-			std::cout << "\nComplete!\n\nYou can now post your data-embedded JPG image(s) on the relevant supported platforms.\n\n";
+			std::cout << "\nComplete!\n\nYou can now post your file-embedded JPG image(s) on the relevant supported platforms.\n\n";
 		}
 	}
 	return 0;
@@ -105,42 +104,29 @@ int main(int argc, char** argv) {
 
 void Check_Image_File(JDV_STRUCT& jdv) {
 
-	std::ifstream read_image_fs(jdv.image_name, std::ios::binary);
-
-	// Make sure image file opened successfully.
-	if (!read_image_fs) {
-		// Open file failure, display relevant error message and exit program.
-		std::cerr << "\nRead File Error: Unable to open image file.\n\n";
-		std::exit(EXIT_FAILURE);
-	}
-
-	// Check JPG image for valid file extension.
 	const std::string GET_JPG_EXTENSION = jdv.image_name.length() > 3 ? jdv.image_name.substr(jdv.image_name.length() - 4) : jdv.image_name;
 
-	if (GET_JPG_EXTENSION != ".jpg" && GET_JPG_EXTENSION != "jpeg" && GET_JPG_EXTENSION != "jiff") {
-		// No valid extension or filename too short for valid extension. Display relevent error messsage and exit program.
-		std::cerr << "\nImage File Error: Image file does not contain a valid JPG extension.\n\n";
+	std::ifstream read_image_fs(jdv.image_name, std::ios::binary);
+	
+	// First, make sure image file opened successfully and image file has correct extension.
+	if (!read_image_fs || GET_JPG_EXTENSION != ".jpg" && GET_JPG_EXTENSION != "jpeg" && GET_JPG_EXTENSION != "jiff") {
+		// Open file failure, display relevant error message and exit program.
+		std::cerr << (!read_image_fs ? "\nRead File Error: Unable to open image file.\n\n" : "\nImage File Error: Image file does not contain a valid extension.\n\n");
 		std::exit(EXIT_FAILURE);
 	}
 
 	// Check JPG image for valid file size requirements.
-	const size_t
-		JPG_IMAGE_SIZE = std::filesystem::file_size(jdv.image_name),
-		JPG_MIN_SIZE = 134;	// May still not be a valid JPG with this minimum size, but good enough for our later checks after storing the image within a vector.
 
-	if (JPG_IMAGE_SIZE > jdv.MAX_FILE_SIZE || JPG_MIN_SIZE > JPG_IMAGE_SIZE) {
-		// Image size is smaller or larger than the set size limits. Display relevent error message and exit program.
-		const std::string
-			MIN_SIZE_ERR_MSG = "\nImage File Error: Size of image is too small to be a valid JPG image.\n\n",
-			MAX_SIZE_ERR_MSG = "\nImage File Error: Size of image exceeds the maximum limit for this program.\n\n";
+	jdv.image_size = std::filesystem::file_size(jdv.image_name);
 
-		std::cerr << (JPG_IMAGE_SIZE > jdv.MAX_FILE_SIZE ? MAX_SIZE_ERR_MSG : MIN_SIZE_ERR_MSG);
+	if (jdv.image_size > jdv.MAX_FILE_SIZE || jdv.MIN_FILE_SIZE > jdv.image_size) {
+		// Image size is smaller or larger than the set size limits. Display relevant error message and exit program.
+		std::cerr << "\nImage File Error: Size of image " << (jdv.image_size > jdv.MAX_FILE_SIZE ? "exceeds the limit for this program" : "is too small to be a valid JPG image") << ".\n\n";
 		std::exit(EXIT_FAILURE);
 	}
-
-	const std::string START_MSG = jdv.insert_file ? "\nInsert mode selected.\n\nReading files. Please wait...\n"
-				: "\nExtract mode selected.\n\nReading embedded JPG image file. Please wait...\n";
-	std::cout << START_MSG;
+	
+	// Start message.
+	std::cout << (jdv.insert_file ? "\nInsert mode selected.\n\nReading files. " : "\nExtract mode selected.\n\nReading embedded image file. ") << "Please wait...\n";
 
 	// Store JPG image or data-embedded image file, into vector "Image_Vec".
 	jdv.Image_Vec.assign(std::istreambuf_iterator<char>(read_image_fs), std::istreambuf_iterator<char>());
@@ -150,8 +136,8 @@ void Check_Image_File(JDV_STRUCT& jdv) {
 
 	// Now that the image is stored within a vector, we can continue with our checks on the image file.
 	const std::string
-		JPG_START_SIG = "\xFF\xD8\xFF",		// JPG image header signature. 
-		JPG_END_SIG = "\xFF\xD9",		// JPG end of image file signature.	
+		JPG_START_SIG = "\xFF\xD8\xFF",	// JPG image header signature. 
+		JPG_END_SIG = "\xFF\xD9",	// JPG end of image file signature.	
 		IMAGE_START_SIG{ jdv.Image_Vec.begin(), jdv.Image_Vec.begin() + JPG_START_SIG.length() },	// Get image header signature from vector. 
 		IMAGE_END_SIG{ jdv.Image_Vec.end() - JPG_END_SIG.length(), jdv.Image_Vec.end() };
 
@@ -223,7 +209,7 @@ void Check_Image_File(JDV_STRUCT& jdv) {
 		if (jdv.Image_Vec[JDV_SIG_INDEX] != 'J' && jdv.Image_Vec[JDV_SIG_INDEX + 5] != 'F'
 			&& jdv.Image_Vec[JDV_SIG_INDEX_IMGUR] != 'J' && jdv.Image_Vec[JDV_SIG_INDEX_IMGUR + 5] != 'F') {
 
-			std::cerr << "\nImage File Error: This is not a valid jdvrif data-embedded JPG image.\n\n";
+			std::cerr << "\nImage File Error: This is not a valid jdvrif file-embedded image.\n\n";
 			std::exit(EXIT_FAILURE);
 		}
 
@@ -248,16 +234,14 @@ void Check_Data_File(JDV_STRUCT& jdv) {
 
 	std::ifstream read_file_fs(jdv.file_name, std::ios::binary);
 
-	// First, make sure data file opened successfully.
+	// Make sure data file opened successfully.
 	if (!read_file_fs) {
 		// Open file failure, display relevant error message and exit program.
 		std::cerr << "\nRead File Error: Unable to open data file.\n\n";
 		std::exit(EXIT_FAILURE);
 	}
 
-	const size_t 
-		DATA_FILE_SIZE = std::filesystem::file_size(jdv.file_name),
-		LAST_SLASH_POS = jdv.file_name.find_last_of("\\/");
+	const size_t LAST_SLASH_POS = jdv.file_name.find_last_of("\\/");
 
 	// Check for and remove "./" or ".\" characters at the start of the filename. 
 	if (LAST_SLASH_POS <= jdv.file_name.length()) {
@@ -265,19 +249,15 @@ void Check_Data_File(JDV_STRUCT& jdv) {
 		jdv.file_name = NO_SLASH_NAME;
 	}
 	
-	const size_t FILE_NAME_LENGTH = jdv.file_name.length();
-
-	// Check file size and length of file name.
 	const uint_fast8_t MAX_FILENAME_LENGTH = 23;
 
-	if (DATA_FILE_SIZE > jdv.MAX_FILE_SIZE || FILE_NAME_LENGTH > DATA_FILE_SIZE || FILE_NAME_LENGTH > MAX_FILENAME_LENGTH) {
-		// Image size is smaller or larger than the set size limits. Display relevent error message and exit program.
-		const std::string
-			MIN_SIZE_ERR_MSG = "\nData File Error: Size of file is too small.\n\nFor compatibility requirements, file size must be greater than the length of the file name.\n\n",
-			MAX_SIZE_ERR_MSG = "\nData File Error: Size of file exceeds the maximum limit for this program.\n\n",
-			MAX_FILE_NAME_LENGTH_ERR_MSG = "\nData File Error: Length of file name is too long.\n\nFor compatibility requirements, length of file name must be under 24 characters.\n\n";
+	jdv.file_size = std::filesystem::file_size(jdv.file_name);
 
-		std::cerr << (DATA_FILE_SIZE > jdv.MAX_FILE_SIZE ? MAX_SIZE_ERR_MSG : (FILE_NAME_LENGTH > DATA_FILE_SIZE) ? MIN_SIZE_ERR_MSG : MAX_FILE_NAME_LENGTH_ERR_MSG);
+	if (jdv.file_size > jdv.MAX_FILE_SIZE || jdv.file_name.length() > jdv.file_size || jdv.file_name.length() > MAX_FILENAME_LENGTH) {
+	
+		std::cerr << "\nData File Error: " << (jdv.file_size > jdv.MAX_FILE_SIZE ? "Size of file exceeds the maximum limit (200MB) for this program" 
+			: (jdv.file_name.length() > jdv.file_size ? "Size of file is too small.\n\nFor compatibility requirements, file size must be greater than the length of the file name"
+			: "Length of file name is too long.\n\nFor compatibility requirements, length of file name must be under 24 characters")) << ".\n\n";
 		std::exit(EXIT_FAILURE);
 	}
 
@@ -290,7 +270,7 @@ void Check_Data_File(JDV_STRUCT& jdv) {
 	if (jdv.image_size + jdv.file_size + (jdv.file_size / 65535 * jdv.PROFILE_HEADER_LENGTH + jdv.PROFILE_HEADER_LENGTH) > jdv.MAX_FILE_SIZE) {	 // Division approx. Don't care about remainder.
 
 		// File size check failure, display error message and exit program.
-		std::cerr << "\nImage File Error: The combined size of your image file + data file exceeds the maximum limit (200MB) for this program.\n\n";
+		std::cerr << "\nImage File Error:\n\nThe combined size of the image file + data file exceeds the maximum limit (200MB) for this program.\n\n";
 		std::exit(EXIT_FAILURE);
 	}
 
@@ -381,10 +361,10 @@ void Find_Profile_Headers(JDV_STRUCT& jdv) {
 	const uint_fast16_t FILE_INDEX = 663; 	// Start index location within vector "Image_Vec" for the user's data file.
 
 	// From the relevant index location, get size value of user's data file from "Image_Vec", stored within the main profile.
-	const uint_fast32_t EMBEDDED_FILE_SIZE = ((static_cast<size_t>(jdv.Image_Vec[FILE_SIZE_INDEX]) << 24) 
-					| (static_cast<size_t>(jdv.Image_Vec[FILE_SIZE_INDEX + 1]) << 16) 
-					| (static_cast<size_t>(jdv.Image_Vec[FILE_SIZE_INDEX + 2]) << 8) 
-					| (static_cast<size_t>(jdv.Image_Vec[FILE_SIZE_INDEX + 3])));
+	const size_t EMBEDDED_FILE_SIZE = ((static_cast<size_t>(jdv.Image_Vec[FILE_SIZE_INDEX]) << 24) 
+				| (static_cast<size_t>(jdv.Image_Vec[FILE_SIZE_INDEX + 1]) << 16) 
+				| (static_cast<size_t>(jdv.Image_Vec[FILE_SIZE_INDEX + 2]) << 8) 
+				| (static_cast<size_t>(jdv.Image_Vec[FILE_SIZE_INDEX + 3])));
 
 	// Signature string for the embedded profile headers we need to find within the user's data file.
 	const std::string PROFILE_SIG = "ICC_PROFILE";
@@ -449,7 +429,7 @@ void Encrypt_Decrypt(JDV_STRUCT& jdv) {
 		} else {
 			xor_key_pos = xor_key_pos > XOR_KEY.length() ? 0 : xor_key_pos;		// Reset XOR_KEY position to the start if it has reached last character.
 			output_name += INPUT_NAME[index_pos] ^ XOR_KEY[xor_key_pos++];		// XOR each character of filename against characters of XOR_KEY string. Store output characters in "output_name".
-			// Depending on mode, filename is either encrypted or decrypted.
+												// Depending on mode, filename is either encrypted or decrypted.
 		}
 
 		if (jdv.insert_file) {
@@ -484,11 +464,8 @@ void Encrypt_Decrypt(JDV_STRUCT& jdv) {
 		// Update the character length value of the filename for user's data file. Write this value into the main profile of vector "Profile_Vec".
 		jdv.Profile_Vec[PROFILE_NAME_LENGTH_INDEX] = static_cast<BYTE>(INPUT_NAME.length());
 
-		// Make space for the filename by removing equivalent length of characters from main profile within vector "Profile_Vec".
-		jdv.Profile_Vec.erase(jdv.Profile_Vec.begin() + PROFILE_NAME_INDEX, jdv.Profile_Vec.begin() + INPUT_NAME.length() + PROFILE_NAME_INDEX);
-
-		// Insert the encrypted filename within the main profile of vector "Profile_Vec".
-		jdv.Profile_Vec.insert(jdv.Profile_Vec.begin() + PROFILE_NAME_INDEX, output_name.begin(), output_name.end());
+		// Write the encrypted filename within the main profile of vector "Profile_Vec".
+		std::copy(output_name.begin(), output_name.end(), jdv.Profile_Vec.begin() + PROFILE_NAME_INDEX);
 
 		// Insert contents of vector "Encrypted_Vec" within vector "Profile_Vec", combining the main profile with the user's encrypted data file.	
 		jdv.Profile_Vec.insert(jdv.Profile_Vec.begin() + PROFILE_VEC_SIZE, jdv.Encrypted_Vec.begin(), jdv.Encrypted_Vec.end());
@@ -518,10 +495,10 @@ void Insert_Profile_Headers(JDV_STRUCT& jdv) {
 
 	const size_t PROFILE_VECTOR_SIZE = jdv.Profile_Vec.size();	// Get updated size for vector "Profile_Vec" after adding user's data file.
 
-	const uint_fast16_t BLOCK_SIZE = 65535;				// Profile default block size 65KB (0xFFFF).
+	const uint_fast16_t BLOCK_SIZE = 65535;	// Profile default block size 65KB (0xFFFF).
 
-	size_t tally_size = 20;	// A value used in conjunction with the user's data file size. We keep incrementing this value by BLOCK_SIZE until
-				// we reach near end of the file, which will be a value less than BLOCK_SIZE, the last iCC-Profile block.
+	size_t tally_size = 20;			// A value used in conjunction with the user's data file size. We keep incrementing this value by BLOCK_SIZE until
+						// we reach near end of the file, which will be a value less than BLOCK_SIZE, the last iCC-Profile block.
 
 	uint_fast16_t profile_count = 0;	// Keep count of how many profile headers that have been inserted into user's data file. We use this value when removing the headers.
 
@@ -550,6 +527,7 @@ void Insert_Profile_Headers(JDV_STRUCT& jdv) {
 
 		// Get the updated size for the 2 byte JPG profile header size.
 		// Get the updated size for the 4 byte main profile size. (only 2 bytes used, value is always 16 bytes less than the JPG profile header size). 
+		
 		const size_t
 			PROFILE_HEADER_BLOCK_SIZE = PROFILE_VECTOR_SIZE - (jdv.PROFILE_HEADER_LENGTH + 4),
 			PROFILE_BLOCK_SIZE = PROFILE_HEADER_BLOCK_SIZE - 16;
@@ -642,7 +620,7 @@ void Insert_Profile_Headers(JDV_STRUCT& jdv) {
 
 	jdv.file_name = "jdv_img" + DIFF_VALUE + ".jpg";
 
-	std::cout << "\nWriting data-embedded JPG image out to disk.\n";
+	std::cout << "\nWriting file-embedded JPG image out to disk.\n";
 
 	Write_Out_File(jdv);
 }
@@ -662,7 +640,7 @@ void Write_Out_File(JDV_STRUCT& jdv) {
 		write_file_fs.write((char*)&jdv.Image_Vec[0], jdv.Image_Vec.size());
 
 		std::string size_warning =
-			"\n**Warning**\n\nDue to the file size of your data-embedded JPG image,\nyou will only be able to share this image on the following platforms: \n\n"
+			"\n**Warning**\n\nDue to the file size of your file-embedded JPG image,\nyou will only be able to share this image on the following platforms: \n\n"
 			"Flickr, ImgPile, ImgBB, PostImage, Imgur & *Reddit (Desktop/Browser only)";
 
 		const size_t
@@ -688,7 +666,7 @@ void Write_Out_File(JDV_STRUCT& jdv) {
 			std::cerr << size_warning << ".\n";
 		}
 
-		std::cout << "\nCreated data-embedded JPG image: \"" + jdv.file_name + "\" Size: \"" << jdv.Image_Vec.size() << " Bytes\"\n";
+		std::cout << "\nCreated file-embedded JPG image: \"" + jdv.file_name + "\" Size: \"" << jdv.Image_Vec.size() << " Bytes\"\n";
 
 		jdv.Image_Vec.clear();
 
