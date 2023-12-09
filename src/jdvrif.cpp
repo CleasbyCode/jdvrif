@@ -201,7 +201,6 @@ void Check_Image_File(JDV_STRUCT& jdv) {
 		// We are in extract mode, so first check to make sure we have a valid jdvrif embedded image.
 
 		const uint_fast8_t
-			JPG_HEADER_SIZE = jdv.PROFILE_HEADER_LENGTH,
 			JDV_SIG_INDEX = 42,		// Standard signature index location within vector "Image_Vec"
 			JDV_SIG_INDEX_IMGUR = 24;	// Shorter signature index location within vector "Image_Vec". 
 							// This is written by Imgur, which removes part of the JPG header when saving images from their site.
