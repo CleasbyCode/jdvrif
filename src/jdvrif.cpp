@@ -278,9 +278,9 @@ void Check_Data_File(JDV_STRUCT& jdv) {
 
 void Load_Profile_Vec(JDV_STRUCT& jdv) {
 	
-	// 663 bytes of this vector contains the main iCC-Profile (434 bytes), 
+	// 663 bytes of this vector contains the JPG image header + iCC_Profile (434 bytes), 
 	// with the remining 229 bytes being fake JPG image data (FFDB, FFC2, FFC4, FFDA, etc), 
-	// in order to look (somewhat) normal.
+	// just to make it appear a (somewhat) normal image file.
 	// The user's encrypted data file will be added to the end of this profile.
 	
 	jdv.Profile_Vec = {
