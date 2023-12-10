@@ -1,8 +1,6 @@
 # jdvrif
 
-A simple command-line tool used to embed or extract any file type via a JPG image.  
-
-Share your *file-embedded* JPG image(s) on the following compatible sites.  
+Use the simple & fast command-line tool jdvrif to embed or extract any file type via a JPG image. Your image can be shared on several social media sites, which will retain the embedded data. 
 
 * ***Flickr (200MB), \*ImgPile (100MB), ImgBB (32MB), PostImage (24MB)***,
 * ***\*Reddit (20MB), \*Imgur (20MB), Mastodon (16MB), Twitter (10KB).***
