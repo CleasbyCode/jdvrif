@@ -239,7 +239,9 @@ void Check_Data_File(JDV_STRUCT& jdv) {
 		std::cerr << "\nRead File Error: Unable to open data file.\n\n";
 		std::exit(EXIT_FAILURE);
 	}
-
+	
+	jdv.file_size = std::filesystem::file_size(jdv.file_name);
+	
 	const size_t LAST_SLASH_POS = jdv.file_name.find_last_of("\\/");
 
 	// Check for and remove "./" or ".\" characters at the start of the filename. 
@@ -249,9 +251,7 @@ void Check_Data_File(JDV_STRUCT& jdv) {
 	}
 	
 	const uint_fast8_t MAX_FILENAME_LENGTH = 23;
-
-	jdv.file_size = std::filesystem::file_size(jdv.file_name);
-
+	
 	if (jdv.file_size > jdv.MAX_FILE_SIZE || jdv.file_name.length() > jdv.file_size || jdv.file_name.length() > MAX_FILENAME_LENGTH) {
 	
 		std::cerr << "\nData File Error: " << (jdv.file_size > jdv.MAX_FILE_SIZE ? "Size of file exceeds the maximum limit (200MB) for this program" 
