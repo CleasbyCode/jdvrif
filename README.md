@@ -12,7 +12,7 @@ Share your *file-embedded* JPG image(s) on the following compatible sites.
 ![Demo Image](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/water.jpg)  
 ***{Image credit: [PixelArte.IA / @IAEsp4n4](https://twitter.com/IAEsp4n4/status/1733170639853252795)}***
 
-Video Demos: [***Mastodon***](https://youtu.be/S7O6-93vS_o) / [***Reddit***](https://youtu.be/s_ejm3bd2Qg) / [***Twitter***](https://youtu.be/jHk2Tpjr848) / [***Multiple files***](https://youtu.be/S8oSZ-BjrCk)
+Video Demos: [***Mastodon***](https://youtu.be/S7O6-93vS_o) / [***Reddit***](https://youtu.be/s_ejm3bd2Qg) / [***Twitter***](https://youtu.be/FvkLwYu8xFg) / [***Multiple files***](https://youtu.be/S8oSZ-BjrCk)
 
 The method jdvrif uses to store your data is not typical steganography, such as LSB.  
 Your data file is encrypted & inserted within multiple 65KB ICC_Profile blocks in the JPG image.  
