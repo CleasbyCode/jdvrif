@@ -1,7 +1,6 @@
 # jdvrif
 
 Use this command-line tool to embed or extract any file type via a **JPG** image.  
-
 You can share your image on several *social media sites, which will retain the embedded data. 
 
 **Image size limits vary across platforms:*
