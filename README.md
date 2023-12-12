@@ -6,7 +6,7 @@ You can share your image on several *social media sites, which will retain the e
 
 **Image size limits vary across platforms:*
 * ***Flickr (200MB), \*ImgPile (100MB), ImgBB (32MB), PostImage (24MB)***,
-* ***\*Reddit (20MB), \*Imgur (20MB), Mastodon (16MB), Twitter (10KB).***
+* ***\*~~Reddit (20MB), \*Imgur (20MB), Mastodon (16MB), Twitter (10KB).***
   
 Status: **Reddit** (currently) not working with **jdvrif** due to changes recently made to the platform. 
 
