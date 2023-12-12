@@ -12,7 +12,7 @@ You can share your image on several *social media sites, which will retain the e
 ![Demo Image](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/water.jpg)  
 ***{Image credit: [PixelArte.IA / @IAEsp4n4](https://twitter.com/IAEsp4n4/status/1733170639853252795)}***
 
-Demos Videos: [***Mastodon***](https://youtu.be/9jBhayXBEq0) / [***Reddit***](https://youtu.be/1q9pitqJXcY) / [***Twitter***](https://youtu.be/FvkLwYu8xFg)
+Demo Videos: [***Mastodon***](https://youtu.be/9jBhayXBEq0) / [***Reddit***](https://youtu.be/1q9pitqJXcY) / [***Twitter***](https://youtu.be/FvkLwYu8xFg)
 
 The method jdvrif uses to store your data is not typical steganography, such as LSB.  
 Your data file is encrypted & inserted within multiple 65KB ICC_Profile blocks in the JPG image.  
