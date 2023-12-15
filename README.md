@@ -23,12 +23,12 @@ social media and image hosting sites, with the embedded-data being retained.
 
 ![ICC](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/icc.png)  
 
-When ***saving*** file-embedded images from Twitter, always ***click the image first to fully expand it***, before saving.
-
 When ***posting*** file-embedded images on Reddit, always the select the "***Images & Video***" box.
 
 When **saving** file-embedded images from **Reddit**, click the image in the post to expand it, then save it.  
 You should see the filename with a *.jpg* extension in the address bar of your browser.  
+
+When ***saving*** file-embedded images from Twitter, always ***click the image first to fully expand it***, before saving.
 
 Compile and run the program under Windows or **Linux**.
 
