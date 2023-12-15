@@ -39,13 +39,13 @@ Compile and run the program under Windows or **Linux**.
 user1@linuxbox:~/Desktop$ g++ jdvrif.cpp -O2 -s -o jdvrif
 user1@linuxbox:~/Desktop$ ./jdvrif 
 
-Usage: jdvrif -i <cover_image> <data_file>  
-       jdvrif -x <embedded_image>  
+Usage: jdvrif -e <cover_image> <data_file>  
+       jdvrif -x <file_embedded_image>  
        jdvrif --info
 
-user1@linuxbox:~/Desktop$ ./jdvrif -i rabbit.jpg document.pdf
+user1@linuxbox:~/Desktop$ ./jdvrif -e rabbit.jpg document.pdf
   
-Insert mode selected.
+Embed mode selected.
 
 Reading files. Please wait...
 
@@ -63,7 +63,7 @@ You can now post your data-embedded JPG image(s) on the relevant supported platf
 
 user1@linuxbox:~/Desktop$ ./jdvrif -x jdv_img1.jpg
 
-Extract mode selected.
+eXtract mode selected.
 
 Reading embedded JPG image file. Please wait...
 
