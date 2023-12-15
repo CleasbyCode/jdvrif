@@ -53,13 +53,13 @@ Encrypting data file.
 
 Embedding data file within the ICC Profile of the JPG image.
 
-Writing data-embedded JPG image out to disk.
+Writing file-embedded JPG image out to disk.
 
-Created data-embedded JPG image: "jdv_img1.jpg" Size: "1218285 Bytes".
+Created file-embedded JPG image: "jdv_img1.jpg" Size: "1218285 Bytes".
 
 Complete!
 
-You can now post your data-embedded JPG image(s) on the relevant supported platforms.
+You can now post your file-embedded JPG image(s) on the relevant supported platforms.
 
 user1@linuxbox:~/Desktop$ ./jdvrif -x jdv_img1.jpg
 
