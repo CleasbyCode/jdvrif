@@ -25,7 +25,7 @@ struct JDV_STRUCT {
 	std::string image_name, file_name;
 	size_t image_size{}, file_size{};
 	uint_fast8_t file_count{}, sub_file_count{};
-	bool insert_file = false, extract_file = false;
+	bool embed_file = false, extract_file = false;
 };
 
 void
@@ -67,8 +67,8 @@ int main(int argc, char** argv) {
 	if (argc == 2 && std::string(argv[1]) == "--info") {
 		argc = 0;
 		Display_Info();
-	} else if (argc >= 4 && argc < 12 && std::string(argv[1]) == "-i") { // Insert file mode.
-		jdv.insert_file = true, jdv.sub_file_count = argc - 1, jdv.image_name = argv[2];
+	} else if (argc >= 4 && argc < 12 && std::string(argv[1]) == "-e") { // Insert file mode.
+		jdv.embed_file = true, jdv.sub_file_count = argc - 1, jdv.image_name = argv[2];
 		Check_Arguments_Input(jdv.image_name);
 		argc -= 2;
 		while (argc != 1) {  // We can insert up to 8 files at a time (outputs one image for each file).
@@ -88,7 +88,7 @@ int main(int argc, char** argv) {
 			argv++, argc--;	// Move to next embedded image file, reduce file count.
 		}
 	} else {
-		std::cout << "\nUsage: jdvrif -i <cover_image> <data_file>\n\t\bjdvrif -x <embedded_image>\n\t\bjdvrif --info\n\n";
+		std::cout << "\nUsage: jdvrif -e <cover_image> <data_file>\n\t\bjdvrif -x <file_embedded_image>\n\t\bjdvrif --info\n\n";
 		argc = 0;
 	}
 
@@ -126,7 +126,7 @@ void Check_Image_File(JDV_STRUCT& jdv) {
 	}
 	
 	// Start message.
-	std::cout << (jdv.insert_file ? "\nInsert mode selected.\n\nReading files. " : "\nExtract mode selected.\n\nReading embedded image file. ") << "Please wait...\n";
+	std::cout << (jdv.embed_file ? "\nEmbed mode selected.\n\nReading files. " : "\neXtract mode selected.\n\nReading embedded image file. ") << "Please wait...\n";
 
 	// Store JPG image or data-embedded image file, into vector "Image_Vec".
 	jdv.Image_Vec.assign(std::istreambuf_iterator<char>(read_image_fs), std::istreambuf_iterator<char>());
@@ -148,7 +148,7 @@ void Check_Image_File(JDV_STRUCT& jdv) {
 		std::exit(EXIT_FAILURE);
 	}
 
-	if (jdv.insert_file) {
+	if (jdv.embed_file) {
 
 		// An embedded JPG thumbnail will cause problems with this program. Search and remove blocks like "Exif" that may contain a JPG thumbnail.
 		const std::string
@@ -198,7 +198,7 @@ void Check_Image_File(JDV_STRUCT& jdv) {
 
 	} else {
 
-		// We are in extract mode, so first check to make sure we have a valid jdvrif embedded image.
+		// We are in eXtract mode, so first check to make sure we have a valid jdvrif embedded image.
 
 		const uint_fast8_t
 			JDV_SIG_INDEX = 42,		// Standard signature index location within vector "Image_Vec"
@@ -409,7 +409,7 @@ void Encrypt_Decrypt(JDV_STRUCT& jdv) {
 	std::string output_name;
 
 	size_t
-		file_size = jdv.insert_file ? jdv.File_Vec.size() : jdv.Image_Vec.size(),	 // File size of user's data file.
+		file_size = jdv.embed_file ? jdv.File_Vec.size() : jdv.Image_Vec.size(),	 // File size of user's data file.
 		index_pos = 0;	// When encrypting/decrypting the filename, this variable stores the index character position of the filename,
 				// When encrypting/decrypting the user's data file, this variable is used as the index position of where to 
 				// insert each byte of the data file into the relevant "encrypted" or "decrypted" vectors.
@@ -431,7 +431,7 @@ void Encrypt_Decrypt(JDV_STRUCT& jdv) {
 												// Depending on mode, filename is either encrypted or decrypted.
 		}
 
-		if (jdv.insert_file) {
+		if (jdv.embed_file) {
 			// Encrypt data file. XOR each byte of the data file within "jdv.File_Vec" against each character of the encrypted filename, "output_name". 
 			// Store encrypted output in vector "jdv.Encrypted_Vec".
 			jdv.Encrypted_Vec.emplace_back(jdv.File_Vec[index_pos++] ^ output_name[name_key_pos++]);
@@ -452,7 +452,7 @@ void Encrypt_Decrypt(JDV_STRUCT& jdv) {
 		}
 	}
 
-	if (jdv.insert_file) {
+	if (jdv.embed_file) {
 
 		const uint_fast16_t PROFILE_VEC_SIZE = 663;	// Byte size of main profile within vector "Profile_Vec". User's encrypted data file is stored at the end of the main profile.
 
@@ -633,7 +633,7 @@ void Write_Out_File(JDV_STRUCT& jdv) {
 		std::exit(EXIT_FAILURE);
 	}
 
-	if (jdv.insert_file) {
+	if (jdv.embed_file) {
 
 		// Write out to disk image file embedded with the encrypted data file.
 		write_file_fs.write((char*)&jdv.Image_Vec[0], jdv.Image_Vec.size());
