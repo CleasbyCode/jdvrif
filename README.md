@@ -82,8 +82,8 @@ Complete! Please check your extracted file(s).
 user1@linuxbox:~/Desktop$ 
 
 ```
-Using **jdvrif**, you can insert up to eight files at a time (outputs one image per file).  
-*(jdvrif -i image.jpg file1.mp3 file2.doc file3.zip, etc.)*  
+Using **jdvrif**, you can embed up to eight files at a time (outputs one image per file).  
+*(jdvrif -e image.jpg file1.mp3 file2.doc file3.zip, etc.)*  
 
 You can also extract files from up to eight images at a time.  
 *(jdvrif -x jdv_img1.jpg jdv_img2.jpg jdv_img3.jpg, etc.)*  
