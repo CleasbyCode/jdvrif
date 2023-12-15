@@ -23,16 +23,12 @@ social media and image hosting sites, with the embedded-data being retained.
 
 ![ICC](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/icc.png)  
 
-When **posting** a jdvrif JPG image on **Reddit**, always select the ***"Image & Video"*** box.
+When ***saving*** file-embedded images from Twitter, always ***click the image first to fully expand it***, before saving.
 
-![POST](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/reddit_post50.png)  
+When ***posting*** file-embedded images on Reddit, always the select the "***Images & Video***" box.
 
-When **saving** a jdvrif JPG image from **Reddit**, click the image in the post to expand it, then save it.  
-You should see the file name with a *.jpg* extension in the address bar of your browser.  
-
-![POST](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/redlink50.png)  
-
-When saving a jdvrif JPG image from **Twitter**, always click the image first to fully expand it, before saving.
+When **saving** file-embedded images from **Reddit**, click the image in the post to expand it, then save it.  
+You should see the filename with a *.jpg* extension in the address bar of your browser.  
 
 Compile and run the program under Windows or **Linux**.
 
