@@ -17,10 +17,6 @@ Demo Videos: [***Mastodon***](https://youtu.be/9jBhayXBEq0) / [***Reddit***](htt
 The method jdvrif uses to store your data is not typical steganography, such as LSB.  
 Your data file is encrypted & inserted within multiple 65KB ICC_Profile blocks in the JPG image.  
 
-There are several benefits of using this method, such as, it's easier to implement,  
-no image distortion, we can embed more data & images are sharable over various  
-social media and image hosting sites, with the embedded-data being retained.
-
 ![ICC](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/icc.png)  
 
 When ***posting*** file-embedded images on Reddit, always the select the "***Images & Video***" box.
