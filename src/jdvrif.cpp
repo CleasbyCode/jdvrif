@@ -28,7 +28,7 @@ struct JDV_STRUCT {
 };
 
 void
-	// Attempt to open image file, followed by some basic checks to make sure user's image file meets program requiremensts.
+	// Attempt to open image file, followed by some basic checks to make sure user's image file meets program requirements.
 	Check_Image_File(JDV_STRUCT&),
 	// Some basic checks to make sure user data file meets program requirements.
 	Check_Data_File(JDV_STRUCT&),
