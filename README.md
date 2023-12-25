@@ -4,11 +4,9 @@ Use this command-line tool to embed or extract any file type via a **JPG** image
 You can share your image on several *social media sites, which will retain the embedded data. 
 
 **Image size limits vary across platforms:**
-* *Flickr (200MB), ImgPile (100MB), ImgBB (32MB), PostImage (24MB)*,
-* \**~~Reddit (20MB)~~, Imgur (20MB), Mastodon (16MB), Twitter (10KB).*
+* *Flickr (200MB), ImgPile (100MB), ImgBB (32MB), PostImage (24MB), \*Reddit (20MB / Require -r option)*,
+* *Imgur (20MB), Mastodon (16MB), \*Twitter (~10KB / Limit measured by data file size).*
   
-*Status update: \*Reddit (currently) no longer working with jdvrif.*
-
 **jdvrif** partly derives from the ***[technique](https://www.vice.com/en/article/bj4wxm/tiny-picture-twitter-complete-works-of-shakespeare-steganography)*** discovered by security researcher ***[David Buchanan](https://www.da.vidbuchanan.co.uk/).*** 
 
 ![Demo Image](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/robo_clown.jpg)  
@@ -37,7 +35,7 @@ Compile and run the program under Windows or **Linux**.
 user1@linuxbox:~/Desktop$ g++ jdvrif.cpp -O2 -s -o jdvrif
 user1@linuxbox:~/Desktop$ ./jdvrif 
 
-Usage: jdvrif -e <cover_image> <data_file>  
+Usage: jdvrif -e [-r] <cover_image> <data_file>  
        jdvrif -x <file_embedded_image>  
        jdvrif --info
 
@@ -49,45 +47,49 @@ Reading files. Please wait...
 
 Encrypting data file.
 
-Embedding data file within the ICC Profile of the JPG image.
+Embedding data file within the JPG image.
 
 Writing file-embedded JPG image out to disk.
 
-Created file-embedded JPG image: "jdv_img1.jpg" Size: "1218285 Bytes".
+Created JPG image: jrif_28367.jpg 150476 Bytes.
+
+Based on image/data size, you can post your JPG image on the following sites:
+
+_Twitter
+_Mastodon
+_Imgur
+_PostImage
+_ImgBB
+_ImgPile
+_Flickr
 
 Complete!
 
 You can now post your file-embedded JPG image(s) on the relevant supported platforms.
 
-user1@linuxbox:~/Desktop$ ./jdvrif -x jdv_img1.jpg
+user1@linuxbox:~/Desktop$ ./jdvrif -x jrif_28367.jpg
 
 eXtract mode selected.
 
-Reading embedded JPG image file. Please wait...
+Reading JPG image file. Please wait...
 
 Found jdvrif embedded data file.
 
 Extracting encrypted data file from the JPG image.
 
-Decrypting extracted data file.
+Decrypting data file.
 
-Writing decrypted data file out to disk.
+Writing data file out to disk.
 
-Saved file: "document.pdf" Size: "1016540 Bytes"
+Saved file: workflow.rar 4225 Bytes.
 
 Complete! Please check your extracted file(s).
 
 user1@linuxbox:~/Desktop$ 
 
-```
-Using **jdvrif**, you can embed up to eight files at a time (outputs one image per file).  
-*(jdvrif -e image.jpg file1.mp3 file2.doc file3.zip, etc.)*  
-
-You can also extract files from up to eight images at a time.  
-*(jdvrif -x jdv_img1.jpg jdv_img2.jpg jdv_img3.jpg, etc.)*  
-
+``` 
 **Issues:**
-* **Reddit -** *Does not work with Reddit's mobile app. Desktop/browser only.*
+* **Reddit -** *Images not compatible with Reddit's mobile app. Desktop/browser only.*
 * **Imgur -** *Retains embedded data, but reduces the dimension size of images over 5MB.*
 * **ImgPile -** *You must sign in to an account before sharing your data-embedded JPG image on ImgPile*.  
 *Sharing your image without logging in, your embedded data will not be preserved.*
