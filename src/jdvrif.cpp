@@ -674,7 +674,7 @@ void Write_Out_File(JDV_STRUCT& jdv) {
 		// Write out to disk the extracted (decrypted) data file.
 		write_file_fs.write((char*)&jdv.Decrypted_Vec[0], jdv.Decrypted_Vec.size());
 
-		std::cout << "\nSaved file: " + jdv.file_name + '\x20' + std::to_string(jdv.Decrypted_Vec.size()) + " Bytes\n";
+		std::cout << "\nSaved file: " + jdv.file_name + '\x20' + std::to_string(jdv.Decrypted_Vec.size()) + " Bytes.\n";
 		std::cout << "\nComplete! Please check your extracted file.\n\n";
 	}
 }
