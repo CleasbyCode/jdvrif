@@ -22,7 +22,7 @@ Your data file is encrypted & inserted within multiple 65KB ICC_Profile blocks i
 When ***posting*** file-embedded images on Reddit, always the select the "***Images & Video***" box.
 
 When **saving** file-embedded images from **Reddit**, click the image in the post to expand it, then save it.  
-You should see the filename with a *.jpg* extension in the address bar of your browser.  
+You should see the filename with a *.jpeg* extension in the address bar of your browser.  
 
 When ***saving*** file-embedded images from Twitter, always ***click the image first to fully expand it***, before saving.
 
