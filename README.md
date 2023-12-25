@@ -4,8 +4,8 @@ Use this command-line tool to embed or extract any file type via a **JPG** image
 You can share your image on several *social media sites, which will retain the embedded data. 
 
 **Image size limits vary across platforms:**
-* *Flickr (200MB), ImgPile (100MB), ImgBB (32MB), PostImage (24MB), \*Reddit (20MB / Require -r option)*,
-* *Imgur (20MB), Mastodon (16MB), \*Twitter (~10KB / Limit measured by data file size).*
+* *Flickr (200MB), \*ImgPile (100MB), ImgBB (32MB), PostImage (24MB), \*Reddit (20MB / Requires -r option)*,
+* \**Imgur (20MB), Mastodon (16MB), \*Twitter (~10KB / Limit measured by data file size).*
   
 **jdvrif** partly derives from the ***[technique](https://www.vice.com/en/article/bj4wxm/tiny-picture-twitter-complete-works-of-shakespeare-steganography)*** discovered by security researcher ***[David Buchanan](https://www.da.vidbuchanan.co.uk/).*** 
 
@@ -39,7 +39,7 @@ Usage: jdvrif -e [-r] <cover_image> <data_file>
        jdvrif -x <file_embedded_image>  
        jdvrif --info
 
-user1@linuxbox:~/Desktop$ ./jdvrif -e rabbit.jpg document.pdf
+user1@linuxbox:~/Desktop$ ./jdvrif -e .\clown.jpg .\workflow.rar
   
 Embed mode selected.
 
