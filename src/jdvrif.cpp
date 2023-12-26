@@ -65,7 +65,7 @@ int main(int argc, char** argv) {
 
 		Check_Image_File(jdv);
 
-	} else if (argc >= 4 && argc < 6) {
+	} else if (argc >= 4 && argc < 6 && std::string(argv[1]) == "-e") {
 
 		// Embed file mode.
 
