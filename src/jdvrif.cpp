@@ -654,7 +654,7 @@ void Write_Out_File(JDV_STRUCT& jdv) {
 						: (IMG_SIZE <= IMGBB_SIZE ? 2 : (IMG_SIZE <= IMG_PILE_SIZE ? 1
 						: 0))))));
 
-		std::cout << "\nCreated JPG image: " + jdv.file_name + '\x20' + std::to_string(IMG_SIZE) + " Bytes.\n";
+		std::cout << "\nSaved JPG image: " + jdv.file_name + '\x20' + std::to_string(IMG_SIZE) + " Bytes.\n";
 
 		if (jdv.reddit_opt && REDDIT_SIZE >= IMG_SIZE) {
 			std::cout << "\n**Warning**\n\nDue to your option selection, for compatibility reasons\nyou should only post this file-embedded JPG image on Reddit.\n";
@@ -674,7 +674,7 @@ void Write_Out_File(JDV_STRUCT& jdv) {
 		// Write out to disk the extracted (decrypted) data file.
 		write_file_fs.write((char*)&jdv.Decrypted_Vec[0], jdv.Decrypted_Vec.size());
 
-		std::cout << "\nSaved file: " + jdv.file_name + '\x20' + std::to_string(jdv.Decrypted_Vec.size()) + " Bytes.\n";
+		std::cout << "\nSaved data file: " + jdv.file_name + '\x20' + std::to_string(jdv.Decrypted_Vec.size()) + " Bytes.\n";
 		std::cout << "\nComplete! Please check your extracted file.\n\n";
 	}
 }
