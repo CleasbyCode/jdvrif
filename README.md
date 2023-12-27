@@ -51,7 +51,7 @@ Embedding data file within the JPG image.
 
 Writing file-embedded JPG image out to disk.
 
-Created JPG image: jrif_28367.jpg 150476 Bytes.
+Saved JPG image: jrif_28367.jpg 150476 Bytes.
 
 Based on image/data size, you can post your JPG image on the following sites:
 
@@ -65,7 +65,7 @@ _Flickr
 
 Complete!
 
-You can now post your file-embedded JPG image(s) on the relevant supported platforms.
+You can now post your file-embedded JPG image on the relevant supported platforms.
 
 user1@linuxbox:~/Desktop$ ./jdvrif -x jrif_28367.jpg
 
@@ -83,7 +83,7 @@ Writing data file out to disk.
 
 Saved file: workflow.rar 4225 Bytes.
 
-Complete! Please check your extracted file(s).
+Complete! Please check your extracted file.
 
 user1@linuxbox:~/Desktop$ 
 
