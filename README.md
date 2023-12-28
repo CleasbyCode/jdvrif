@@ -19,7 +19,7 @@ Your data file is encrypted and embedded within multiple 65KB ICC_Profile blocks
 
 ![ICC](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/icc.png)  
 
-To **post/share** file-embedded JPG images on Reddit, you need to use the -r option the *jdvrif*.  
+To **post/share** file-embedded JPG images on **Reddit**, you need to use the -r option with *jdvrif*.  
 Always select the "***Images & Video***" box to post file-embedded images on Reddit
 
 When **saving** file-embedded images from **Reddit**, click the image in the post to expand it, then save it.  
