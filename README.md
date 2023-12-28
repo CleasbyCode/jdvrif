@@ -28,7 +28,7 @@ You should see the filename with a *.jpeg* extension in the address bar of your 
 With **Twitter**, the size limit is measured by the data file size and not the image size. As it is only 10KB,  
 it is recommended to compress (*ZIP/RAR*) your data file to maximise the amount of data you can embed.  
 
-To correctly download a file-embedded image from Twitter, click the image in the post to fully expand it, before saving.
+To correctly download an image from **Twitter**, click the image in the post to fully expand it, before saving.
 
 Compile and run the program under Windows or **Linux**.
 
