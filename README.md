@@ -15,7 +15,7 @@ You can share your image on several *social media sites, which will retain the e
 Demo Videos: [***Mastodon***](https://youtu.be/OKFTfWf-8oc) / [***Reddit***](https://youtu.be/lWVT8Oi5-cg) / [***Twitter***](https://youtu.be/h_PHmYe4M1E)
 
 The method jdvrif uses to store your data is not typical steganography, such as LSB.  
-Your data file is encrypted & inserted within multiple 65KB ICC_Profile blocks in the JPG image.  
+Your data file is encrypted and embedded within multiple 65KB ICC_Profile blocks of the JPG image.  
 
 ![ICC](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/icc.png)  
 
