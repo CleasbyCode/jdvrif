@@ -19,12 +19,16 @@ Your data file is encrypted and embedded within multiple 65KB ICC_Profile blocks
 
 ![ICC](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/icc.png)  
 
-When ***posting*** file-embedded images on Reddit, always the select the "***Images & Video***" box.
+To **post/share** file-embedded JPG images on Reddit, you need to use the -r option the *jdvrif*.  
+Always select the "***Images & Video***" box to post file-embedded images on Reddit
 
 When **saving** file-embedded images from **Reddit**, click the image in the post to expand it, then save it.  
 You should see the filename with a *.jpeg* extension in the address bar of your browser.  
 
-When ***saving*** file-embedded images from Twitter, always ***click the image first to fully expand it***, before saving.
+With **Twitter**, the size limit is measured by the data file size and not the image size. As it is only 10KB,  
+it is recommended to compress (*ZIP/RAR*) your data file to maximise the amount of data you can embed.  
+
+To correctly download a file-embedded image from Twitter, click the image in the post to fully expand it, before saving.
 
 Compile and run the program under Windows or **Linux**.
 
