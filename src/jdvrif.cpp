@@ -177,20 +177,22 @@ void Check_Image_File(JDV_STRUCT& jdv) {
 
 		// ^ Any JPG embedded thumbnail should have now been removed.
 
-		if (!jdv.reddit_opt) { // Skip this if Reddit option selected.
+		// Signature for Define Quantization Table(s) 
+		const auto DQT_SIG = { 0xFF, 0xDB };
 
-			// Signature for Define Quantization Table(s) 
-			const auto DQT_SIG = { 0xFF, 0xDB };
+		// Find location in vector "Image_Vec" of first DQT index location of the image file.
+		const size_t DQT_POS = std::search(jdv.Image_Vec.begin(), jdv.Image_Vec.end(), DQT_SIG.begin(), DQT_SIG.end()) - jdv.Image_Vec.begin();
 
-			// Find location in vector "Image_Vec" of first DQT index location of the image file.
-			const size_t DQT_POS = std::search(jdv.Image_Vec.begin(), jdv.Image_Vec.end(), DQT_SIG.begin(), DQT_SIG.end()) - jdv.Image_Vec.begin();
-
-			// Erase the first n bytes of the JPG header before the DQT position. We later replace the deleted header with the contents of vector "Profile_Vec".
-			jdv.Image_Vec.erase(jdv.Image_Vec.begin(), jdv.Image_Vec.begin() + DQT_POS);
-
-			// Update image size
-			jdv.image_size = jdv.Image_Vec.size();
+		// Erase the first n bytes of the JPG header before the DQT position. We later replace the deleted header with the contents of vector "Profile_Vec".
+		jdv.Image_Vec.erase(jdv.Image_Vec.begin(), jdv.Image_Vec.begin() + DQT_POS);
+		if (jdv.reddit_opt) {
+			// Put back jpeg header bytes.
+			jdv.Image_Vec.insert(jdv.Image_Vec.begin(), 0xD8);
+			jdv.Image_Vec.insert(jdv.Image_Vec.begin(), 0xFF);
 		}
+		// Update image size
+		jdv.image_size = jdv.Image_Vec.size();
+
 		Check_Data_File(jdv);
 
 	} else { // Extract Mode.
