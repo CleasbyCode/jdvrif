@@ -91,7 +91,9 @@ Complete! Please check your extracted file.
 
 user1@linuxbox:~/Desktop$ 
 
-``` 
+```
+You can try **jdvrif** from this [**Web Page**](https://cleasbycode.co.uk/jdvrif/index/) if you don't want to download / compile the source code.
+
 **Issues:**
 * **Reddit -** *Images not compatible with Reddit's mobile app. Desktop/browser only.*
 * **Imgur -** *Retains embedded data, but reduces the dimension size of images over 5MB.*
