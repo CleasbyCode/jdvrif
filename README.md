@@ -9,8 +9,8 @@ You can share your image on several *social media sites, which will preserve the
   
 **jdvrif** partly derives from the ***[technique](https://www.vice.com/en/article/bj4wxm/tiny-picture-twitter-complete-works-of-shakespeare-steganography)*** discovered by security researcher ***[David Buchanan](https://www.da.vidbuchanan.co.uk/).*** 
 
-![Demo Image](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/jrif_7587.jpg)  
-***{Image credit: [MΞV.ai / @aest_artificial](https://twitter.com/aest_artificial)}***
+![Demo Image](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/jrif_22878.jpg)  
+***{Image credit: [hypsen / @HypsenV](https://twitter.com/HypsenV/status/1745859031787356301)}***
 
 Demo Videos: [***Mastodon***](https://youtu.be/OKFTfWf-8oc) / [***Reddit***](https://youtu.be/lWVT8Oi5-cg) / [***Twitter***](https://youtu.be/h_PHmYe4M1E)
 
