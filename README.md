@@ -5,7 +5,7 @@ You can share your image on several *social media sites, which will preserve the
 
 \***Image size limits vary across platforms:**
 * *Flickr (200MB), \*ImgPile (100MB), ImgBB (32MB), PostImage (24MB), \*Reddit (20MB / -r option)*,
-* \**Imgur (20MB), Mastodon (16MB), \*Twitter (~10KB / Limit measured by data file size).*
+* Mastodon (16MB), \*Twitter (~10KB / Limit measured by data file size).*
   
 **jdvrif** partly derives from the ***[technique](https://www.vice.com/en/article/bj4wxm/tiny-picture-twitter-complete-works-of-shakespeare-steganography)*** discovered by security researcher ***[David Buchanan](https://www.da.vidbuchanan.co.uk/).*** 
 
@@ -61,7 +61,6 @@ Based on image/data size, you can post your JPG image on the following sites:
 
 _Twitter
 _Mastodon
-_Imgur
 _PostImage
 _ImgBB
 _ImgPile
@@ -96,7 +95,6 @@ You can try **jdvrif** from this [**Web Page**](https://cleasbycode.co.uk/jdvrif
 
 **Issues:**
 * **Reddit -** *Images not compatible with Reddit's mobile app. Desktop/browser only.*
-* **Imgur -** *Retains embedded data, but reduces the dimension size of images over 5MB.*
 * **ImgPile -** *You must sign in to an account before sharing your data-embedded JPG image on ImgPile*.  
 *Sharing your image without logging in, your embedded data will not be preserved.*
 
