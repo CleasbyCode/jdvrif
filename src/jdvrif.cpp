@@ -541,10 +541,11 @@ void Insert_Profile_Headers(JDV_STRUCT& jdv) {
 
 		// Get the updated size for the 2 byte JPG profile header size.
 		// Get the updated size for the 4 byte main profile size. (only 2 bytes used, value is always 16 bytes less than the JPG profile header size). 
-
+		
+		constexpr uint_fast8_t PROFILE_SIZE_DIFF = 16;
 		const size_t
 			PROFILE_HEADER_BLOCK_SIZE = PROFILE_VECTOR_SIZE - (jdv.PROFILE_HEADER_LENGTH + 4),
-			PROFILE_BLOCK_SIZE = PROFILE_HEADER_BLOCK_SIZE - 16;
+			PROFILE_BLOCK_SIZE = PROFILE_HEADER_BLOCK_SIZE - PROFILE_SIZE_DIFF;
 
 		// Insert the updated JPG profile header size for vector "Profile_Vec", as it is probably smaller than the set default value (0xFFFF).
 		Value_Updater(jdv.Profile_Vec, PROFILE_HEADER_SIZE_INDEX, PROFILE_HEADER_BLOCK_SIZE, bits);
@@ -623,7 +624,7 @@ void Insert_Profile_Headers(JDV_STRUCT& jdv) {
 
 	// Insert contents of vector "File_Vec" into vector "Image_Vec", combining the jpg image with user's data file (now split within 65KB iCC-Profile header blocks).	
 	if (jdv.reddit_opt) {
-		jdv.Image_Vec.insert(jdv.Image_Vec.end() - 2, jdv.File_Vec.begin() + 18, jdv.File_Vec.end());
+		jdv.Image_Vec.insert(jdv.Image_Vec.end() - 2, jdv.File_Vec.begin() + jdv.PROFILE_HEADER_LENGTH, jdv.File_Vec.end());
 	}
 	else {
 		jdv.Image_Vec.insert(jdv.Image_Vec.begin(), jdv.File_Vec.begin(), jdv.File_Vec.end());
