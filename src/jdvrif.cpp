@@ -133,7 +133,7 @@ void Check_Image_File(JDV_STRUCT& jdv) {
 	jdv.image_size = jdv.Image_Vec.size();
 
 	// Now that the image is stored within a vector, we can continue with our checks on the image file.
-	constexpr std::string
+	const std::string
 		JPG_START_SIG = "\xFF\xD8\xFF",	// JPG image header signature. 
 		JPG_END_SIG = "\xFF\xD9";	// JPG end of image file signature.	
 
@@ -152,7 +152,7 @@ void Check_Image_File(JDV_STRUCT& jdv) {
 	if (jdv.embed_file_mode) {
 
 		// An embedded JPG thumbnail will cause problems with this program. Search and remove blocks like "Exif" that may contain a JPG thumbnail.
-		constexpr std::string
+		const std::string
 			EXIF_SIG = "Exif\x00\x00II",
 			EXIF_END_SIG = "xpacket end",
 			ICC_PROFILE_SIG = "ICC_PROFILE";
@@ -208,7 +208,7 @@ void Check_Image_File(JDV_STRUCT& jdv) {
 
 		// Check to make sure we have a valid jdvrif embedded image.
 
-		constexpr std::string JDV_SIG = "JDVRiF";
+		const std::string JDV_SIG = "JDVRiF";
 
 		// Search image file for above signature.
 		const size_t JDV_SIG_INDEX = std::search(jdv.Image_Vec.begin(), jdv.Image_Vec.end(), JDV_SIG.begin(), JDV_SIG.end()) - jdv.Image_Vec.begin();
@@ -420,7 +420,7 @@ void Find_Profile_Headers(JDV_STRUCT& jdv) {
 
 void Encrypt_Decrypt(JDV_STRUCT& jdv) {
 
-	constexpr std::string XOR_KEY = "\xFF\xD8\xFF\xE2\xFF\xFF";	// String used to XOR encrypt/decrypt the filename of user's data file.
+	const std::string XOR_KEY = "\xFF\xD8\xFF\xE2\xFF\xFF";	// String used to XOR encrypt/decrypt the filename of user's data file.
 	
 	const std::string INPUT_NAME = jdv.file_name;
 
@@ -657,7 +657,7 @@ void Write_Out_File(JDV_STRUCT& jdv) {
 		// Write out to disk image file embedded with the encrypted data file.
 		write_file_fs.write((char*)&jdv.Image_Vec[0], jdv.Image_Vec.size());
 
-		constexpr std::string SITES_LIST[6]{ "_Flickr", "_ImgPile", "_ImgBB", "_PostImage", "_Mastodon", "_Twitter" };
+		const std::string SITES_LIST[6]{ "_Flickr", "_ImgPile", "_ImgBB", "_PostImage", "_Mastodon", "_Twitter" };
 
 		const size_t IMG_SIZE = jdv.Image_Vec.size();
 
