@@ -1,4 +1,4 @@
-//	JPG Data Vehicle (jdvrif v1.6) Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
+//	JPG Data Vehicle (jdvrif v1.7) Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
 //
 //	To compile program (Linux):
 // 	$ g++ jdvrif.cpp -O2 -s -o jdvrif
@@ -15,12 +15,10 @@
 #include <cstdint>
 #include <vector>
 
-typedef unsigned char BYTE;
-
 struct JDV_STRUCT {
 	const uint_fast8_t PROFILE_HEADER_LENGTH = 18;
 	const size_t MAX_FILE_SIZE = 209715200, MAX_FILE_SIZE_REDDIT = 20971520;
-	std::vector<BYTE> Image_Vec, File_Vec, Profile_Vec, Encrypted_Vec;
+	std::vector<unsigned char> Image_Vec, File_Vec, Profile_Vec, Encrypted_Vec;
 	std::vector<size_t> Profile_Header_Offset_Vec;
 	std::string image_name, file_name;
 	size_t image_size{}, file_size{};
@@ -46,7 +44,7 @@ void
 	// Display program infomation.
 	Display_Info(),
 	// Update values, such as block lengths, CRC, file sizes and other values. Writes values into the relevant vector index locations.
-	Value_Updater(std::vector<BYTE>&, size_t, const size_t&, uint_fast8_t),
+	Value_Updater(std::vector<unsigned char>&, size_t, const size_t&, uint_fast8_t),
 	// Check args input for invalid data.
 	Check_Arguments_Input(const std::string&);
 
@@ -176,7 +174,7 @@ void Check_Image_File(JDV_STRUCT& jdv) {
 		if (jdv.Image_Vec.size() > EXIF_START_POS) {
 			// Get size of "Exif" block.
 			const uint_fast16_t EXIF_BLOCK_SIZE = (static_cast<size_t>(jdv.Image_Vec[EXIF_START_POS - 2]) << 8)
-					| (static_cast<size_t>(jdv.Image_Vec[EXIF_START_POS - 1]));
+				| (static_cast<size_t>(jdv.Image_Vec[EXIF_START_POS - 1]));
 			// Remove it.
 			jdv.Image_Vec.erase(jdv.Image_Vec.begin(), jdv.Image_Vec.begin() + EXIF_BLOCK_SIZE - 2);
 		}
@@ -194,13 +192,13 @@ void Check_Image_File(JDV_STRUCT& jdv) {
 
 		if (jdv.reddit_opt) {
 			// Put back jpg header bytes.
-			constexpr BYTE HEADER_BYTES[2]{ 0xFF, 0xD8 };
+			constexpr unsigned char HEADER_BYTES[2]{ 0xFF, 0xD8 };
 			jdv.Image_Vec.insert(jdv.Image_Vec.begin(), &HEADER_BYTES[0], &HEADER_BYTES[2]);
 		}
 
 		// Update image size
 		jdv.image_size = jdv.Image_Vec.size();
-	
+
 		Check_Data_File(jdv);
 
 	}
@@ -287,7 +285,7 @@ void Check_Data_File(JDV_STRUCT& jdv) {
 
 void Load_Profile_Vec(JDV_STRUCT& jdv) {
 
-	constexpr BYTE PROFILE_DATA[663]{ 
+	constexpr unsigned char PROFILE_DATA[663]{
 		0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 0x4A, 0x46, 0x49, 0x46, 0x00, 0x01,
 		0x01, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00, 0xFF, 0xE2, 0xFF, 0xFF,
 		0x49, 0x43, 0x43, 0x5F, 0x50, 0x52, 0x4F, 0x46, 0x49, 0x4C, 0x45, 0x00,
@@ -375,16 +373,16 @@ void Find_Profile_Headers(JDV_STRUCT& jdv) {
 
 	// From the relevant index location, get size value of user's data file from "Image_Vec", stored within the main profile.
 	const size_t EMBEDDED_FILE_SIZE = ((static_cast<size_t>(jdv.Image_Vec[FILE_SIZE_INDEX]) << 24)
-			| (static_cast<size_t>(jdv.Image_Vec[FILE_SIZE_INDEX + 1]) << 16)
-			| (static_cast<size_t>(jdv.Image_Vec[FILE_SIZE_INDEX + 2]) << 8)
-			| (static_cast<size_t>(jdv.Image_Vec[FILE_SIZE_INDEX + 3])));
+		| (static_cast<size_t>(jdv.Image_Vec[FILE_SIZE_INDEX + 1]) << 16)
+		| (static_cast<size_t>(jdv.Image_Vec[FILE_SIZE_INDEX + 2]) << 8)
+		| (static_cast<size_t>(jdv.Image_Vec[FILE_SIZE_INDEX + 3])));
 
 	// Signature string for the embedded profile headers we need to find within the user's data file.
 	const std::string PROFILE_SIG = "ICC_PROFILE";
 
 	// From vector "Image_Vec", get the total number of embedded profile headers value, stored within the main profile.
 	uint_fast16_t profile_count = (static_cast<size_t>(jdv.Image_Vec[PROFILE_COUNT_INDEX]) << 8)
-			| (static_cast<size_t>(jdv.Image_Vec[PROFILE_COUNT_INDEX + 1]));
+		| (static_cast<size_t>(jdv.Image_Vec[PROFILE_COUNT_INDEX + 1]));
 
 	// Get the encrypted filename from vector "Image_Vec", stored within the main profile.
 	jdv.file_name = { jdv.Image_Vec.begin() + NAME_INDEX, jdv.Image_Vec.begin() + NAME_INDEX + jdv.Image_Vec[NAME_LENGTH_INDEX] };
@@ -421,7 +419,7 @@ void Find_Profile_Headers(JDV_STRUCT& jdv) {
 void Encrypt_Decrypt(JDV_STRUCT& jdv) {
 
 	const std::string XOR_KEY = "\xFF\xD8\xFF\xE2\xFF\xFF";	// String used to XOR encrypt/decrypt the filename of user's data file.
-	
+
 	const std::string INPUT_NAME = jdv.file_name;
 
 	std::string output_name;
@@ -482,7 +480,7 @@ void Encrypt_Decrypt(JDV_STRUCT& jdv) {
 			PROFILE_NAME_INDEX = 81;	// Location index within the main profile "Profile_Vec" to store the filename of the user's data file.
 
 		// Update the character length value of the filename for user's data file. Write this value into the main profile of vector "Profile_Vec".
-		jdv.Profile_Vec[PROFILE_NAME_LENGTH_INDEX] = static_cast<BYTE>(INPUT_NAME.length());
+		jdv.Profile_Vec[PROFILE_NAME_LENGTH_INDEX] = static_cast<unsigned char>(INPUT_NAME.length());
 
 		// Write the encrypted filename within the main profile of vector "Profile_Vec".
 		std::copy(output_name.begin(), output_name.end(), jdv.Profile_Vec.begin() + PROFILE_NAME_INDEX);
@@ -541,7 +539,7 @@ void Insert_Profile_Headers(JDV_STRUCT& jdv) {
 
 		// Get the updated size for the 2 byte JPG profile header size.
 		// Get the updated size for the 4 byte main profile size. (only 2 bytes used, value is always 16 bytes less than the JPG profile header size). 
-		
+
 		constexpr uint_fast8_t PROFILE_SIZE_DIFF = 16;
 		const size_t
 			PROFILE_HEADER_BLOCK_SIZE = PROFILE_VECTOR_SIZE - (jdv.PROFILE_HEADER_LENGTH + 4),
@@ -668,10 +666,10 @@ void Write_Out_File(JDV_STRUCT& jdv) {
 			POST_IMG_SIZE = 25165824,	// 24MB
 			IMGBB_SIZE = 33554432,		// 32MB
 			IMG_PILE_SIZE = 104857600;	// 100MB
-			// Flickr is 200MB, this programs max size, no need to to make a variable for it.
+							// Flickr is 200MB, this programs max size, no need to to make a variable for it.
 
 		int_fast8_t compat_num = (jdv.File_Vec.size() <= TWITTER_SIZE ? 5 : (IMG_SIZE <= MASTODON_SIZE ? 4
-				: (IMG_SIZE <= POST_IMG_SIZE ? 3 : (IMG_SIZE <= IMGBB_SIZE ? 2 : (IMG_SIZE <= IMG_PILE_SIZE ? 1
+			: (IMG_SIZE <= POST_IMG_SIZE ? 3 : (IMG_SIZE <= IMGBB_SIZE ? 2 : (IMG_SIZE <= IMG_PILE_SIZE ? 1
 				: 0)))));
 
 		std::cout << "\nCreated JPG image: " + jdv.file_name + '\x20' + std::to_string(IMG_SIZE) + " Bytes.\n";
@@ -698,7 +696,7 @@ void Write_Out_File(JDV_STRUCT& jdv) {
 	}
 }
 
-void Value_Updater(std::vector<BYTE>& vec, size_t value_insert_index, const size_t& VALUE, uint_fast8_t bits) {
+void Value_Updater(std::vector<unsigned char>& vec, size_t value_insert_index, const size_t& VALUE, uint_fast8_t bits) {
 	while (bits) {
 		static_cast<size_t>(vec[value_insert_index++] = (VALUE >> (bits -= 8)) & 0xff);
 	}
@@ -717,7 +715,7 @@ void Check_Arguments_Input(const std::string& FILE_NAME_INPUT) {
 void Display_Info() {
 
 	std::cout << R"(
-JPG Data Vehicle (jdvrif v1.6). Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023.
+JPG Data Vehicle (jdvrif v1.7). Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023.
 
 A simple command-line tool used to embed and extract any file type via a JPG image file.
 Share your data-embedded image on the following compatible sites.
@@ -725,7 +723,7 @@ Share your data-embedded image on the following compatible sites.
 Image size limit is platform dependant:-
 
   Flickr (200MB), *ImgPile (100MB), ImgBB (32MB), PostImage (24MB), *Reddit (20MB / requires -r option), 
-  *Imgur (20MB), Mastodon (16MB), *Twitter (~10KB / *Limit measured by data file size).
+  Mastodon (16MB), *Twitter (~10KB / *Limit measured by data file size).
 
 Arguments / options:	
 
@@ -735,10 +733,8 @@ Arguments / options:
 
 *ImgPile - You must sign in to an account before sharing your data-embedded PNG image on this platform.
 Sharing your image without logging in, your embedded data will not be preserved.
-
-*Imgur issue: Data is still retained when the file-embedded JPG image is over 5MB, but Imgur reduces the dimension size of the image.
  
-*Reddit issue: Requires -r option. Desktop/Browser only. Does not work with Reddit mobile app. Mobile app converts images to Webp format.
+*Reddit: Post images via new.reddit.com desktop/browser site only. Use the "Images & Video" tab/box.
 
 This program works on Linux and Windows.
 )";
