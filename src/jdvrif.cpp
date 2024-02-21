@@ -255,7 +255,7 @@ void Check_Data_File(JDV_STRUCT& jdv) {
 	constexpr int MAX_FILENAME_LENGTH = 23;
 	const size_t FILE_NAME_LENGTH = jdv.file_name.length();
 
-	// Get image file size.
+	// Get data file size.
 	file_ifs.seekg(0, file_ifs.end);
 	jdv.file_size = file_ifs.tellg();
 	file_ifs.seekg(0, file_ifs.beg);
