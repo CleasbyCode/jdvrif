@@ -386,7 +386,7 @@ void Find_Profile_Headers(JDV_STRUCT& jdv) {
 void Encrypt_Decrypt(JDV_STRUCT& jdv) {
 	
 	const std::string 
-		XOR_KEY = "\xFF\xD8\xFF\xE2\xFF\xFF" // Use this key to XOR encrypt/decrypt the file name of user's data file.
+		XOR_KEY = "\xFF\xD8\xFF\xE2\xFF\xFF", // Use this key to XOR encrypt/decrypt the file name of user's data file.
 		INPUT_NAME = jdv.file_name;
 
 	std::string output_name;
