@@ -32,7 +32,7 @@ To correctly download an image from **Twitter**, click the image in the post to 
 
 Compile and run the program under Windows or **Linux**.  
 
-*(Test **jdvrif** from this [**site**](https://cleasbycode.co.uk/jdvrif/index/) if you don't want to download & compile the source code.)*
+*(You can try **jdvrif** from this [**site**](https://cleasbycode.co.uk/jdvrif/index/) if you don't want to download & compile the source code.)*
 
 ## Usage Demo
 
