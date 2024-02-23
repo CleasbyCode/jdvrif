@@ -384,12 +384,17 @@ void Find_Profile_Headers(JDV_STRUCT& jdv) {
 }
 
 void Encrypt_Decrypt(JDV_STRUCT& jdv) {
-
-	constexpr Byte XOR_KEY[6]{ 0xFF, 0xD8, 0xFF, 0xE2, 0xFF, 0xFF };	// Use this key to XOR encrypt/decrypt the file name of user's data file.
-	const std::string INPUT_NAME = jdv.file_name;
+	
+	const std::string 
+		XOR_KEY = "\xFF\xD8\xFF\xE2\xFF\xFF" // Use this key to XOR encrypt/decrypt the file name of user's data file.
+		INPUT_NAME = jdv.file_name;
 
 	std::string output_name;
 
+	const size_t
+                XOR_KEY_LEN = XOR_KEY.length(),
+                INPUT_NAME_LEN = INPUT_NAME.length();
+	
 	size_t
 		file_size = jdv.embed_file_mode ? jdv.File_Vec.size() : jdv.Image_Vec.size(),	 // File size of user's data file.
 		index_pos = 0;		// When encrypting/decrypting the filename, this variable stores the index character position of the filename,
@@ -399,20 +404,18 @@ void Encrypt_Decrypt(JDV_STRUCT& jdv) {
 	int
 		offset_index = 0,	// Index of offset location value within vector "Profile_Header_Offset_Vec".
 		xor_key_pos = 0,	// Character position variable for XOR_KEY string.
-		name_key_pos = 0,	// Character position variable for filename string (output_name / INPUT_NAME).
-		xor_key_len = 5,
-		input_name_len = static_cast<int>(INPUT_NAME.length());
+		name_key_pos = 0;	// Character position variable for filename string (output_name / INPUT_NAME).
 
 	jdv.embed_file_mode ? std::cout << "\nEncrypting data file.\n" : std::cout << "\nDecrypting data file.\n";
 
 	// XOR encrypt/decrypt filename and user's data file.
 	while (file_size > index_pos) {
 
-		if (index_pos >= input_name_len) {
-			name_key_pos = name_key_pos > input_name_len ? 0 : name_key_pos;	 // Reset filename character position to the start if it has reached last character.
+		if (index_pos >= INPUT_NAME_LEN) {
+			name_key_pos = name_key_pos > INPUT_NAME_LEN ? 0 : name_key_pos;	 // Reset filename character position to the start if it has reached last character.
 		}
 		else {
-			xor_key_pos = xor_key_pos > xor_key_len ? 0 : xor_key_pos;		// Reset XOR_KEY position to the start if it has reached last character.
+			xor_key_pos = xor_key_pos > XOR_KEY_LEN ? 0 : xor_key_pos;		// Reset XOR_KEY position to the start if it has reached last character.
 			output_name += INPUT_NAME[index_pos] ^ XOR_KEY[xor_key_pos++];		// XOR each character of filename against characters of XOR_KEY string. 
 												// Store output characters in "output_name".
 												// Depending on mode, filename is either encrypted or decrypted.
@@ -448,7 +451,7 @@ void Encrypt_Decrypt(JDV_STRUCT& jdv) {
 			PROFILE_NAME_INDEX = 81;	// Location index within the main profile "Profile_Vec" to store the filename of the user's data file.
 
 		// Update the character length value of the filename for user's data file. Write this value into the main profile of vector "Profile_Vec".
-		jdv.Profile_Vec[PROFILE_NAME_LENGTH_INDEX] = input_name_len;
+		jdv.Profile_Vec[PROFILE_NAME_LENGTH_INDEX] = INPUT_NAME_LEN;
 
 		// Write the encrypted filename within the main profile of vector "Profile_Vec".
 		std::copy(output_name.begin(), output_name.end(), jdv.Profile_Vec.begin() + PROFILE_NAME_INDEX);
