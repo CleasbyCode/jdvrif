@@ -95,7 +95,7 @@ user1@linuxbox:~/Desktop$
 ```
 
 **Issues:**
-* **Reddit -** *Images not compatible with Reddit's mobile app. Desktop/browser only (new.reddit.com).*
+* **Reddit -** *While you can upload JPG images via the mobile app, you need to use the Desktop/browser to download them (new.reddit.com).*
 * **ImgPile -** *You must sign in to an account before sharing your data-embedded JPG image on ImgPile*.  
 *Sharing your image without logging in, your embedded data will not be preserved.*
 
