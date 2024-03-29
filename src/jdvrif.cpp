@@ -35,7 +35,7 @@ void
 	// Find all the inserted ICC_Profile headers in the "file-embedded" image and store their index locations within vector "Profile_Header_Offset_Vec".
 	// We use these index locations to skip the profile headers when decrypting the file, so that they don't get included within the extracted data file.
 	Find_Profile_Headers(JDV_STRUCT&),
-	// Depending on mode, encrypt or decrypt user's data file and its filename.
+	// Encrypt or decrypt user's data file and its filename.
 	Encrypt_Decrypt(JDV_STRUCT&),
 	// Function splits user's data file into 65KB (or smaller) blocks by inserting ICC_Profile headers throughout the data file.
 	Insert_Profile_Headers(JDV_STRUCT&),
@@ -96,7 +96,6 @@ void Check_Image_File(JDV_STRUCT& jdv) {
 
 	std::ifstream image_ifs(jdv.image_name, std::ios::binary);
 
-	// Make sure image file opened successfully and has correct extension.
 	if (!image_ifs || GET_JPG_EXTENSION != ".jpg" && GET_JPG_EXTENSION != "jpeg" && GET_JPG_EXTENSION != "jiff") {
 		// Open file failure, display relevant error message and exit program.
 		std::cerr << (!image_ifs ? "\nRead File Error: Unable to open image file.\n\n" : "\nImage File Error: Image file does not contain a valid extension.\n\n");
@@ -121,31 +120,25 @@ void Check_Image_File(JDV_STRUCT& jdv) {
 		std::exit(EXIT_FAILURE);
 	}
 
-	// Display start message. Different depending on mode and options selected.
+	// Display start message. Different, depending on mode and options selected.
 	std::cout << (jdv.embed_file_mode && jdv.reddit_opt ? "\nEmbed mode selected with -r option.\n\nReading files"
 		: (jdv.embed_file_mode ? "\nEmbed mode selected.\n\nReading files"
 			: "\neXtract mode selected.\n\nReading JPG image file")) << ". Please wait...\n";
-
-	// Store JPG image (or file-embedded image) into vector "Image_Vec".
+	
 	jdv.Image_Vec.assign(std::istreambuf_iterator<char>(image_ifs), std::istreambuf_iterator<char>());
 
-	// Update image size variable with vector size of the image file.
 	jdv.image_size = jdv.Image_Vec.size();
 
-	// Now that the image is stored within a vector, we can continue with our checks on the image file.
 	const std::string
-		JPG_START_SIG = "\xFF\xD8\xFF",	// JPG image header signature. 
-		JPG_END_SIG = "\xFF\xD9";	// JPG end of image file signature.	
+		JPG_START_SIG = "\xFF\xD8\xFF",	
+		JPG_END_SIG = "\xFF\xD9";	
 
 	const std::string
-		IMAGE_START_SIG{ jdv.Image_Vec.begin(), jdv.Image_Vec.begin() + JPG_START_SIG.length() },	// Get image header signature from vector. 
+		IMAGE_START_SIG{ jdv.Image_Vec.begin(), jdv.Image_Vec.begin() + JPG_START_SIG.length() },
 		IMAGE_END_SIG{ jdv.Image_Vec.end() - JPG_END_SIG.length(), jdv.Image_Vec.end() };
 
-	// Make sure we are dealing with a valid JPG image file.
 	if (IMAGE_START_SIG != JPG_START_SIG || IMAGE_END_SIG != JPG_END_SIG) {
-		// File requirements failure, display relevant error message and exit program.
 		std::cerr << "\nImage File Error: This is not a valid JPG image.\n\n";
-
 		std::exit(EXIT_FAILURE);
 	}
 
@@ -183,7 +176,6 @@ void Check_Image_File(JDV_STRUCT& jdv) {
 
 		// ^ Any JPG embedded thumbnail should have now been removed.
 
-		// Signature for Define Quantization Table(s) 
 		const auto DQT_SIG = { 0xFF, 0xDB };
 
 		// Find location in vector "Image_Vec" of first DQT index location of the image file.
@@ -193,12 +185,11 @@ void Check_Image_File(JDV_STRUCT& jdv) {
 		jdv.Image_Vec.erase(jdv.Image_Vec.begin(), jdv.Image_Vec.begin() + DQT_POS);
 
 		if (jdv.reddit_opt) {
-			// Put back jpg header bytes.
+			// Put back JPG header.
 			constexpr Byte HEADER_BYTES[2]{ 0xFF, 0xD8 };
 			jdv.Image_Vec.insert(jdv.Image_Vec.begin(), &HEADER_BYTES[0], &HEADER_BYTES[2]);
 		}
 
-		// Update image size
 		jdv.image_size = jdv.Image_Vec.size();
 
 		Check_Data_File(jdv);
@@ -206,21 +197,14 @@ void Check_Image_File(JDV_STRUCT& jdv) {
 	}
 	else { // Extract Mode.
 
-		// Check to make sure we have a valid jdvrif embedded image.
-
 		const std::string JDV_SIG = "JDVRiF";
-
-		// Search image file for above signature.
 		const size_t JDV_SIG_INDEX = std::search(jdv.Image_Vec.begin(), jdv.Image_Vec.end(), JDV_SIG.begin(), JDV_SIG.end()) - jdv.Image_Vec.begin();
 
 		if (JDV_SIG_INDEX == jdv.Image_Vec.size()) {
-			// No signature found. Display relevant error message and exit program.
 			std::cerr << "\nImage File Error: This is not a valid jdvrif file-embedded image.\n\n";
-
 			std::exit(EXIT_FAILURE);
 		}
-		else { // Signature found.
-
+		else { 
 			// Remove all data from the vector "Image_Vec" before the JDV_SIG_INDEX value.
 			jdv.Image_Vec.erase(jdv.Image_Vec.begin(), jdv.Image_Vec.begin() + JDV_SIG_INDEX);
 
@@ -231,15 +215,12 @@ void Check_Image_File(JDV_STRUCT& jdv) {
 
 void Check_Data_File(JDV_STRUCT& jdv) {
 
-	// Checks the data file.
+	// Check the data file.
 
 	std::ifstream file_ifs(jdv.file_name, std::ios::binary);
 
-	// Make sure data file opened successfully.
 	if (!file_ifs) {
-		// Open file failure, display relevant error message and exit program.
 		std::cerr << "\nRead File Error: Unable to open data file.\n\n";
-
 		std::exit(EXIT_FAILURE);
 	}
 
@@ -254,7 +235,6 @@ void Check_Data_File(JDV_STRUCT& jdv) {
 	constexpr int MAX_FILENAME_LENGTH = 23;
 	const size_t FILE_NAME_LENGTH = jdv.file_name.length();
 
-	// Get data file size.
 	file_ifs.seekg(0, file_ifs.end);
 	jdv.file_size = file_ifs.tellg();
 	file_ifs.seekg(0, file_ifs.beg);
@@ -271,16 +251,13 @@ void Check_Data_File(JDV_STRUCT& jdv) {
 		std::exit(EXIT_FAILURE);
 	}
 
-	// Read-in and store user's data file into vector "File_Vec".
 	jdv.File_Vec.assign(std::istreambuf_iterator<char>(file_ifs), std::istreambuf_iterator<char>());
 	jdv.file_size = jdv.File_Vec.size();
 
 	// Combined file size check.
 	// Image size + File Size + Inserted Profile Header Size (18 bytes for every 65K of the data file).
 	if (jdv.image_size + jdv.file_size + (jdv.file_size / 65535 * jdv.PROFILE_HEADER_LENGTH + jdv.PROFILE_HEADER_LENGTH) > (jdv.reddit_opt ? jdv.MAX_FILE_SIZE_REDDIT : jdv.MAX_FILE_SIZE)) {	 // Division approx. Don't care about remainder.
-		// File size check failure, display error message and exit program.
 		std::cerr << "\nImage File Error:\n\nThe combined size of the image file + data file exceeds the maximum limit for this program.\n\n";
-
 		std::exit(EXIT_FAILURE);
 	}
 
@@ -323,7 +300,6 @@ void Load_Profile_Vec(JDV_STRUCT& jdv) {
 				0x1A, 0x01, 0x00, 0x03, 0x01, 0x01, 0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x03, 0x02, 0x04, 0x05,
 				0x06, 0xFF, 0xDA, 0x00, 0x0C, 0x03, 0x01, 0x00, 0x02, 0x10, 0x03, 0x10, 0x00, 0x00, 0x01 };
 
-	// Encrypt the user's data file and its file name.
 	Encrypt_Decrypt(jdv);
 }
 
@@ -379,7 +355,7 @@ void Find_Profile_Headers(JDV_STRUCT& jdv) {
 		jdv.Image_Vec.erase(jdv.Image_Vec.begin() + EMBEDDED_FILE_SIZE, jdv.Image_Vec.end());
 	}
 
-	// Decrypt the contents of vector "Image_Vec".
+	// Decrypt the contents of vector "Image_Vec";
 	Encrypt_Decrypt(jdv);
 }
 
