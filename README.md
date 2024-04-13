@@ -17,7 +17,7 @@ Demo Videos: [***Mastodon***](https://youtu.be/OKFTfWf-8oc) / [***Reddit***](htt
 To **post/share** file-embedded JPG images on **Reddit**, you must use the **-r** option with *jdvrif*.  
 Always select the "***Images & Video***" tab on Reddit to post these images.
 
-When **saving** images from **Reddit**, click the image in the post to expand it, then save it.  
+When **saving** images from **Reddit**, (new.reddit.com), click the image in the post to expand it, then save it.  
 You should see the filename with a *.jpeg* extension in the address bar of your browser.  
 
 With **Twitter**, the size limit is measured by the **data file size** and not the image size. As it is only 10KB,  
