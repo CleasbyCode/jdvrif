@@ -12,12 +12,7 @@ You can share your image on several *social media sites, which will preserve the
 ![Demo Image](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/jrif_32028.jpg)  
 ***{Image credit: [@_AtelierSG_](https://twitter.com/_AtelierSG_)}***
 
-Demo Videos: [***Mastodon***](https://youtu.be/OKFTfWf-8oc) / [***Reddit***](https://youtu.be/lWVT8Oi5-cg) / [***Twitter***](https://youtu.be/h_PHmYe4M1E) / [***JDVRIF Web***](https://youtu.be/b0eNxBfpSgQ)
-
-The method jdvrif uses to store your data is not typical steganography, such as LSB.  
-Your data file is encrypted and embedded within multiple 65KB ICC_Profile blocks of the JPG image.  
-
-![ICC](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/icc.png)  
+Demo Videos: [***Mastodon***](https://youtu.be/OKFTfWf-8oc) / [***Reddit***](https://youtu.be/lWVT8Oi5-cg) / [***Twitter***](https://youtu.be/h_PHmYe4M1E) / [***JDVRIF Web***](https://youtu.be/b0eNxBfpSgQ)  
 
 To **post/share** file-embedded JPG images on **Reddit**, you must use the **-r** option with *jdvrif*.  
 Always select the "***Images & Video***" tab on Reddit to post these images.
