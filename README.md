@@ -89,7 +89,7 @@ user1@linuxbox:~/Desktop$
 
 ```
 ![Demo Image2](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/screen.png) 
-![Demo Image3](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/jdvrif_screen2.png)  
+![Demo Image3](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/screen2.png)  
 
 **Issues:**
 * **Reddit -** *While you can upload JPG images via the mobile app, you need to use the Desktop/browser to download them (new.reddit.com).*
