@@ -88,7 +88,7 @@ Complete! Please check your extracted file.
 user1@linuxbox:~/Desktop$ 
 
 ```
-![Demo Image2](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/jdvrif_screen1.png) 
+![Demo Image2](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/screen.png) 
 ![Demo Image3](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/jdvrif_screen2.png)  
 
 **Issues:**
