@@ -33,7 +33,7 @@ int main(int argc, char** argv) {
 		startJdv(image_file_name);
 	}
 	else {
-		std::cout << "\nUsage:\tjdvout <file_embedded_image>\n\tjdvout --info\n\n";
+		std::cout << "\nUsage: jdvout <file_embedded_image>\n\t\bjdvout --info\n\n";
 	}
 	return 0;
 }
