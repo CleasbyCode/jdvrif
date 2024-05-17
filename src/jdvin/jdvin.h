@@ -1,0 +1,24 @@
+#pragma once
+
+#include <algorithm>
+#include <cstdint>
+#include <string_view>
+#include <fstream>
+#include <regex>
+#include <iostream>
+#include <string>
+#include <vector>
+
+#include "value_updater.cpp"
+#include "encrypt.cpp"
+#include "insert_profile_headers.cpp"
+#include "information.cpp"
+#include "jdvin.cpp"
+
+void
+	startJdv(std::string&, std::string&, bool),
+	encryptFile(std::vector<uint_fast8_t>&, std::vector<uint_fast8_t>&, std::vector<uint_fast8_t>&, std::string&),
+	insertProfileHeaders(std::vector<uint_fast8_t>&, std::vector<uint_fast8_t>&, std::vector<uint_fast8_t>&, uint_fast32_t, bool),
+	Value_Updater(std::vector<uint_fast8_t>&, uint_fast32_t, const uint_fast32_t, uint_fast8_t),
+	displayInfo();
+
