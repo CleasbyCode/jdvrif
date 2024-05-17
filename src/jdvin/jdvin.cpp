@@ -194,11 +194,11 @@ void startJdv(std::string& image_file_name, std::string& data_file_name, bool is
 			std::cout << "\n**Warning**\n\nDue to your option selection, for compatibility reasons\nyou should only post this file-embedded JPG image on Reddit.\n";
 		}
 		else {
-			std::cout << "\nBased on image/data size, you can post your JPG image on the following sites:\n\n";
+			std::cout << "\nBased on image/data size, you can post your JPG file on the following sites:\n\n";
 			while (compat_num >= 0) {
 				std::cout << SITES_LIST[compat_num--] << '\n';
 			}
 		}
 
-		std::cout << "\nComplete!\n\nYou can now post your JPG image on the relevant supported platforms.\n\n";
+		std::cout << "\nComplete!\n\n";
 	}
