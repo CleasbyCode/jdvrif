@@ -13,7 +13,7 @@ You can post your image with hidden data on ***Mastodon*** and a few other socia
 
 Demo Videos: [***Hidden_RAR_File***](https://youtu.be/OKFTfWf-8oc) / [***JDVRIF Web***](https://youtu.be/WvZMRp7Z6W4)  
 
-To **post/share** file-embedded JPG images on **Reddit**, you must use the **-r** option with *jdvin*.  
+To **post/share** file-embedded JPG images on **Reddit**, you must use the **-r** option.  
 Always select the "***Images & Video***" tab on Reddit to post these images.
 
 When **saving** images from **Reddit**, use the **new.reddit.com site**, click the image in the post to expand it, then save it.  
@@ -26,7 +26,7 @@ To correctly download an image from **Twitter**, click the image in the post to 
 
 *(You can try **jdvrif** from this [**site**](https://cleasbycode.co.uk/jdvrif/index/) if you don't want to download & compile the source code.)*
 
-## Usage Demo
+## Usage (Linux - jdvin / jdvout)
 
 ```console
 
