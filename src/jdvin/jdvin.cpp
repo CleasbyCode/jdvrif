@@ -110,9 +110,11 @@ void startJdv(std::string& image_file_name, std::string& data_file_name, bool is
 
 		std::vector<uint_fast8_t>File_Vec((std::istreambuf_iterator<char>(data_file_ifs)), std::istreambuf_iterator<char>());
 
-		uint_fast32_t data_file_size = static_cast<uint_fast32_t>(File_Vec.size());
-
 		std::reverse(File_Vec.begin(), File_Vec.end());
+	
+		deflateFile(File_Vec);
+
+		uint_fast32_t data_file_size = static_cast<uint_fast32_t>(File_Vec.size());
 
 		constexpr uint_fast8_t PROFILE_HEADER_LENGTH = 18;
 
@@ -178,14 +180,13 @@ void startJdv(std::string& image_file_name, std::string& data_file_name, bool is
 		const uint_fast32_t IMG_SIZE = static_cast<uint_fast32_t>(Image_Vec.size());
 
 		constexpr uint_fast32_t
-			TWITTER_SIZE = 9557, 		// Bytes. (Twitter limit measured by data file size. The rest below are measured by image size with embedded data file).
-			MASTODON_SIZE = 16777216,	// 16MB
-			REDDIT_SIZE = 20971520,		// 20MB (Requires -r option)
-			POST_IMG_SIZE = 25165824,	// 24MB
-			IMGBB_SIZE = 33554432,		// 32MB
-			IMG_PILE_SIZE = 104857600;	// 100MB
-		// Flickr is 200MB, this programs max size, no need to to make a variable for it.
-
+			TWITTER_SIZE = 9557, 		
+			MASTODON_SIZE = 16777216,	
+			REDDIT_SIZE = 20971520,		
+			POST_IMG_SIZE = 25165824,	
+			IMGBB_SIZE = 33554432,		
+			IMG_PILE_SIZE = 104857600;	
+		
 		int_fast8_t compat_num = (File_Vec.size() <= TWITTER_SIZE ? 5 : (IMG_SIZE <= MASTODON_SIZE ? 4
 			: (IMG_SIZE <= POST_IMG_SIZE ? 3 : (IMG_SIZE <= IMGBB_SIZE ? 2 : (IMG_SIZE <= IMG_PILE_SIZE ? 1
 				: 0)))));
