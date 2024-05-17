@@ -1,7 +1,6 @@
 void insertProfileHeaders(std::vector<uint_fast8_t>&Profile_Vec, std::vector<uint_fast8_t>&File_Vec, std::vector<uint_fast8_t>&Image_Vec, uint_fast32_t data_file_size, bool isRedditOption) {
-
+	
 	const uint_fast32_t PROFILE_VECTOR_SIZE = static_cast<uint_fast32_t>(Profile_Vec.size());	
-
 	constexpr uint_fast16_t BLOCK_SIZE = 65535;	
 
 	uint_fast32_t tally_size = 20;			
@@ -28,14 +27,11 @@ void insertProfileHeaders(std::vector<uint_fast8_t>&Profile_Vec, std::vector<uin
 			PROFILE_BLOCK_SIZE = PROFILE_HEADER_BLOCK_SIZE - PROFILE_SIZE_DIFF;
 
 		Value_Updater(Profile_Vec, PROFILE_HEADER_SIZE_INDEX, PROFILE_HEADER_BLOCK_SIZE, bits);
-
 		Value_Updater(Profile_Vec, PROFILE_SIZE_INDEX, PROFILE_BLOCK_SIZE, bits);
 
 		File_Vec.swap(Profile_Vec);
-
 	}
 	else {
-
 		uint_fast32_t byte_index = 0;
 
 		tally_size += BLOCK_SIZE + 2;
@@ -59,7 +55,6 @@ void insertProfileHeaders(std::vector<uint_fast8_t>&Profile_Vec, std::vector<uin
 			tally_size -= BLOCK_SIZE + 2;
 
 			Value_Updater(File_Vec, tally_size + 2, PROFILE_VECTOR_SIZE - tally_size + (profile_count * PROFILE_HEADER_LENGTH) - 2, bits);
-
 		}
 		else {  
 
@@ -83,5 +78,4 @@ void insertProfileHeaders(std::vector<uint_fast8_t>&Profile_Vec, std::vector<uin
 	else {
 		Image_Vec.insert(Image_Vec.begin(), File_Vec.begin(), File_Vec.end());
 	}
-
 }
