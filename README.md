@@ -11,7 +11,7 @@ You can post your image with hidden data on ***Mastodon*** and a few other socia
 
 ![Demo Image](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/jrif_28597.jpg)  
 
-Demo Videos: [***Hidden_RAR_File***](https://youtu.be/OKFTfWf-8oc) / [***Web_Tool***](https://youtu.be/WvZMRp7Z6W4)  
+Demo Videos: [***Hidden_RAR_File***](https://youtu.be/Z5NS--zaDs0) / [***Web_Tool***](https://youtu.be/WvZMRp7Z6W4)  
 
 To **post/share** file-embedded JPG images on **Reddit**, you must use the **-r** option.  
 Always select the "***Images & Video***" tab on Reddit to post these images.
