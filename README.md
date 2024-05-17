@@ -30,7 +30,7 @@ To correctly download an image from **Twitter**, click the image in the post to 
 
 ```console
 
-user1@linuxbox:~/Downloads/jdvrif-main/src/jdvin$ g++ main.cpp -O2 -s -o jdvin
+user1@linuxbox:~/Downloads/jdvrif-main/src/jdvin$ g++ main.cpp -O2 -lz -s -o jdvin
 user1@linuxbox:~/Downloads/jdvrif-main/src/jdvin$ sudo cp jdvin /usr/bin
 
 user1@linuxbox:~/Desktop$ jdvin 
@@ -53,7 +53,7 @@ _Flickr
 
 Complete!
 
-user1@linuxbox:~/Downloads/jdvrif-main/src/jdvout$ g++ main.cpp -O2 -s -o jdvout
+user1@linuxbox:~/Downloads/jdvrif-main/src/jdvout$ g++ main.cpp -O2 -lz -s -o jdvout
 user1@linuxbox:~/Downloads/jdvrif-main/src/jdvout$ sudo cp jdvout /usr/bin
 
 user1@linuxbox:~/Desktop$ jdvout
