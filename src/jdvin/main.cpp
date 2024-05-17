@@ -1,10 +1,10 @@
-//	JPG Data Vehicle (jdvrif v1.7) Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
+//	JPG Data Vehicle (jdvin v1.0.1) Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
 //
 //	To compile program (Linux):
-// 	$ g++ jdvrif.cpp -O2 -s -o jdvrif
+// 	$ g++ main.cpp -O2 -s -o jdvin
 
 // 	Run it:
-// 	$ ./jdvrif
+// 	$ ./jdvin
 
 #include "jdvin.h"
 
