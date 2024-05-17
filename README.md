@@ -9,7 +9,7 @@ You can post your image with hidden data on ***Mastodon*** and a few other socia
   
 **jdvrif** partly derives from the ***[technique](https://www.vice.com/en/article/bj4wxm/tiny-picture-twitter-complete-works-of-shakespeare-steganography)*** discovered by security researcher ***[David Buchanan](https://www.da.vidbuchanan.co.uk/).*** 
 
-![Demo Image](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/jrif_25007.jpg)  
+![Demo Image](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/jrif_3770.jpg)  
 
 Demo Videos: [***Hidden_RAR_File***](https://youtu.be/OKFTfWf-8oc) / [***JDVRIF Web***](https://youtu.be/WvZMRp7Z6W4)  
 
