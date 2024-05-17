@@ -1,9 +1,9 @@
 # jdvrif
 
-Use this command-line tool to embed or extract any file type via a **JPG** image.  
-You can share your image on several *social media sites, which will preserve the inserted data. 
+CLI tools to embed/hide (jdvin) or extract (jdvout) any file type via a JPG image.
+You can post your image with hidden data on *Mastodon and a few other social media sites.
 
-\***Image size limits (cover image + data file) vary across platforms:**
+\***Image size limits (cover image + data file):**
 * *Flickr (200MB), \*ImgPile (100MB), ImgBB (32MB), PostImage (24MB), \*Reddit (20MB / -r option)*,
 * *Mastodon (16MB), \*Twitter (~10KB / Limit measured by data file size).*
   
@@ -16,7 +16,7 @@ Demo Videos: [***Mastodon***](https://youtu.be/OKFTfWf-8oc) / [***Reddit***](htt
 To **post/share** file-embedded JPG images on **Reddit**, you must use the **-r** option with *jdvrif*.  
 Always select the "***Images & Video***" tab on Reddit to post these images.
 
-When **saving** images from **Reddit**, (new.reddit.com), click the image in the post to expand it, then save it.  
+When **saving** images from **Reddit**, use the **new.reddit.com site**, click the image in the post to expand it, then save it.  
 You should see the filename with a *.jpeg* extension in the address bar of your browser.  
 
 With **Twitter**, the size limit is measured by the **data file size** and not the image size. As it is only 10KB,  
@@ -24,36 +24,25 @@ it is recommended to compress (*ZIP/RAR*) your data file to maximise the amount 
 
 To correctly download an image from **Twitter**, click the image in the post to fully expand it, before saving.
 
-Compile and run the program under Windows or **Linux**.  
-
 *(You can try **jdvrif** from this [**site**](https://cleasbycode.co.uk/jdvrif/index/) if you don't want to download & compile the source code.)*
 
 ## Usage Demo
 
 ```console
 
-user1@linuxbox:~/Desktop$ g++ jdvrif.cpp -O2 -s -o jdvrif
-user1@linuxbox:~/Desktop$ ./jdvrif 
+user1@linuxbox:~/Downloads/jdvrif-main/src/jdvin$ g++ main.cpp -O2 -s -o jdvin
+user1@linuxbox:~/Downloads/jdvrif-main/src/jdvin$ sudo cp jdvin /usr/bin
 
-Usage: jdvrif -e [-r] <cover_image> <data_file>  
-       jdvrif -x <file_embedded_image>  
-       jdvrif --info
+user1@linuxbox:~/Desktop$ jdvin 
 
-user1@linuxbox:~/Desktop$ ./jdvrif -e .\clown.jpg .\workflow.rar
+Usage: jdvin [-r] <cover_image> <data_file>  
+       jdvin --info
+
+user1@linuxbox:~/Desktop$ jdvin clown.jpg workflow.rar
   
-Embed mode selected.
+Saved file-embedded JPG image: jrif_28597.jpg 176345 Bytes.
 
-Reading files. Please wait...
-
-Encrypting data file.
-
-Embedding data file within the JPG image.
-
-Writing file-embedded JPG image out to disk.
-
-Saved JPG image: jrif_28367.jpg 150476 Bytes.
-
-Based on image/data size, you can post your JPG image on the following sites:
+Based on image/data size, you can post your JPG file on the following sites:
 
 _Twitter
 _Mastodon
@@ -64,27 +53,19 @@ _Flickr
 
 Complete!
 
-You can now post your file-embedded JPG image on the relevant supported platforms.
+user1@linuxbox:~/Downloads/jdvrif-main/src/jdvout$ g++ main.cpp -O2 -s -o jdvout
+user1@linuxbox:~/Downloads/jdvrif-main/src/jdvout$ sudo cp jdvout /usr/bin
 
-user1@linuxbox:~/Desktop$ ./jdvrif -x jrif_28367.jpg
+user1@linuxbox:~/Desktop$ jdvout
 
-eXtract mode selected.
+Usage: jdvout <file_embedded_image>
+       jdvout --info
+        
+user1@linuxbox:~/Desktop$ jdvout jrif_28597.jpg
 
-Reading JPG image file. Please wait...
+Extracted hidden file: workflow.rar 4225 Bytes.
 
-Found jdvrif embedded data file.
-
-Extracting encrypted data file from the JPG image.
-
-Decrypting data file.
-
-Writing data file out to disk.
-
-Saved file: workflow.rar 4225 Bytes.
-
-Complete! Please check your extracted file.
-
-user1@linuxbox:~/Desktop$ 
+Complete! Please check your file.
 
 ```
 ![Demo Image2](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/screen.png) 
