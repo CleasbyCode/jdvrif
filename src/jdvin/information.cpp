@@ -9,7 +9,7 @@ A steganography-like CLI tool to embed & hide any file type within a JPG image.
 
 Compile & run jdvin (Linux):
 		
-$ g++ main.cpp -O2 -s -o jdvin
+$ g++ main.cpp -O2 -lz -s -o jdvin
 $ ./jdvin
 		
 Usage: jdvin [-r] <cover_image> <data_file>
