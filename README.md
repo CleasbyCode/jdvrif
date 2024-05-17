@@ -13,7 +13,7 @@ You can post your image with hidden data on ***Mastodon*** and a few other socia
 
 Demo Videos: [***Mastodon***](https://youtu.be/OKFTfWf-8oc) / [***Reddit***](https://youtu.be/lWVT8Oi5-cg) / [***Twitter***](https://youtu.be/h_PHmYe4M1E) / [***JDVRIF Web***](https://youtu.be/WvZMRp7Z6W4)  
 
-To **post/share** file-embedded JPG images on **Reddit**, you must use the **-r** option with *jdvrif*.  
+To **post/share** file-embedded JPG images on **Reddit**, you must use the **-r** option with *jdvin*.  
 Always select the "***Images & Video***" tab on Reddit to post these images.
 
 When **saving** images from **Reddit**, use the **new.reddit.com site**, click the image in the post to expand it, then save it.  
