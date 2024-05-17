@@ -19,8 +19,7 @@ Always select the "***Images & Video***" tab on Reddit to post these images.
 When **saving** images from **Reddit**, use the **new.reddit.com site**, click the image in the post to expand it, then save it.  
 You should see the filename with a *.jpeg* extension in the address bar of your browser.  
 
-With **Twitter**, the size limit is measured by the **data file size** and not the image size. As it is only 10KB,  
-it is recommended to compress (*ZIP/RAR*) your data file to maximise the amount of embeddable data.  
+With **Twitter**, the size limit (~10KB) is measured by the **data file size** and not the image size. 
 
 To correctly download an image from **Twitter**, click the image in the post to fully expand it, before saving.
 
