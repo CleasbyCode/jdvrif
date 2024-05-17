@@ -12,7 +12,6 @@ int main(int argc, char** argv) {
 
 	if (argc == 2 && std::string(argv[1]) == "--info") {
 		displayInfo();
-
 	}
 	else if (argc == 2) {
 
@@ -32,7 +31,6 @@ int main(int argc, char** argv) {
 		}
 
 		startJdv(image_file_name);
-	
 	}
 	else {
 		std::cout << "\nUsage:\tjdvout <file_embedded_image>\n\tjdvout --info\n\n";
