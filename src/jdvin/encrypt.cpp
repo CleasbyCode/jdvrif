@@ -1,4 +1,4 @@
-	void encryptFile(std::vector<uint_fast8_t>& Profile_Vec, std::vector<uint_fast8_t>& File_Vec, std::vector<uint_fast8_t>&Encrypted_Vec, std::string& FILE_NAME) {
+void encryptFile(std::vector<uint_fast8_t>& Profile_Vec, std::vector<uint_fast8_t>& File_Vec, std::vector<uint_fast8_t>&Encrypted_Vec, std::string& FILE_NAME) {
 	
 	std::string
 		xor_key = "\xB4\x6A\x3E\xEA\x5E\x90",
@@ -28,7 +28,6 @@
 
 		Encrypted_Vec.emplace_back(File_Vec[index_pos++] ^ output_name[name_key_pos++]);			
 	}
-
 		constexpr uint_fast16_t PROFILE_VEC_SIZE = 663;	
 		constexpr uint_fast8_t 
 				PROFILE_NAME_LENGTH_INDEX = 80,	
