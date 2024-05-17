@@ -23,7 +23,7 @@ Mastodon (16MB), *X/Twitter (~10KB / *Limit measured by data file size).
 
 Arguments / options:	
 		
-To post/share file-embedded PNG images on Reddit, you need to use the -r option.	
+To post/share file-embedded JPG images on Reddit, you need to use the -r option.	
 		
 -r = Reddit option, (jdvin -r cover_image.jpg data_file.doc).
 		
