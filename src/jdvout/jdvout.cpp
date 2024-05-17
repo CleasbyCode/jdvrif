@@ -52,7 +52,9 @@ void startJdv(std::string& image_file_name) {
 	std::vector<uint_fast8_t>File_Vec;
 
 	decryptFile(Image_Vec, File_Vec, Profile_Headers_Offset_Vec, image_file_name);
-
+	
+	inflateFile(File_Vec);
+	
 	std::reverse(File_Vec.begin(), File_Vec.end());
 
 	std::ofstream file_ofs(image_file_name, std::ios::binary);
