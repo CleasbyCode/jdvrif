@@ -1,6 +1,6 @@
 # jdvrif
 
-CLI tools to embed/hide (*jdvin*) or extract (*jdvout*) any file type via a JPG image.  
+CLI tools to hide (*jdvin*) or extract (*jdvout*) any file type via a JPG image.  
 You can post your image with hidden data on ***Mastodon*** and a few other social media sites.
 
 \***Image size limits (cover image + data file):**
