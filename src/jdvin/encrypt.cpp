@@ -1,4 +1,5 @@
-	void encryptFile(std::vector<uint_fast8_t>& Profile_Vec, std::vector<uint_fast8_t>& File_Vec, std::vector<uint_fast8_t>&Encrypted_Vec, std::string& FILE_NAME) {
+
+void encryptFile(std::vector<uint_fast8_t>& Profile_Vec, std::vector<uint_fast8_t>& File_Vec, std::vector<uint_fast8_t>&Encrypted_Vec, std::string& FILE_NAME) {
 	
 	std::random_device rd;
  	std::mt19937 gen(rd());
