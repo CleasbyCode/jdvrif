@@ -23,7 +23,8 @@ void startJdv(std::string& image_file_name, std::string& data_file_name, bool is
 
 	constexpr uint_fast32_t
 		MAX_FILE_SIZE = 209715200,
-		MAX_FILE_SIZE_REDDIT = 20971520;
+		MAX_FILE_SIZE_REDDIT = 20971520,
+		LARGE_FILE_SIZE = 52428800;
 
 	if (tmp_image_file_size > MAX_FILE_SIZE || isRedditOption && tmp_image_file_size > MAX_FILE_SIZE_REDDIT || MIN_FILE_SIZE > tmp_image_file_size) {
 		std::cerr << "\nImage File Error: " << (MIN_FILE_SIZE > tmp_image_file_size ? "Size of image is too small to be a valid PNG image"
@@ -31,6 +32,10 @@ void startJdv(std::string& image_file_name, std::string& data_file_name, bool is
 				: std::to_string(MAX_FILE_SIZE)) + " Bytes") << ".\n\n";
 
 		std::exit(EXIT_FAILURE);
+	}
+
+	if (tmp_data_file_size > LARGE_FILE_SIZE) {
+		std::cout << "\nPlease Wait. Large files will take longer to process.\n";
 	}
 
 	std::vector<uint_fast8_t>Image_Vec((std::istreambuf_iterator<char>(image_file_ifs)), std::istreambuf_iterator<char>());
