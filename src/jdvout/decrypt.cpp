@@ -1,3 +1,4 @@
+
 void decryptFile(std::vector<uint_fast8_t>&Image_Vec, std::vector<uint_fast8_t>&File_Vec, std::vector<uint_fast32_t>&Profile_Headers_Offset_Vec, std::string& encrypted_file_name) {
 
 	std::string decrypted_file_name;
