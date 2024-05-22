@@ -1,3 +1,4 @@
+
 void findProfileHeaders(std::vector<uint_fast8_t>&Image_Vec, std::vector<uint_fast32_t>&Profile_Headers_Offset_Vec, std::string& encrypted_file_name) {
 
 	constexpr uint_fast8_t	
