@@ -9,7 +9,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <C:\Users\Nick\source\zlib-1.3.1\zlib.h>
+#include <zlib.h>
 
 #include "value_updater.cpp"
 #include "encrypt.cpp"
