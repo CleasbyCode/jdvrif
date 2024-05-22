@@ -14,7 +14,7 @@ void displayInfo() {
 	$ ./jdvin
 		
 	Usage: jdvin [-r] <cover_image> <data_file>
-       	jdvin --info
+       	       jdvin --info
 		
 	Post your file-embedded image on the following compatible sites.
 	*Image size limits(cover image + data file):
