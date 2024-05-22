@@ -7,11 +7,17 @@ void startJdv(std::string& image_file_name) {
 	const size_t TMP_IMAGE_FILE_SIZE = image_ifs.tellg();
 	image_ifs.seekg(0, image_ifs.beg);
 	
-	constexpr uint_fast32_t MAX_FILE_SIZE = 209715200;
+	constexpr uint_fast32_t 
+		MAX_FILE_SIZE = 209715200,
+		LARGE_FILE_SIZE = 52428800;
 
 	if (TMP_IMAGE_FILE_SIZE > MAX_FILE_SIZE) {
 		std::cerr << "\nImage File Error: Size of file exceeds the maximum limit for this program.\n\n";
 		std::exit(EXIT_FAILURE);
+	}
+
+	if (TMP_IMAGE_FILE_SIZE > LARGE_FILE_SIZE) {
+		std::cout << "\nPlease Wait. Large files will take longer to process.\n";
 	}
 
 	std::vector<uint_fast8_t>Image_Vec((std::istreambuf_iterator<char>(image_ifs)), std::istreambuf_iterator<char>());
