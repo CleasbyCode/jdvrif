@@ -9,6 +9,7 @@ void startJdv(std::string& image_file_name, std::string& data_file_name, bool is
 		std::cerr << "\nRead File Error: " << (!image_file_ifs ? "Unable to read image file" : "Unable to read data file") << ".\n\n";
 		std::exit(EXIT_FAILURE);
 	}
+
 	image_file_ifs.seekg(0, image_file_ifs.end);
 	data_file_ifs.seekg(0, data_file_ifs.end);
 
