@@ -46,13 +46,13 @@ void encryptFile(std::vector<uint_fast8_t>& Profile_Vec, std::vector<uint_fast8_
 
 		Encrypted_Vec.emplace_back(File_Vec[index_pos++] ^ encrypted_file_name[name_key_pos++]);			
 	}
+	
+	Profile_Vec[PROFILE_NAME_INDEX - 1] = FILE_NAME_LENGTH;
 
-		Profile_Vec[PROFILE_NAME_INDEX - 1] = FILE_NAME_LENGTH;
+	std::copy(encrypted_file_name.begin(), encrypted_file_name.end(), Profile_Vec.begin() + PROFILE_NAME_INDEX);
 
-		std::copy(encrypted_file_name.begin(), encrypted_file_name.end(), Profile_Vec.begin() + PROFILE_NAME_INDEX);
+	Profile_Vec.insert(Profile_Vec.begin() + PROFILE_VEC_SIZE, Encrypted_Vec.begin(), Encrypted_Vec.end());
 
-		Profile_Vec.insert(Profile_Vec.begin() + PROFILE_VEC_SIZE, Encrypted_Vec.begin(), Encrypted_Vec.end());
-
-		Encrypted_Vec.clear();
-		Encrypted_Vec.shrink_to_fit();
+	Encrypted_Vec.clear();
+	Encrypted_Vec.shrink_to_fit();
 }
