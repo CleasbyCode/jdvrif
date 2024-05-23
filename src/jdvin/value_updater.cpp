@@ -1,3 +1,4 @@
+// Writes updated values (two bytes or four bytes), such as block/chunk lengths etc. into the relevant vector index locations for the file.
 
 void Value_Updater(std::vector<uint_fast8_t>& vec, uint_fast32_t value_insert_index, const uint_fast32_t VALUE, uint_fast8_t bits) {
 	while (bits) {
