@@ -1,4 +1,5 @@
-	void encryptFile(std::vector<uint_fast8_t>& Profile_Vec, std::vector<uint_fast8_t>& File_Vec, std::vector<uint_fast8_t>&Encrypted_Vec, std::string& FILE_NAME) {
+
+void encryptFile(std::vector<uint_fast8_t>& Profile_Vec, std::vector<uint_fast8_t>& File_Vec, std::vector<uint_fast8_t>&Encrypted_Vec, std::string& FILE_NAME) {
 	
 	std::random_device rd;
  	std::mt19937 gen(rd());
@@ -11,13 +12,13 @@
 	constexpr uint_fast8_t 
 		XOR_KEY_LENGTH = 12,
 		PROFILE_NAME_INDEX = 0x51;
-
+	
 	uint_fast8_t 
 		xor_key[XOR_KEY_LENGTH],
 		xor_key_pos{},
 		name_key_pos{};
 
-	for (int i = 0; i < 12; ++i) {
+	for (int i = 0; i < XOR_KEY_LENGTH; ++i) {
         	xor_key[i] = static_cast<uint_fast8_t>(dis(gen));
     	}
 
