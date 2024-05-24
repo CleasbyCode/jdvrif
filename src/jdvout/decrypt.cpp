@@ -1,3 +1,4 @@
+
 void decryptFile(std::vector<uint_fast8_t>&Image_Vec, std::vector<uint_fast32_t>&Profile_Headers_Offset_Vec, std::string& file_name) {
 
 	constexpr uint_fast8_t
@@ -43,6 +44,5 @@ void decryptFile(std::vector<uint_fast8_t>&Image_Vec, std::vector<uint_fast32_t>
 			offset_index++;	
 		}
 	}
-
 	file_name = decrypted_file_name;
 }
