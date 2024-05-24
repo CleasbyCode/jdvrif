@@ -1,3 +1,4 @@
+
 void insertProfileHeaders(std::vector<uint_fast8_t>&Profile_Vec, std::vector<uint_fast8_t>&File_Vec, uint_fast32_t data_file_size) {
 
 	const uint_fast32_t PROFILE_VECTOR_SIZE = static_cast<uint_fast32_t>(Profile_Vec.size());	
@@ -25,7 +26,6 @@ void insertProfileHeaders(std::vector<uint_fast8_t>&Profile_Vec, std::vector<uin
 			PROFILE_BLOCK_SIZE = PROFILE_HEADER_BLOCK_SIZE - 16;
 
 		Value_Updater(Profile_Vec, PROFILE_HEADER_SIZE_INDEX, PROFILE_HEADER_BLOCK_SIZE, bits);
-
 		Value_Updater(Profile_Vec, PROFILE_SIZE_INDEX, PROFILE_BLOCK_SIZE, bits);
 
 		File_Vec.swap(Profile_Vec);
@@ -55,7 +55,6 @@ void insertProfileHeaders(std::vector<uint_fast8_t>&Profile_Vec, std::vector<uin
 			tally_size -= BLOCK_SIZE + 2;
 
 			Value_Updater(File_Vec, tally_size + 2, PROFILE_VECTOR_SIZE - tally_size + (profile_count * PROFILE_HEADER_LENGTH) - 2, bits);
-
 		}
 		else {  
 
@@ -65,11 +64,9 @@ void insertProfileHeaders(std::vector<uint_fast8_t>&Profile_Vec, std::vector<uin
 
 			Value_Updater(File_Vec, tally_size + 2, PROFILE_VECTOR_SIZE - tally_size + (profile_count * PROFILE_HEADER_LENGTH) - 2, bits);
 		}
-
 		Value_Updater(File_Vec, PROFILE_COUNT_INDEX, profile_count, bits);
 	}
 
 	bits = 32; 
-
 	Value_Updater(File_Vec, PROFILE_DATA_SIZE_INDEX, data_file_size, bits);
 }
