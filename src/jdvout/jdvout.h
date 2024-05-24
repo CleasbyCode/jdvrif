@@ -9,7 +9,6 @@
 #include <vector>
 #include <zlib.h>
 
-
 #include "find_profile_headers.cpp"
 #include "decrypt.cpp"
 #include "inflate.cpp"
