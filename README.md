@@ -41,16 +41,9 @@ user1@linuxbox:~/Desktop$ jdvin clown.jpg workflow.rar
   
 Saved file-embedded JPG image: jrif_28597.jpg 176345 Bytes.
 
-Based on image/data size, you can post your JPG file on the following sites:
-
-_Twitter
-_Mastodon
-_PostImage
-_ImgBB
-_ImgPile
-_Flickr
-
 Complete!
+
+You can now post your file-embedded JPG image on the relevant supported platforms.
 
 user1@linuxbox:~/Downloads/jdvrif-main/src/jdvout$ g++ main.cpp -O2 -lz -s -o jdvout
 user1@linuxbox:~/Downloads/jdvrif-main/src/jdvout$ sudo cp jdvout /usr/bin
