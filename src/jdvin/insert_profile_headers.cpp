@@ -28,14 +28,14 @@ void insertProfileHeaders(std::vector<uint_fast8_t>&Profile_Vec, std::vector<uin
 		Value_Updater(Profile_Vec, PROFILE_SIZE_INDEX, PROFILE_BLOCK_SIZE, bits);
 
 		File_Vec.swap(Profile_Vec);
-	}  else {
-
+		
+	} else {
 		uint_fast32_t byte_index{};
 
 		tally_size += BLOCK_SIZE + 2;
 
 		while (PROFILE_VECTOR_SIZE > byte_index) {
-
+			
 			File_Vec.emplace_back(Profile_Vec[byte_index++]);
 
 			if (byte_index == tally_size) {
