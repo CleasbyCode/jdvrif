@@ -26,10 +26,11 @@ uint_fast32_t deflateFile(std::vector<uint_fast8_t>& Vec) {
 			Buffer_Vec.insert(Buffer_Vec.end(), temp_buffer, temp_buffer + BUFSIZE);
 			strm.next_out = temp_buffer;
 			strm.avail_out = BUFSIZE;
-		}
-		else
+		} else {
 			break;
+		}
 	}
+	
 	deflate(&strm, Z_FINISH);
 	Buffer_Vec.insert(Buffer_Vec.end(), temp_buffer, temp_buffer + BUFSIZE - strm.avail_out);
 	deflateEnd(&strm);
