@@ -42,8 +42,7 @@ std::string decryptFile(std::vector<uint_fast8_t>&Image_Vec, std::vector<uint_fa
 			index_pos += PROFILE_HEADER_LENGTH; 
 			data_file_size += PROFILE_HEADER_LENGTH; 
 			offset_index++;	
-		}
-		
+		}	
 	}
 	return decrypted_file_name;
 }
