@@ -43,8 +43,7 @@ int main(int argc, char** argv) {
 			isFileCheckSuccess = true;
 		}
 		isFileCheckSuccess ? startJdv(IMAGE_FILE_NAME, data_file_name, isRedditOption) : std::exit(EXIT_FAILURE);	  	
-	}
-	else {
+	} else {
 		std::cout << "\nUsage: jdvin [-r] <cover_image> <data_file>\n\t\bjdvin --info\n\n";
 	}
      return 0;	
