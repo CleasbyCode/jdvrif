@@ -14,15 +14,15 @@ int main(int argc, char** argv) {
 	} else if (std::string(argv[1]) == "--info") {
 		displayInfo();
 	} else {
-		const std::string IMAGE_FILE_NAME = std::string(argv[1]);
+		const std::string IMAGE_FILENAME = std::string(argv[1]);
 
 		const std::regex REG_EXP("(\\.[a-zA-Z_0-9\\.\\\\\\s\\-\\/]+)?[a-zA-Z_0-9\\.\\\\\\s\\-\\/]+?(\\.[a-zA-Z0-9]+)?");
 
-		std::string file_extension = IMAGE_FILE_NAME.length() > 3 ? IMAGE_FILE_NAME.substr(IMAGE_FILE_NAME.length() - 4) : IMAGE_FILE_NAME;
+		std::string file_extension = IMAGE_FILENAME.length() > 3 ? IMAGE_FILENAME.substr(IMAGE_FILENAME.length() - 4) : IMAGE_FILENAME;
 
 		file_extension = file_extension == "jpeg" || file_extension == "jiff" ? ".jpg" : file_extension;
 
-		if (file_extension != ".jpg" || !regex_match(IMAGE_FILE_NAME, REG_EXP)) {
+		if (file_extension != ".jpg" || !regex_match(IMAGE_FILENAME, REG_EXP)) {
 			std::cerr << (file_extension != ".jpg" 
 				? "\nFile Type Error: Invalid file extension found. Expecting only '.jpg'"
 				: "\nInvalid Input Error: Characters not supported by this program found within file name arguments") 
@@ -30,7 +30,7 @@ int main(int argc, char** argv) {
 
 			std::exit(EXIT_FAILURE);
 		}
-		startJdv(IMAGE_FILE_NAME);	
+		startJdv(IMAGE_FILENAME);	
 	} 
 	return 0;
 }
