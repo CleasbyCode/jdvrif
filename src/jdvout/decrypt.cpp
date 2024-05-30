@@ -40,7 +40,7 @@ std::string decryptFile(std::vector<uint_fast8_t>&Image_Vec, std::vector<uint_fa
 
 		if (PROFILE_VEC_SIZE && index_pos == Profile_Headers_Offset_Vec[offset_index]) {
 			index_pos += PROFILE_HEADER_LENGTH; 
-			data_file_size += PROFILE_HEADER_LENGTH; 
+			encrypted_data_file_size += PROFILE_HEADER_LENGTH; 
 			offset_index++;	
 		}	
 	}
