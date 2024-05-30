@@ -25,7 +25,7 @@ int main(int argc, char** argv) {
 		if (file_extension != ".jpg" || !regex_match(IMAGE_FILENAME, REG_EXP)) {
 			std::cerr << (file_extension != ".jpg" 
 				? "\nFile Type Error: Invalid file extension found. Expecting only '.jpg'"
-				: "\nInvalid Input Error: Characters not supported by this program found within file name arguments") 
+				: "\nInvalid Input Error: Characters not supported by this program found within filename arguments") 
 			<< ".\n\n";
 
 			std::exit(EXIT_FAILURE);
