@@ -1,4 +1,4 @@
-std::string decryptFile(std::vector<uint_fast8_t>&Image_Vec, std::vector<uint_fast32_t>&Profile_Headers_Offset_Vec, std::string& encrypted_file_name) {
+std::string decryptFile(std::vector<uint_fast8_t>&Image_Vec, std::vector<uint_fast32_t>&Profile_Headers_Offset_Vec, std::string& encrypted_data_filename) {
 
 	constexpr uint_fast8_t
 		XOR_KEY_LENGTH = 12,		
@@ -6,10 +6,10 @@ std::string decryptFile(std::vector<uint_fast8_t>&Image_Vec, std::vector<uint_fa
 
 	const uint_fast32_t PROFILE_VEC_SIZE = static_cast<uint_fast32_t>(Profile_Headers_Offset_Vec.size());
 
-	const uint_fast8_t ENCRYPTED_NAME_LENGTH = static_cast<uint_fast8_t>(encrypted_file_name.length() - XOR_KEY_LENGTH);
+	const uint_fast8_t ENCRYPTED_DATA_FILENAME_LENGTH = static_cast<uint_fast8_t>(encrypted_data_filename.length() - XOR_KEY_LENGTH);
 
 	uint_fast32_t
-		data_file_size = static_cast<uint_fast32_t>(Image_Vec.size()),
+		encrypted_data_file_size = static_cast<uint_fast32_t>(Image_Vec.size()),
 		offset_index{},
 		decrypt_pos{},
 		index_pos{};
@@ -19,24 +19,24 @@ std::string decryptFile(std::vector<uint_fast8_t>&Image_Vec, std::vector<uint_fa
 		xor_key_pos{},
 		name_key_pos{};
 
-	for (int j = 0, i = ENCRYPTED_NAME_LENGTH; i < ENCRYPTED_NAME_LENGTH + XOR_KEY_LENGTH;) {
-        	xor_key[j++] = encrypted_file_name[i++]; 
+	for (int j = 0, i = ENCRYPTED_DATA_FILENAME_LENGTH; i < ENCRYPTED_DATA_FILENAME_LENGTH + XOR_KEY_LENGTH;) {
+        	xor_key[j++] = encrypted_data_filename[i++]; 
     	}
 
-	std::string decrypted_file_name;
+	std::string decrypted_data_filename;
 
-	while (data_file_size > index_pos) {
+	while (encrypted_data_file_size > index_pos) {
 
-		if (index_pos >= ENCRYPTED_NAME_LENGTH) {
-			name_key_pos = name_key_pos >= ENCRYPTED_NAME_LENGTH ? 0 : name_key_pos;
+		if (index_pos >= ENCRYPTED_DATA_FILENAME_LENGTH) {
+			name_key_pos = name_key_pos >= ENCRYPTED_DATA_FILENAME_LENGTH ? 0 : name_key_pos;
 		} else {
 			std::reverse(std::begin(xor_key), std::end(xor_key));
 
 			xor_key_pos = xor_key_pos >= XOR_KEY_LENGTH ? 0 : xor_key_pos;
-			decrypted_file_name += encrypted_file_name[index_pos] ^ xor_key[xor_key_pos++];
+			decrypted_data_filename += encrypted_data_filename[index_pos] ^ xor_key[xor_key_pos++];
 		}
 
-		Image_Vec[decrypt_pos++] = Image_Vec[index_pos++] ^ encrypted_file_name[name_key_pos++];
+		Image_Vec[decrypt_pos++] = Image_Vec[index_pos++] ^ encrypted_data_filename[name_key_pos++];
 
 		if (PROFILE_VEC_SIZE && index_pos == Profile_Headers_Offset_Vec[offset_index]) {
 			index_pos += PROFILE_HEADER_LENGTH; 
@@ -44,5 +44,5 @@ std::string decryptFile(std::vector<uint_fast8_t>&Image_Vec, std::vector<uint_fa
 			offset_index++;	
 		}	
 	}
-	return decrypted_file_name;
+	return decrypted_data_filename;
 }
