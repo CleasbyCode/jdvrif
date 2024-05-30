@@ -1,8 +1,8 @@
-void startJdv(const std::string& IMAGE_FILE_NAME, std::string& data_file_name, bool isRedditOption) {
+void startJdv(const std::string& IMAGE_FILENAME, std::string& data_filename, bool isRedditOption) {
 
 	const size_t 
-		TMP_IMAGE_FILE_SIZE = std::filesystem::file_size(IMAGE_FILE_NAME),
-		TMP_DATA_FILE_SIZE = std::filesystem::file_size(data_file_name),
+		TMP_IMAGE_FILE_SIZE = std::filesystem::file_size(IMAGE_FILENAME),
+		TMP_DATA_FILE_SIZE = std::filesystem::file_size(data_filename),
 		COMBINED_FILE_SIZE = TMP_DATA_FILE_SIZE + TMP_IMAGE_FILE_SIZE;
 
 	constexpr uint_fast32_t
@@ -28,8 +28,8 @@ void startJdv(const std::string& IMAGE_FILE_NAME, std::string& data_file_name, b
 	}
 	
 	std::ifstream
-		image_file_ifs(IMAGE_FILE_NAME, std::ios::binary),
-		data_file_ifs(data_file_name, std::ios::binary);
+		image_file_ifs(IMAGE_FILENAME, std::ios::binary),
+		data_file_ifs(data_filename, std::ios::binary);
 
 	if (!image_file_ifs || !data_file_ifs) {
 		std::cerr << "\nRead File Error: Unable to read " << (!image_file_ifs 
@@ -83,20 +83,20 @@ void startJdv(const std::string& IMAGE_FILE_NAME, std::string& data_file_name, b
 
 	image_file_size = static_cast<uint_fast32_t>(Image_Vec.size());
 
-	const uint_fast16_t LAST_SLASH_POS = static_cast<uint_fast16_t>(data_file_name.find_last_of("\\/"));
+	const uint_fast8_t LAST_SLASH_POS = static_cast<uint_fast8_t>(data_filename.find_last_of("\\/"));
 
-	if (LAST_SLASH_POS <= data_file_name.length()) {
-		const std::string_view NO_SLASH_NAME(data_file_name.c_str() + (LAST_SLASH_POS + 1), data_file_name.length() - (LAST_SLASH_POS + 1));
-		data_file_name = NO_SLASH_NAME;
+	if (LAST_SLASH_POS <= data_filename.length()) {
+		const std::string_view NO_SLASH_NAME(data_filename.c_str() + (LAST_SLASH_POS + 1), data_filename.length() - (LAST_SLASH_POS + 1));
+		data_filename = NO_SLASH_NAME;
 	}
 
-	constexpr uint_fast8_t MAX_FILE_NAME_LENGTH = 23;
+	constexpr uint_fast8_t MAX_FILENAME_LENGTH = 23;
 
-	const uint_fast16_t DATA_FILE_NAME_LENGTH = static_cast<uint_fast16_t>(data_file_name.length());
+	const uint_fast8_t DATA_FILENAME_LENGTH = static_cast<uint_fast8_t>(data_filename.length());
 
-	if (DATA_FILE_NAME_LENGTH > TMP_DATA_FILE_SIZE || DATA_FILE_NAME_LENGTH > MAX_FILE_NAME_LENGTH) {
+	if (DATA_FILENAME_LENGTH > TMP_DATA_FILE_SIZE || DATA_FILENAME_LENGTH > MAX_FILENAME_LENGTH) {
     		std::cerr << "\nData File Error: " 
-              		<< (DATA_FILE_NAME_LENGTH > MAX_FILE_NAME_LENGTH 
+              		<< (DATA_FILENAME_LENGTH > MAX_FILENAME_LENGTH 
                 	  ? "Length of data filename is too long.\n\nFor compatibility requirements, length of data filename must be under 24 characters"
                   	  : "Size of data file is too small.\n\nFor compatibility requirements, data file size must be greater than the length of the filename")
               		<< ".\n\n";
@@ -151,7 +151,7 @@ void startJdv(const std::string& IMAGE_FILE_NAME, std::string& data_file_name, b
 
 	Profile_Vec.reserve(deflated_file_size + Profile_Vec.size() + 65535);
 
-	encryptFile(Profile_Vec, File_Vec, data_file_name);
+	encryptFile(Profile_Vec, File_Vec, data_filename);
 
 	File_Vec.clear();
 	File_Vec.shrink_to_fit();
@@ -166,9 +166,9 @@ void startJdv(const std::string& IMAGE_FILE_NAME, std::string& data_file_name, b
 
 	const std::string 
 		TIME_VALUE = std::to_string(rand()),
-		EMBEDDED_IMAGE_FILE_NAME = "jrif_" + TIME_VALUE.substr(0, 5) + ".jpg";
+		EMBEDDED_IMAGE_FILENAME = "jrif_" + TIME_VALUE.substr(0, 5) + ".jpg";
 
-	std::ofstream file_ofs(EMBEDDED_IMAGE_FILE_NAME, std::ios::binary);
+	std::ofstream file_ofs(EMBEDDED_IMAGE_FILENAME, std::ios::binary);
 
 	if (!file_ofs) {
 		std::cerr << "\nWrite Error: Unable to write to file.\n\n";
@@ -181,7 +181,7 @@ void startJdv(const std::string& IMAGE_FILE_NAME, std::string& data_file_name, b
 
 	file_ofs.write((char*)&Image_Vec[0], EMBEDDED_IMAGE_SIZE);
 
-	std::cout << "\nSaved file-embedded JPG image: " + EMBEDDED_IMAGE_FILE_NAME + '\x20' + std::to_string(EMBEDDED_IMAGE_SIZE) + " Bytes.\n";
+	std::cout << "\nSaved file-embedded JPG image: " + EMBEDDED_IMAGE_FILENAME + '\x20' + std::to_string(EMBEDDED_IMAGE_SIZE) + " Bytes.\n";
 
 	if (isRedditOption && REDDIT_SIZE >= EMBEDDED_IMAGE_SIZE) {
 		std::cout << "\n**Important**\n\nDue to your option selection, for compatibility reasons\nyou should only post this file-embedded JPG image on Reddit.\n\n";
