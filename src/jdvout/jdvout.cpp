@@ -1,12 +1,12 @@
-void startJdv(const std::string& IMAGE_FILE_NAME) {
+void startJdv(const std::string& IMAGE_FILENAME) {
 
-	const size_t TMP_IMAGE_FILE_SIZE = std::filesystem::file_size(IMAGE_FILE_NAME);
+	const size_t TMP_IMAGE_FILE_SIZE = std::filesystem::file_size(IMAGE_FILENAME);
 	
 	constexpr uint_fast32_t 
 		MAX_FILE_SIZE = 209715200,
 		LARGE_FILE_SIZE = 52428800;
 
-	std::ifstream image_ifs(IMAGE_FILE_NAME, std::ios::binary);
+	std::ifstream image_ifs(IMAGE_FILENAME, std::ios::binary);
 
 	if (!image_ifs || TMP_IMAGE_FILE_SIZE > MAX_FILE_SIZE) {
 		std::cerr << (!image_ifs 
@@ -28,7 +28,7 @@ void startJdv(const std::string& IMAGE_FILE_NAME) {
 		PROFILE_SIG[7]	{ 0x6D, 0x6E, 0x74, 0x72, 0x52, 0x47, 0x42 },	
 		PROFILE_COUNT_VALUE_INDEX = 0x60,	
 		FILE_SIZE_INDEX = 0x66,
-		ENCRYPTED_NAME_INDEX = 0x27,
+		ENCRYPTED_FILENAME_INDEX = 0x27,
 		XOR_KEY_LENGTH = 12;
 
 	constexpr uint_fast16_t	FILE_START_INDEX = 0x26D;
@@ -51,10 +51,10 @@ void startJdv(const std::string& IMAGE_FILE_NAME) {
 		profile_count = (static_cast<uint_fast16_t>(Image_Vec[PROFILE_COUNT_VALUE_INDEX]) << 8) | 
 				static_cast<uint_fast16_t>(Image_Vec[PROFILE_COUNT_VALUE_INDEX + 1]);
 
-	std::string encrypted_file_name = { Image_Vec.begin() + ENCRYPTED_NAME_INDEX, Image_Vec.begin() + ENCRYPTED_NAME_INDEX + Image_Vec[ENCRYPTED_NAME_INDEX - 1] };
+	std::string encrypted_data_filename = { Image_Vec.begin() + ENCRYPTED_FILENAME_INDEX, Image_Vec.begin() + ENCRYPTED_FILENAME_INDEX + Image_Vec[ENCRYPTED_FILENAME_INDEX - 1] };
 
 	for (int i = 0; i < XOR_KEY_LENGTH; ++i) {
-		encrypted_file_name += Image_Vec[xor_key_index++]; 
+		encrypted_data_filename += Image_Vec[xor_key_index++]; 
 	}
 
 	Image_Vec.erase(Image_Vec.begin(), Image_Vec.begin() + FILE_START_INDEX);
@@ -67,13 +67,13 @@ void startJdv(const std::string& IMAGE_FILE_NAME) {
 
 	Image_Vec.erase(Image_Vec.begin() + EMBEDDED_FILE_SIZE, Image_Vec.end());
 
-	std::string decrypted_file_name = decryptFile(Image_Vec, Profile_Headers_Offset_Vec, encrypted_file_name);
+	std::string decrypted_data_filename = decryptFile(Image_Vec, Profile_Headers_Offset_Vec, encrypted_data_filename);
 	
 	uint_fast32_t inflated_file_size = inflateFile(Image_Vec);
 
 	std::reverse(Image_Vec.begin(), Image_Vec.end());
 	
-	std::ofstream file_ofs(decrypted_file_name, std::ios::binary);
+	std::ofstream file_ofs(decrypted_data_filename, std::ios::binary);
 
 	if (!file_ofs) {
 		std::cerr << "\nWrite Error: Unable to write to file.\n\n";
@@ -82,5 +82,5 @@ void startJdv(const std::string& IMAGE_FILE_NAME) {
 
 	file_ofs.write((char*)&Image_Vec[0], inflated_file_size);
 
-	std::cout << "\nExtracted hidden file: " + decrypted_file_name + '\x20' + std::to_string(inflated_file_size) + " Bytes.\n\nComplete! Please check your file.\n\n";
+	std::cout << "\nExtracted hidden file: " + decrypted_data_filename + '\x20' + std::to_string(inflated_file_size) + " Bytes.\n\nComplete! Please check your file.\n\n";
 }
