@@ -4,7 +4,7 @@ uint_fast32_t inflateFile(std::vector<uint_fast8_t>& Vec) {
 
 	std::vector<uint_fast8_t>Buffer_Vec;
 
-	constexpr uint_fast32_t BUFSIZE = 524288;
+	constexpr uint_fast32_t BUFSIZE = 2097152;
 
 	uint_fast8_t* temp_buffer{ new uint_fast8_t[BUFSIZE] };
 
