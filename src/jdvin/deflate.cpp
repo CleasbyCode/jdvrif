@@ -4,7 +4,7 @@ uint_fast32_t deflateFile(std::vector<uint_fast8_t>& Vec) {
 	
 	std::vector<uint_fast8_t>Buffer_Vec;
 
-	constexpr uint_fast32_t BUFSIZE = 524288;
+	constexpr uint_fast32_t BUFSIZE = 2097152;
 
 	uint_fast8_t* temp_buffer{ new uint_fast8_t[BUFSIZE] };
 
@@ -16,7 +16,7 @@ uint_fast32_t deflateFile(std::vector<uint_fast8_t>& Vec) {
 	strm.next_out = temp_buffer;
 	strm.avail_out = BUFSIZE;
 
-	deflateInit(&strm, 9); // Compression level 9
+	deflateInit(&strm, 6); // Compression level 6
 	
 	while (strm.avail_in)
 	{
