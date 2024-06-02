@@ -22,15 +22,18 @@ int main(int argc, char** argv) {
 
 		file_extension = file_extension == "jpeg" || file_extension == "jiff" ? ".jpg" : file_extension;
 
-		if (file_extension != ".jpg" || !regex_match(IMAGE_FILENAME, REG_EXP)) {
+		if (file_extension == ".jpg" && regex_match(IMAGE_FILENAME, REG_EXP) && std::filesystem::exists(IMAGE_FILENAME)) {
+			startJdv(IMAGE_FILENAME);
+		} else {
 			std::cerr << (file_extension != ".jpg" 
-				? "\nFile Type Error: Invalid file extension found. Expecting only '.jpg'"
-				: "\nInvalid Input Error: Characters not supported by this program found within filename arguments") 
-			<< ".\n\n";
+				? "\nFile Type Error: Invalid file extension found. Expecting only \"jpg\""
+				: !regex_match(IMAGE_FILENAME, REG_EXP)
+					? "\nInvalid Input Error: Characters not supported by this program found within filename arguments"
+						: "\nImage File Error: File not found. Check the filename and try again")
+			 << ".\n\n";
 
 			std::exit(EXIT_FAILURE);
 		}
-		startJdv(IMAGE_FILENAME);	
 	} 
 	return 0;
 }
