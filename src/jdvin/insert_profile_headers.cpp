@@ -46,6 +46,8 @@ void insertProfileHeaders(std::vector<uint_fast8_t>&Profile_Vec, std::vector<uin
 		
 		if (last_block_size > BLOCK_SIZE * 2) {
 			
+			last_block_size += (PROFILE_HEADER_LENGTH * 2) - 2;
+			
 			File_Vec.insert(File_Vec.begin() + block_tally, std::begin(ICC_PROFILE_HEADER), std::end(ICC_PROFILE_HEADER));
 			profile_header_insert_tally++;
 
@@ -57,7 +59,9 @@ void insertProfileHeaders(std::vector<uint_fast8_t>&Profile_Vec, std::vector<uin
 			Value_Updater(File_Vec, block_tally + 2, last_block_size, bits);	
 		
 		} else if (last_block_size > BLOCK_SIZE) {
-
+			
+			last_block_size += PROFILE_HEADER_LENGTH - 1;
+			
 			File_Vec.insert(File_Vec.begin() + block_tally, std::begin(ICC_PROFILE_HEADER), std::end(ICC_PROFILE_HEADER));
 			profile_header_insert_tally++;
 
