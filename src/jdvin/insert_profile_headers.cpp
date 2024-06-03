@@ -70,8 +70,7 @@ void insertProfileHeaders(std::vector<uint_fast8_t>&Profile_Vec, std::vector<uin
 		} else {  
 
 			block_tally -= BLOCK_SIZE;
-			Value_Updater(File_Vec, block_tally + 2, last_block_size, bits);
-			
+			Value_Updater(File_Vec, block_tally + 2, last_block_size, bits);		
 		}
 
 		Value_Updater(File_Vec, PROFILE_TALLY_INDEX, profile_header_insert_tally, bits);
