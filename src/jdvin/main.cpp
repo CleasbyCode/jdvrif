@@ -34,7 +34,7 @@ int main(int argc, char** argv) {
 			<< ".\n\n";
 		} else if (!regex_match(IMAGE_FILENAME, REG_EXP) || !regex_match(data_filename, REG_EXP)) {
 			std::cerr << "\nInvalid Input Error: Characters not supported by this program found within filename arguments.\n\n";
-		} else if (!std::filesystem::exists(IMAGE_FILENAME) || !std::filesystem::exists(data_filename)) {
+		} else if (!std::filesystem::exists(IMAGE_FILENAME) || !std::filesystem::exists(data_filename) || !std::filesystem::is_regular_file(data_filename)) {
 			std::cerr << (!std::filesystem::exists(IMAGE_FILENAME) 
 				? "\nImage"
 				: "\nData") 
