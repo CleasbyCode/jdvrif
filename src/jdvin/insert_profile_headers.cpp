@@ -20,8 +20,8 @@ void insertProfileHeaders(std::vector<uint_fast8_t>&Profile_Vec, std::vector<uin
 			PROFILE_HEADER_BLOCK_SIZE = PROFILE_VECTOR_SIZE - (PROFILE_HEADER_LENGTH + 4),
 			PROFILE_BLOCK_SIZE = PROFILE_HEADER_BLOCK_SIZE - 16;
 
-		Value_Updater(Profile_Vec, PROFILE_HEADER_SIZE_INDEX, PROFILE_HEADER_BLOCK_SIZE, bits);
-		Value_Updater(Profile_Vec, PROFILE_SIZE_INDEX, PROFILE_BLOCK_SIZE, bits);
+		valueUpdater(Profile_Vec, PROFILE_HEADER_SIZE_INDEX, PROFILE_HEADER_BLOCK_SIZE, bits);
+		valueUpdater(Profile_Vec, PROFILE_SIZE_INDEX, PROFILE_BLOCK_SIZE, bits);
 
 		File_Vec.swap(Profile_Vec);
 		
@@ -56,7 +56,7 @@ void insertProfileHeaders(std::vector<uint_fast8_t>&Profile_Vec, std::vector<uin
 			File_Vec.insert(File_Vec.begin() + block_tally, std::begin(ICC_PROFILE_HEADER), std::end(ICC_PROFILE_HEADER));
 			profile_header_insert_tally++;
 
-			Value_Updater(File_Vec, block_tally + 2, last_block_size, bits);	
+			valueUpdater(File_Vec, block_tally + 2, last_block_size, bits);	
 		
 		} else if (last_block_size > BLOCK_SIZE) {
 			
@@ -65,17 +65,17 @@ void insertProfileHeaders(std::vector<uint_fast8_t>&Profile_Vec, std::vector<uin
 			File_Vec.insert(File_Vec.begin() + block_tally, std::begin(ICC_PROFILE_HEADER), std::end(ICC_PROFILE_HEADER));
 			profile_header_insert_tally++;
 
-			Value_Updater(File_Vec, block_tally + 2, last_block_size, bits);	
+			valueUpdater(File_Vec, block_tally + 2, last_block_size, bits);	
 		
 		} else {  
 
 			block_tally -= BLOCK_SIZE;
-			Value_Updater(File_Vec, block_tally + 2, last_block_size, bits);		
+			valueUpdater(File_Vec, block_tally + 2, last_block_size, bits);		
 		}
 
-		Value_Updater(File_Vec, PROFILE_TALLY_INDEX, profile_header_insert_tally, bits);
+		valueUpdater(File_Vec, PROFILE_TALLY_INDEX, profile_header_insert_tally, bits);
 	}
 
 	bits = 32; 
-	Value_Updater(File_Vec, PROFILE_DATA_SIZE_INDEX, deflated_file_size, bits);
+	valueUpdater(File_Vec, PROFILE_DATA_SIZE_INDEX, deflated_file_size, bits);
 }
