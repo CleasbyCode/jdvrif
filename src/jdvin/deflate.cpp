@@ -3,6 +3,7 @@
 uint_fast32_t deflateFile(std::vector<uint_fast8_t>& Vec) {
 	
 	std::vector<uint_fast8_t>Buffer_Vec;
+	Buffer_Vec.reserve(Vec.size());
 
 	constexpr uint_fast32_t BUFSIZE = 2097152;
 
