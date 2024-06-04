@@ -25,6 +25,6 @@ void
 	startJdv(const std::string&, std::string&, bool),
 	encryptFile(std::vector<uint_fast8_t>&, std::vector<uint_fast8_t>&, std::string&),
 	insertProfileHeaders(std::vector<uint_fast8_t>&, std::vector<uint_fast8_t>&, uint_fast32_t),
-	Value_Updater(std::vector<uint_fast8_t>&, uint_fast32_t, const uint_fast32_t, uint_fast8_t),
+	valueUpdater(std::vector<uint_fast8_t>&, uint_fast32_t, const uint_fast32_t, uint_fast8_t),
 	displayInfo();
 
