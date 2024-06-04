@@ -46,5 +46,4 @@ int main(int argc, char** argv) {
 	} else {
 		std::cout << "\nUsage: jdvin [-r] <cover_image> <data_file>\n\t\bjdvin --info\n\n";
 	}
-     return 0;	
 }
