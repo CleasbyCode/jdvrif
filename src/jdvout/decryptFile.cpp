@@ -26,7 +26,6 @@ std::string decryptFile(std::vector<uint_fast8_t>&Image_Vec, std::vector<uint_fa
 	std::string decrypted_data_filename;
 
 	while (encrypted_data_file_size > index_pos) {
-
 		if (index_pos >= ENCRYPTED_DATA_FILENAME_LENGTH) {
 			name_key_pos = name_key_pos >= ENCRYPTED_DATA_FILENAME_LENGTH ? 0 : name_key_pos;
 		} else {
