@@ -2,7 +2,7 @@ void displayInfo() {
 
 	std::cout << R"(
 
-JPG Data Vehicle (jdvin v1.0.3). 
+JPG Data Vehicle (jdvin v1.0.4). 
 Created by Nicholas Cleasby (@CleasbyCode) 24/01/2023.
 
 A steganography-like CLI tool to embed & hide any file type within a JPG image.  
