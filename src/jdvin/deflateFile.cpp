@@ -1,5 +1,4 @@
 // zlib function, see https://zlib.net/
-
 uint_fast32_t deflateFile(std::vector<uint_fast8_t>& Vec) {
 	
 	std::vector<uint_fast8_t>Buffer_Vec;
