@@ -1,4 +1,4 @@
-//	JPG Data Vehicle (jdvin v1.0.3) Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
+//	JPG Data Vehicle (jdvin v1.0.4) Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
 //
 //	To compile program (Linux):
 // 	$ g++ main.cpp -O2 -lz -s -o jdvin
@@ -9,7 +9,6 @@
 #include "jdvin.h"
 
 int main(int argc, char** argv) {
-
 	if (argc == 2 && std::string(argv[1]) == "--info") {
 		displayInfo();
 	} else if (argc > 2 && argc < 5) {
