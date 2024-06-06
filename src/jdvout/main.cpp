@@ -20,7 +20,7 @@ int main(int argc, char** argv) {
 
 		std::string file_extension = IMAGE_FILENAME.length() > 3 ? IMAGE_FILENAME.substr(IMAGE_FILENAME.length() - 4) : IMAGE_FILENAME;
 
-		file_extension = file_extension == "jpeg" || file_extension == "jiff" ? ".jpg" : file_extension;
+		file_extension = file_extension == "jpeg" || file_extension == "jfif" ? ".jpg" : file_extension;
 
 		if (file_extension == ".jpg" && regex_match(IMAGE_FILENAME, REG_EXP) && std::filesystem::exists(IMAGE_FILENAME)) {
 			startJdv(IMAGE_FILENAME);
