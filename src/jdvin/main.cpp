@@ -24,7 +24,7 @@ int main(int argc, char** argv) {
 			image_file_extension = IMAGE_FILENAME.length() > 3 ? IMAGE_FILENAME.substr(IMAGE_FILENAME.length() - 4) : IMAGE_FILENAME,
 			data_filename = isRedditOption ? argv[3] : argv[2];
 
-		image_file_extension = image_file_extension == "jpeg" || image_file_extension == "jiff" ? ".jpg" : image_file_extension;
+		image_file_extension = image_file_extension == "jpeg" || image_file_extension == "jfif" ? ".jpg" : image_file_extension;
 
 		if (image_file_extension != ".jpg" || (argc > 3 && std::string(argv[1]) != "-r")) {
 			std::cerr << (image_file_extension != ".jpg" 
