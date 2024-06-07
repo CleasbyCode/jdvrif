@@ -65,7 +65,7 @@ Extracted hidden file: workflow.rar 4225 Bytes.
 Complete! Please check your file.
 
 ```
-![Demo Image2](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/screen.png) 
+![Demo Image2](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/new_screen.png) 
 ![Demo Image3](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/screen2.png)  
 
 **Issues:**
