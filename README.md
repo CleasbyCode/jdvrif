@@ -25,7 +25,7 @@ With **Twitter**, the size limit (~10KB) is measured by the **data file size** a
 As the data file is compressed when embedded, you should be able to embed files large than 10KB.   
 For example, a 30KB workflow.json file compressed down to under 10KB.
 
-Also with Mastodon. The size limit (~6MB) is measured by the **data file size** and not the combined image size.
+Also with Mastodon, the size limit (~6MB) is measured by the **data file size** and not the combined image size.  
 For example, if your cover image is 2MB you can still embeded a data file upto ~6MB.
 
 *(You can try **jdvrif** from this [**site**](https://cleasbycode.co.uk/jdvrif/index/) if you don't want to download & compile the source code.)*
