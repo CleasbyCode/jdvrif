@@ -5,7 +5,7 @@ You can post your image with hidden data on ***Mastodon*** and a few other socia
 
 \***Image size limits (cover image + data file):**
 * *Flickr (200MB), \*ImgPile (100MB), ImgBB (32MB), PostImage (24MB), \*Reddit (20MB / -r option)*,
-* *Mastodon (16MB), \*Twitter (~10KB / Limit measured by data file size).*
+* *Mastodon (~6MB / Limit measured by data file size), \*Twitter (~10KB / Limit measured by data file size).*
   
 **jdvrif** partly derives from the ***[technique](https://www.vice.com/en/article/bj4wxm/tiny-picture-twitter-complete-works-of-shakespeare-steganography)*** discovered by security researcher ***[David Buchanan](https://www.da.vidbuchanan.co.uk/).*** 
 
@@ -19,9 +19,14 @@ Always select the "***Images & Video***" tab on Reddit to post these images.
 When **saving** images from **Reddit**, use the **new.reddit.com site**, click the image in the post to expand it, then save it.  
 You should see the filename with a *.jpeg* extension in the address bar of your browser.  
 
-With **Twitter**, the size limit (~10KB) is measured by the **data file size** and not the image size. 
-
 To correctly download an image from **Twitter**, click the image in the post to fully expand it, before saving.
+
+With **Twitter**, the size limit (~10KB) is measured by the **data file size** and not the combined image size. 
+As the data file is compressed when embedded, you should be able to embed files large than 10KB. 
+For example, a 30KB workflow.json file compressed down to under 10KB.
+
+It's also the same with Mastodon. The size limit (~6MB) is measured by the **data file size** and not the combined image size.
+For example, if your cover image is 2MB you can still embeded a data file upto ~6MB.
 
 *(You can try **jdvrif** from this [**site**](https://cleasbycode.co.uk/jdvrif/index/) if you don't want to download & compile the source code.)*
 
