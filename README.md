@@ -21,8 +21,8 @@ You should see the filename with a *.jpeg* extension in the address bar of your 
 
 To correctly download an image from **Twitter**, click the image in the post to fully expand it, before saving.
 
-With **Twitter**, the size limit (~10KB) is measured by the **data file size** and not the combined image size. 
-As the data file is compressed when embedded, you should be able to embed files large than 10KB. 
+With **Twitter**, the size limit (~10KB) is measured by the **data file size** and not the combined image size.   
+As the data file is compressed when embedded, you should be able to embed files large than 10KB.   
 For example, a 30KB workflow.json file compressed down to under 10KB.
 
 It's also the same with Mastodon. The size limit (~6MB) is measured by the **data file size** and not the combined image size.
