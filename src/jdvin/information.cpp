@@ -2,7 +2,7 @@ void displayInfo() {
 
 	std::cout << R"(
 
-JPG Data Vehicle (jdvin v1.0.4). 
+JPG Data Vehicle (jdvin v1.0.5). 
 Created by Nicholas Cleasby (@CleasbyCode) 24/01/2023.
 
 A steganography-like CLI tool to embed & hide any file type within a JPG image.  
@@ -19,11 +19,11 @@ Post your file-embedded image on the following compatible sites.
 *Image size limits(cover image + data file):
 
 Flickr (200MB), *ImgPile (100MB), ImgBB (32MB), PostImage (24MB), *Reddit (20MB / requires -r option), 
-Mastodon (16MB), *X/Twitter (~10KB / *Limit measured by data file size).
+Mastodon (~6MB / Limit measured by data file size), *X/Twitter (~10KB / Limit measured by data file size).
 
 Arguments / options:	
 		
-To post/share file-embedded PNG images on Reddit, you need to use the -r option.	
+To post/share file-embedded JPG images on Reddit, you need to use the -r option.	
 		
 -r = Reddit option, (jdvin -r cover_image.jpg data_file.doc).
 		
