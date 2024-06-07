@@ -4,8 +4,8 @@ CLI tools to hide (*jdvin*) or extract (*jdvout*) any file type via a JPG image.
 You can post your image with hidden data on ***Mastodon*** and a few other social media sites.
 
 \***Image size limits (cover image + data file):**
-* *Flickr (200MB), \*ImgPile (100MB), ImgBB (32MB), PostImage (24MB), \*Reddit (20MB / -r option)*,
-* *Mastodon (~6MB / Limit measured by data file size), \*Twitter (~10KB / Limit measured by data file size).*
+* *Flickr (200MB), ImgPile (100MB), ImgBB (32MB), PostImage (24MB), Reddit (20MB / -r option)*,
+* *Mastodon (~6MB / Limit measured by data file size), Twitter (~10KB / Limit measured by data file size).*
   
 **jdvrif** partly derives from the ***[technique](https://www.vice.com/en/article/bj4wxm/tiny-picture-twitter-complete-works-of-shakespeare-steganography)*** discovered by security researcher ***[David Buchanan](https://www.da.vidbuchanan.co.uk/).*** 
 
