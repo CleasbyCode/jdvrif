@@ -16,7 +16,11 @@ void insertProfileHeaders(std::vector<uint_fast8_t>&Profile_Vec, std::vector<uin
 	constexpr uint_fast32_t BLOCK_SIZE = 65519 + PROFILE_HEADER_LENGTH;
 	
 	uint_fast8_t bits = 16;	
-
+	
+	std::string 
+		platform = (MASTODON_PROFILE_INSERT_LIMIT * BLOCK_SIZE) > PROFILE_VECTOR_SIZE ? "X/Twitter" : "X/Twitter or Mastodon",
+		size_limit_err_msg = "\nWarning: Output image not compatible with " + platform + ". Embedded data file exceeds size limit.\n";
+		
 	if (BLOCK_SIZE + JPG_HEADER_LENGTH >= PROFILE_VECTOR_SIZE) {
 		const uint_fast32_t
 			PROFILE_HEADER_BLOCK_SIZE = PROFILE_VECTOR_SIZE - (PROFILE_HEADER_LENGTH + 4),
@@ -26,21 +30,23 @@ void insertProfileHeaders(std::vector<uint_fast8_t>&Profile_Vec, std::vector<uin
 		valueUpdater(Profile_Vec, PROFILE_SIZE_INDEX, PROFILE_BLOCK_SIZE, bits);
 
 		if (PROFILE_HEADER_BLOCK_SIZE > TWITTER_DATA_SIZE_LIMIT) {
-			std::cout << "\nWarning: Output image is not compatible with X/Twitter. Embedded data file exceeds the size limit.\n";
+			std::cerr << size_limit_err_msg;
 		}
 
 		File_Vec.swap(Profile_Vec);
 		
 	} else {
 
-		std::cout << "\nWarning: Output image is not compatible with X/Twitter. Embedded data file exceeds the size limit.\n";
+		std::cerr << size_limit_err_msg;
 
 		std::vector<uint_fast8_t>Profile_Header_Vec = { 0xFF, 0xE2, 0xFF, 0xFF, 0x49, 0x43, 0x43, 0x5F, 0x50, 0x52, 0x4F, 0x46, 0x49, 0x4C, 0x45, 0x00, 0x01, 0x01 };
+		
+		uint_fast8_t profile_count_header_insert_index = 0x0F;
+
+		uint_fast16_t profile_count = 1;
 
 		uint_fast32_t 
 			byte_index{},
-			profile_count = 1,
-			profile_count_header_insert_index = 0x0F,
 			profile_header_insert_tally = PROFILE_VECTOR_SIZE / BLOCK_SIZE,
 			profile_header_total_byte_value = profile_header_insert_tally * PROFILE_HEADER_LENGTH,
 			block_tally = BLOCK_SIZE + JPG_HEADER_LENGTH,
@@ -96,10 +102,10 @@ void insertProfileHeaders(std::vector<uint_fast8_t>&Profile_Vec, std::vector<uin
 			block_tally -= BLOCK_SIZE;
 			valueUpdater(File_Vec, block_tally + 2, last_block_size, bits);		
 		}
-
+		
 		valueUpdater(File_Vec, PROFILE_TALLY_INDEX, profile_header_insert_tally, bits);
 		if (profile_header_insert_tally + 1 > MASTODON_PROFILE_INSERT_LIMIT) {
-			std::cout << "\nWarning: Output image is not compatible with Mastodon. Embedded data file exceeds the size limit.\n";
+			std::cerr << size_limit_err_msg;
 		}
 	}
 
