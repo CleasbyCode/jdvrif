@@ -188,6 +188,6 @@ void startJdv(const std::string& IMAGE_FILENAME, std::string& data_filename, boo
 	if (isRedditOption && REDDIT_SIZE >= EMBEDDED_IMAGE_SIZE) {
 		std::cout << "\n**Important**\n\nDue to your option selection, for compatibility reasons\nyou should only post this file-embedded JPG image on Reddit.\n\n";
 	} else {
-		std::cout << "\nComplete!\n\nYou can now post your file-embedded JPG image on the relevant supported platforms.\n\n";	
+		std::cout << "\nComplete!\n\n";	
 	}	
 }
