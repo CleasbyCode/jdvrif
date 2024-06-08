@@ -49,8 +49,6 @@ Saved file-embedded JPG image: jrif_28597.jpg 176345 Bytes.
 
 Complete!
 
-You can now post your file-embedded JPG image on the relevant supported platforms.
-
 user1@linuxbox:~/Downloads/jdvrif-main/src/jdvout$ g++ main.cpp -O2 -lz -s -o jdvout
 user1@linuxbox:~/Downloads/jdvrif-main/src/jdvout$ sudo cp jdvout /usr/bin
 
