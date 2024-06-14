@@ -108,7 +108,6 @@ void insertProfileHeaders(std::vector<uint_fast8_t>&Profile_Vec, std::vector<uin
 			File_Vec[profile_total_insert_index] = profile_header_insert_tally > profile_tally_update_max ? profile_tally_update_max : profile_header_insert_tally;
 		}	
 	}
-
 	bits = 32; 
 	valueUpdater(File_Vec, PROFILE_DATA_SIZE_INDEX, deflated_file_size, bits);
 }
