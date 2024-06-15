@@ -19,7 +19,7 @@ Post your file-embedded image on the following compatible sites.
 *Image size limits(cover image + data file):
 
 Flickr (200MB), *ImgPile (100MB), ImgBB (32MB), PostImage (24MB), *Reddit (20MB / requires -r option), 
-Mastodon (16MB), *X/Twitter (~10KB / *Limit measured by data file size).
+Mastodon (~6MB), *X/Twitter (~10KB / *Limit measured by data file size).
 
 Arguments / options:	
 		
