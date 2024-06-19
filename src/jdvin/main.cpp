@@ -1,4 +1,4 @@
-//	JPG Data Vehicle (jdvin v1.0.5) Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
+//	JPG Data Vehicle (jdvin v1.0.6) Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
 //
 //	To compile program (Linux):
 // 	$ g++ main.cpp -O2 -lz -s -o jdvin
