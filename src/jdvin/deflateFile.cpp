@@ -1,5 +1,5 @@
 // zlib function, see https://zlib.net/
-void deflateFile(std::vector<uint_fast8_t>& Vec) {
+void deflateFile(std::vector<uint_fast8_t>& Vec, const std::string DATA_FILE_EXTENSION) {
 	
 	std::vector<uint_fast8_t>Buffer_Vec;
 	Buffer_Vec.reserve(Vec.size());
@@ -16,7 +16,11 @@ void deflateFile(std::vector<uint_fast8_t>& Vec) {
 	strm.next_out = temp_buffer;
 	strm.avail_out = BUFSIZE;
 
-	deflateInit(&strm, 6); // Compression level 6
+	if (DATA_FILE_EXTENSION == ".zip" || DATA_FILE_EXTENSION == ".rar") {
+		deflateInit(&strm, 0); // Compression off.
+	} else {
+		deflateInit(&strm, 6); // Compression level 6
+	}
 	
 	while (strm.avail_in)
 	{
