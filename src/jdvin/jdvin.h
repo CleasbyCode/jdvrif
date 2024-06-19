@@ -30,7 +30,7 @@ uint_fast32_t searchFunc(std::vector<uint_fast8_t>&, uint_fast32_t, uint_fast8_t
 void
 	startJdv(const std::string&, std::string&, bool),
 	eraseSegments(std::vector<uint_fast8_t>&, bool&),
-	deflateFile(std::vector<uint_fast8_t>&),
+	deflateFile(std::vector<uint_fast8_t>&, const std::string),
 	encryptFile(std::vector<uint_fast8_t>&, std::vector<uint_fast8_t>&, std::string&),
 	insertProfileHeaders(std::vector<uint_fast8_t>&, std::vector<uint_fast8_t>&),
 	writeOutFile(std::vector<uint_fast8_t>&),
