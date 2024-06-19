@@ -5,7 +5,7 @@ You can post your image with hidden data on ***Mastodon*** and a few other socia
 
 \***Image size limits (cover image + data file):**
 * *Flickr (200MB), ImgPile (100MB), ImgBB (32MB), PostImage (24MB), Reddit (20MB / -r option)*,
-* *Mastodon (~6MB / Limit measured by data file size), Twitter (~10KB / Limit measured by data file size).*
+* Limit measured by data file size: *Mastodon (~6MB), Tumblr (~62KB), Twitter (~10KB).*
   
 **jdvrif** partly derives from the ***[technique](https://www.vice.com/en/article/bj4wxm/tiny-picture-twitter-complete-works-of-shakespeare-steganography)*** discovered by security researcher ***[David Buchanan](https://www.da.vidbuchanan.co.uk/).*** 
 
