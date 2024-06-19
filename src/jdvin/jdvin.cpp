@@ -83,7 +83,9 @@ void startJdv(const std::string& IMAGE_FILENAME, std::string& data_filename, boo
 
 	std::reverse(File_Vec.begin(), File_Vec.end());
 
-	deflateFile(File_Vec);
+	const std::string DATA_FILE_EXTENSION = data_filename.length() > 3 ? data_filename.substr(data_filename.length() - 4) : data_filename;
+	
+	deflateFile(File_Vec, DATA_FILE_EXTENSION);
 	
 	if (isKdak_Profile) {
 		Profile_Vec.swap(Profile_Kdak_Vec);
