@@ -111,6 +111,10 @@ void insertProfileHeaders(std::vector<uint_fast8_t>&Profile_Vec, std::vector<uin
 			profile_total_insert_index = searchFunc(File_Vec, profile_total_insert_index, pos_addition, ICC_PROFILE_SIG) + profile_total_insert_index_diff;
 			File_Vec[profile_total_insert_index] = profile_header_insert_tally > profile_tally_update_max ? profile_tally_update_max : profile_header_insert_tally;
 		}	
+		
+		if (profile_header_insert_tally > 100) {
+			std::cout << "\n**Warning**\n\nEmbedded image is not compatible with Mastodon. Image file exceeds platform size limit.\n";
+		}   
 	}
 	
 	bits = 32; 
