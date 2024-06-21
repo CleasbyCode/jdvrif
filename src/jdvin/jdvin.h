@@ -19,7 +19,6 @@
 #include "valueUpdater.cpp"
 #include "encryptFile.cpp"
 #include "deflateFile.cpp"
-
 #include "insertProfileHeaders.cpp"
 #include "information.cpp"
 #include "jdvin.cpp"
