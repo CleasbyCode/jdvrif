@@ -14,11 +14,8 @@ You can post your image with hidden data on ***Mastodon*** and a few other socia
 
 Demo Videos: [***Mastodon (hidden jpg)***](https://youtu.be/XUUbSXQuD1g) / [***X/Twitter (hidden workflow.json)***](https://youtu.be/Ajn5F1BO0Zg) / [***Web Tool***](https://youtu.be/WvZMRp7Z6W4)  
 
-To **post/share** file-embedded JPG images on **Reddit**, you must use the **-r** option.  
-Always select the "***Images & Video***" tab on Reddit to post these images.
-
-When **saving** images from **Reddit**, use the **new.reddit.com site**, click the image in the post to expand it, then save it.  
-You should see the filename with a *.jpeg* extension in the address bar of your browser.  
+To **post/share** file-embedded JPG images on **Reddit**, you must use the **-r** option with jdvin.  
+Select the "***Images & Video***" tab on Reddit to post these images.
 
 To correctly download an image from **Twitter**, click the image in the post to fully expand it, before saving.
 
@@ -68,7 +65,6 @@ Complete! Please check your file.
 ![Demo Image3](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/screen2.png)  
 
 **Issues:**
-* **Reddit -** *While you can upload JPG images via the mobile app, you need to use the Desktop/browser to download them (new.reddit.com).*
 * **ImgPile -** *You must sign in to an account before sharing your data-embedded JPG image on ImgPile*.  
 *Sharing your image without logging in, your embedded data will not be preserved.*
 
