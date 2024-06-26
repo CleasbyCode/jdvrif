@@ -12,7 +12,7 @@ You can post your image with hidden data on ***Mastodon*** and a few other socia
 ![Demo Image](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/jrif_11865.jpg)  
 *Image credit:* [***@altphotos_pl***](https://x.com/altphotos_pl)
 
-Demo Videos: [***Mastodon***](https://youtu.be/XUUbSXQuD1g) / [***X/Twitter***](https://youtu.be/Ajn5F1BO0Zg) / [***Reddit***](https://youtu.be/xIUsa3F8ZQc) / [***Tumblr***](https://youtu.be/X4TL3EkcXtQ) / [***Web Tool***](https://youtu.be/WvZMRp7Z6W4)  
+Demo Videos: [***Mastodon***](https://youtu.be/XUUbSXQuD1g) / [***X/Twitter***](https://youtu.be/Ajn5F1BO0Zg) / [***Reddit***](https://youtu.be/xIUsa3F8ZQc) / [***Tumblr***](https://youtu.be/X4TL3EkcXtQ) / [***Flickr***](https://youtu.be/kg_MJHQuzLY) / [***Web Tool***](https://youtu.be/WvZMRp7Z6W4)  
 
 To **post/share** file-embedded JPG images on **Reddit**, you must use the **-r** option with jdvin.  
 Select the "***Images & Video***" tab on Reddit to post these images.
