@@ -17,7 +17,7 @@ Demo Videos: [***Mastodon***](https://youtu.be/XUUbSXQuD1g) / [***X/Twitter***](
 To **post/share** file-embedded JPG images on **Reddit**, you must use the **-r** option with jdvin.  
 Select the "***Images & Video***" tab on Reddit to post these images.
 
-To correctly download an image from **Twitter**, click the image in the post to fully expand it, before saving.
+To correctly download an image from ***X/Twitter*** or ***Reddit***, click the image in the post to fully expand it, before saving.
 
 With **Twitter**, the size limit (~10KB) is measured by the **data file size** and not the combined image size.   
 As the data file is compressed when embedded, you should be able to hide files larger than 10KB.   
