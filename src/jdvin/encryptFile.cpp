@@ -4,9 +4,7 @@ void encryptFile(std::vector<uint_fast8_t>& Profile_Vec, std::vector<uint_fast8_
  	std::mt19937 gen(rd());
 	std::uniform_int_distribution<unsigned short> dis(1, 255); 
 	
-	constexpr uint_fast16_t 
-		PROFILE_XOR_KEY_INSERT_INDEX = 0x260,
-		PROFILE_VEC_SIZE = 663;	
+	constexpr uint_fast16_t PROFILE_XOR_KEY_INSERT_INDEX = 0x260;	
 
 	constexpr uint_fast8_t 
 		XOR_KEY_LENGTH = 12,
