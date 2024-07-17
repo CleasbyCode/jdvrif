@@ -6,9 +6,9 @@ void startJdv(const std::string& IMAGE_FILENAME, std::string& data_filename, boo
 		COMBINED_FILE_SIZE = DATA_FILE_SIZE + IMAGE_FILE_SIZE;
 
 	constexpr uint_fast32_t
-		MAX_FILE_SIZE = 209715200, 
+		MAX_FILE_SIZE = 1073741824, 
 		MAX_FILE_SIZE_REDDIT = 20971520, 
-		LARGE_FILE_SIZE = 52428800;
+		LARGE_FILE_SIZE = 104857600;
 
 	constexpr uint_fast8_t JPG_MIN_FILE_SIZE = 134;
 	
@@ -21,7 +21,7 @@ void startJdv(const std::string& IMAGE_FILENAME, std::string& data_filename, boo
 	        		: "Combined size of image and data file exceeds the maximum limit of "
         	    		+ std::string(isRedditOption 
                 			? "20MB"
-	                		: "200MB"))
+	                		: "1GB"))
 			<< ".\n\n";
 
     		std::exit(EXIT_FAILURE);
