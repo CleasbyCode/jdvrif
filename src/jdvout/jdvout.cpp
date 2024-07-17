@@ -3,8 +3,8 @@ void startJdv(const std::string& IMAGE_FILENAME) {
 	const size_t TMP_IMAGE_FILE_SIZE = std::filesystem::file_size(IMAGE_FILENAME);
 	
 	constexpr uint_fast32_t 
-		MAX_FILE_SIZE = 809715200,
-		LARGE_FILE_SIZE = 52428800;
+		MAX_FILE_SIZE = 2147483648,
+		LARGE_FILE_SIZE = 104857600;
 
 	std::ifstream image_ifs(IMAGE_FILENAME, std::ios::binary);
 
