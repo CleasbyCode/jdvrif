@@ -1,4 +1,4 @@
-//	JPG Data Vehicle (jdvout v1.0.7) Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
+//	JPG Data Vehicle (jdvout v1.0.8) Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
 //
 //	To compile program (Linux):
 // 	$ g++ main.cpp -O2 -lz -s -o jdvout
