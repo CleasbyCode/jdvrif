@@ -3,7 +3,7 @@
 CLI tools to hide (*jdvin*) or extract (*jdvout*) any file type via a JPG image.  
 You can post your image with hidden data on ***Mastodon*** and a few other social media sites.
 
-**With ***jdvin***, you can embed a single file of any type upto a maximum size of 1GB.**  
+**With ***jdvin***, you can embed a single file of any type with a maximum size of 1GB.**  
 **Compatible hosting sites, listed below, have their own (much smaller) size limits (cover image + data file):**
 * *Flickr (200MB), ImgPile (100MB), ImgBB (32MB), PostImage (24MB), Reddit (20MB / -r option)*,
 * Limit measured by data file size: *Mastodon (~6MB), Tumblr (~62KB), Twitter (~10KB).*
