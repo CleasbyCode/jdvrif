@@ -6,7 +6,7 @@ void startJdv(const std::string& IMAGE_FILENAME, std::string& data_filename, boo
 		COMBINED_FILE_SIZE = DATA_FILE_SIZE + IMAGE_FILE_SIZE;
 
 	constexpr uint_fast32_t
-		MAX_FILE_SIZE = 1073741824, 
+		MAX_FILE_SIZE = 1094713344, 
 		MAX_FILE_SIZE_REDDIT = 20971520, 
 		LARGE_FILE_SIZE = 104857600;
 
