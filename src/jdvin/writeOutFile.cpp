@@ -1,4 +1,4 @@
-void writeOutFile(std::vector<uint_fast8_t>& Vec) {
+void writeOutFile(std::vector<uint8_t>& Vec) {
 
 	srand((unsigned)time(NULL));  
 
@@ -13,7 +13,7 @@ void writeOutFile(std::vector<uint_fast8_t>& Vec) {
 			std::exit(EXIT_FAILURE);
 		}
 	
-		uint_fast32_t EMBEDDED_IMAGE_SIZE = static_cast<uint_fast32_t>(Vec.size());
+		uint32_t EMBEDDED_IMAGE_SIZE = static_cast<uint32_t>(Vec.size());
 
 		file_ofs.write((char*)&Vec[0], EMBEDDED_IMAGE_SIZE);
 
