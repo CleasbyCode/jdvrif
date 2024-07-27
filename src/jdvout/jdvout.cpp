@@ -2,7 +2,7 @@ void startJdv(const std::string& IMAGE_FILENAME) {
 
 	const size_t TMP_IMAGE_FILE_SIZE = std::filesystem::file_size(IMAGE_FILENAME);
 	
-	constexpr uint_fast32_t 
+	constexpr uint32_t 
 		MAX_FILE_SIZE = 2147483648,
 		LARGE_FILE_SIZE = 104857600;
 
@@ -19,11 +19,11 @@ void startJdv(const std::string& IMAGE_FILENAME) {
 
 	std::cout << (TMP_IMAGE_FILE_SIZE > LARGE_FILE_SIZE ? "\nPlease wait. Larger files will take longer to process.\n" : "");
 
-	std::vector<uint_fast8_t>Image_Vec((std::istreambuf_iterator<char>(image_ifs)), std::istreambuf_iterator<char>());
+	std::vector<uint8_t>Image_Vec((std::istreambuf_iterator<char>(image_ifs)), std::istreambuf_iterator<char>());
 	
-	const uint_fast32_t IMAGE_FILE_SIZE = static_cast<uint_fast32_t>(Image_Vec.size());
+	const uint32_t IMAGE_FILE_SIZE = static_cast<uint32_t>(Image_Vec.size());
 
-	constexpr uint_fast8_t 
+	constexpr uint8_t 
 		JDV_SIG[] 	{ 0xB4, 0x6A, 0x3E, 0xEA, 0x5E, 0x90 },
 		PROFILE_SIG[]	{ 0x6D, 0x6E, 0x74, 0x72, 0x52, 0x47, 0x42 },	
 		PROFILE_COUNT_VALUE_INDEX = 0x60,	
@@ -31,9 +31,9 @@ void startJdv(const std::string& IMAGE_FILENAME) {
 		ENCRYPTED_FILENAME_INDEX = 0x27,
 		XOR_KEY_LENGTH = 12;
 
-	constexpr uint_fast16_t	FILE_START_INDEX = 0x26D;
+	constexpr uint16_t FILE_START_INDEX = 0x26D;
 
-	const uint_fast32_t 
+	const uint32_t 
 		JDV_SIG_INDEX = searchFunc(Image_Vec, 0, 0, JDV_SIG),
 		PROFILE_SIG_INDEX = searchFunc(Image_Vec, 0, 0, PROFILE_SIG);
 		
@@ -44,12 +44,12 @@ void startJdv(const std::string& IMAGE_FILENAME) {
 
 	Image_Vec.erase(Image_Vec.begin(), Image_Vec.begin() + (PROFILE_SIG_INDEX - 8));
 
-	const uint_fast32_t EMBEDDED_FILE_SIZE = getFourByteValue(Image_Vec, FILE_SIZE_INDEX);
+	const uint32_t EMBEDDED_FILE_SIZE = getFourByteValue(Image_Vec, FILE_SIZE_INDEX);
 
-	uint_fast16_t 
+	uint16_t 
 		xor_key_index = 0x236,
-		profile_count = (static_cast<uint_fast16_t>(Image_Vec[PROFILE_COUNT_VALUE_INDEX]) << 8) | 
-				static_cast<uint_fast16_t>(Image_Vec[PROFILE_COUNT_VALUE_INDEX + 1]);
+		profile_count = (static_cast<uint16_t>(Image_Vec[PROFILE_COUNT_VALUE_INDEX]) << 8) | 
+				static_cast<uint16_t>(Image_Vec[PROFILE_COUNT_VALUE_INDEX + 1]);
 
 	std::string encrypted_data_filename = { Image_Vec.begin() + ENCRYPTED_FILENAME_INDEX, Image_Vec.begin() + ENCRYPTED_FILENAME_INDEX + Image_Vec[ENCRYPTED_FILENAME_INDEX - 1] };
 
@@ -59,7 +59,7 @@ void startJdv(const std::string& IMAGE_FILENAME) {
 
 	Image_Vec.erase(Image_Vec.begin(), Image_Vec.begin() + FILE_START_INDEX);
 
-	std::vector<uint_fast32_t> Profile_Headers_Offset_Vec;
+	std::vector<uint32_t> Profile_Headers_Offset_Vec;
 	
 	if (profile_count) {
 		findProfileHeaders(Image_Vec, Profile_Headers_Offset_Vec, profile_count);
@@ -69,7 +69,7 @@ void startJdv(const std::string& IMAGE_FILENAME) {
 
 	std::string decrypted_data_filename = decryptFile(Image_Vec, Profile_Headers_Offset_Vec, encrypted_data_filename);
 	
-	uint_fast32_t inflated_file_size = inflateFile(Image_Vec);
+	uint32_t inflated_file_size = inflateFile(Image_Vec);
 
 	std::reverse(Image_Vec.begin(), Image_Vec.end());
 	
