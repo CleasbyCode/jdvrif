@@ -5,12 +5,12 @@ void startJdv(const std::string& IMAGE_FILENAME, std::string& data_filename, boo
 		DATA_FILE_SIZE = std::filesystem::file_size(data_filename),
 		COMBINED_FILE_SIZE = DATA_FILE_SIZE + IMAGE_FILE_SIZE;
 
-	constexpr uint_fast32_t
+	constexpr uint32_t
 		MAX_FILE_SIZE = 1094713344, 
 		MAX_FILE_SIZE_REDDIT = 20971520, 
 		LARGE_FILE_SIZE = 104857600;
 
-	constexpr uint_fast8_t JPG_MIN_FILE_SIZE = 134;
+	constexpr uint8_t JPG_MIN_FILE_SIZE = 134;
 	
 	if (COMBINED_FILE_SIZE > MAX_FILE_SIZE
 		 || (isRedditOption && COMBINED_FILE_SIZE > MAX_FILE_SIZE_REDDIT)
@@ -40,9 +40,9 @@ void startJdv(const std::string& IMAGE_FILENAME, std::string& data_filename, boo
 		std::exit(EXIT_FAILURE);
 	}
 
-	std::vector<uint_fast8_t>Image_Vec((std::istreambuf_iterator<char>(image_file_ifs)), std::istreambuf_iterator<char>());
+	std::vector<uint8_t>Image_Vec((std::istreambuf_iterator<char>(image_file_ifs)), std::istreambuf_iterator<char>());
 
-	constexpr uint_fast8_t
+	constexpr uint8_t
 		SOI_SIG[]	{ 0xFF, 0xD8 },
 		EOI_SIG[] 	{ 0xFF, 0xD9 };
 
@@ -56,16 +56,16 @@ void startJdv(const std::string& IMAGE_FILENAME, std::string& data_filename, boo
 
 	eraseSegments(Image_Vec, isKdak_Profile);
 
-	const uint_fast8_t LAST_SLASH_POS = static_cast<uint_fast8_t>(data_filename.find_last_of("\\/"));
+	const uint8_t LAST_SLASH_POS = static_cast<uint8_t>(data_filename.find_last_of("\\/"));
 
 	if (LAST_SLASH_POS <= data_filename.length()) {
 		const std::string_view NO_SLASH_NAME(data_filename.c_str() + (LAST_SLASH_POS + 1), data_filename.length() - (LAST_SLASH_POS + 1));
 		data_filename = NO_SLASH_NAME;
 	}
 
-	constexpr uint_fast8_t MAX_FILENAME_LENGTH = 23;
+	constexpr uint8_t MAX_FILENAME_LENGTH = 23;
 
-	const uint_fast8_t DATA_FILENAME_LENGTH = static_cast<uint_fast8_t>(data_filename.length());
+	const uint8_t DATA_FILENAME_LENGTH = static_cast<uint8_t>(data_filename.length());
 
 	if (DATA_FILENAME_LENGTH > DATA_FILE_SIZE || DATA_FILENAME_LENGTH > MAX_FILENAME_LENGTH) {
     		std::cerr << "\nData File Error: " 
@@ -79,7 +79,7 @@ void startJdv(const std::string& IMAGE_FILENAME, std::string& data_filename, boo
 
 	std::cout << (DATA_FILE_SIZE > LARGE_FILE_SIZE ? "\nPlease wait. Larger files will take longer to process.\n" : "");
 
-	std::vector<uint_fast8_t>File_Vec((std::istreambuf_iterator<char>(data_file_ifs)), std::istreambuf_iterator<char>());
+	std::vector<uint8_t>File_Vec((std::istreambuf_iterator<char>(data_file_ifs)), std::istreambuf_iterator<char>());
 
 	std::reverse(File_Vec.begin(), File_Vec.end());
 
@@ -91,18 +91,14 @@ void startJdv(const std::string& IMAGE_FILENAME, std::string& data_filename, boo
 		Profile_Vec.swap(Profile_Kdak_Vec);
 	}
 
-	Profile_Vec.reserve(DATA_FILE_SIZE);
-
 	encryptFile(Profile_Vec, File_Vec, data_filename);
 
 	File_Vec.clear();
 	File_Vec.shrink_to_fit();
-
-	File_Vec.reserve(DATA_FILE_SIZE);
-
+	
 	insertProfileHeaders(Profile_Vec, File_Vec);
 
-	constexpr uint_fast8_t PROFILE_HEADER_LENGTH = 18;
+	constexpr uint8_t PROFILE_HEADER_LENGTH = 18;
 
 	if (isRedditOption) {
 		Image_Vec.insert(Image_Vec.begin(), std::begin(SOI_SIG), std::end(SOI_SIG));
