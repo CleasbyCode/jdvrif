@@ -2,7 +2,7 @@ void displayInfo() {
 
 	std::cout << R"(
 
-JPG Data Vehicle (jdvout v1.0.8). 
+JPG Data Vehicle (jdvout v1.1.7). 
 Created by Nicholas Cleasby (@CleasbyCode) 24/01/2023.
 
 A steganography-like CLI tool to extract hidden data from a (jdvin) JPG image. 
