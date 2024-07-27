@@ -1,20 +1,20 @@
-std::string decryptFile(std::vector<uint_fast8_t>&Image_Vec, std::vector<uint_fast32_t>&Profile_Headers_Offset_Vec, std::string& encrypted_data_filename) {
+std::string decryptFile(std::vector<uint8_t>&Image_Vec, std::vector<uint32_t>&Profile_Headers_Offset_Vec, std::string& encrypted_data_filename) {
 
-	constexpr uint_fast8_t
+	constexpr uint8_t
 		XOR_KEY_LENGTH = 12,		
 		PROFILE_HEADER_LENGTH = 18;
 
-	const uint_fast32_t PROFILE_VEC_SIZE = static_cast<uint_fast32_t>(Profile_Headers_Offset_Vec.size());
+	const uint32_t PROFILE_VEC_SIZE = static_cast<uint32_t>(Profile_Headers_Offset_Vec.size());
 
-	const uint_fast8_t ENCRYPTED_DATA_FILENAME_LENGTH = static_cast<uint_fast8_t>(encrypted_data_filename.length() - XOR_KEY_LENGTH);
+	const uint8_t ENCRYPTED_DATA_FILENAME_LENGTH = static_cast<uint8_t>(encrypted_data_filename.length() - XOR_KEY_LENGTH);
 
-	uint_fast32_t
-		encrypted_data_file_size = static_cast<uint_fast32_t>(Image_Vec.size()),
+	uint32_t
+		encrypted_data_file_size = static_cast<uint32_t>(Image_Vec.size()),
 		offset_index{},
 		decrypt_pos{},
 		index_pos{};
 
-	uint_fast8_t
+	uint8_t
 		xor_key[XOR_KEY_LENGTH],
 		xor_key_pos{},
 		name_key_pos{};
