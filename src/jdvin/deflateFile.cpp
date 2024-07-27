@@ -1,18 +1,17 @@
 // zlib function, see https://zlib.net/
-void deflateFile(std::vector<uint_fast8_t>& Vec, const std::string DATA_FILE_EXTENSION) {
+void deflateFile(std::vector<uint8_t>& Vec, const std::string DATA_FILE_EXTENSION) {
 	
-	std::vector<uint_fast8_t>Buffer_Vec;
-	Buffer_Vec.reserve(Vec.size());
+	std::vector<uint8_t>Buffer_Vec;
 
-	constexpr uint_fast32_t BUFSIZE = 2097152;
+	constexpr uint32_t BUFSIZE = 2097152;
 
-	uint_fast8_t* temp_buffer{ new uint_fast8_t[BUFSIZE] };
+	uint8_t* temp_buffer{ new uint8_t[BUFSIZE] };
 
 	z_stream strm;
 	strm.zalloc = 0;
 	strm.zfree = 0;
 	strm.next_in = Vec.data();
-	strm.avail_in = static_cast<uint_fast32_t>(Vec.size());
+	strm.avail_in = static_cast<uint32_t>(Vec.size());
 	strm.next_out = temp_buffer;
 	strm.avail_out = BUFSIZE;
 
@@ -42,4 +41,3 @@ void deflateFile(std::vector<uint_fast8_t>& Vec, const std::string DATA_FILE_EXT
 	Vec.swap(Buffer_Vec);
 	delete[] temp_buffer;
 }
-
