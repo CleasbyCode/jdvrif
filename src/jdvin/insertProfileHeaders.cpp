@@ -1,7 +1,7 @@
 // If required, split and store data file into multiple color profile segment blocks.
-void insertProfileHeaders(std::vector<uint_fast8_t>&Profile_Vec, std::vector<uint_fast8_t>&File_Vec) {
+void insertProfileHeaders(std::vector<uint8_t>&Profile_Vec, std::vector<uint8_t>&File_Vec) {
 
-	constexpr uint_fast8_t
+	constexpr uint8_t
 		PROFILE_HEADER_LENGTH = 18,
 		PROFILE_HEADER_SEGMENT_SIZE_INDEX = 0x16, // Two byte JPG color profile header segment size field index.	
 		PROFILE_SIZE_INDEX = 0x28,		  // Four byte profile size field index.	
@@ -9,20 +9,20 @@ void insertProfileHeaders(std::vector<uint_fast8_t>&Profile_Vec, std::vector<uin
 		DEFLATED_DATA_FILE_SIZE_INDEX = 0x90,
 		JPG_HEADER_LENGTH = 20;
 
-	constexpr uint_fast16_t COLOR_PROFILE_SIZE = 663;
+	constexpr uint16_t COLOR_PROFILE_SIZE = 663;
 
-	constexpr uint_fast32_t SEGMENT_SIZE = 65537;
+	constexpr uint32_t SEGMENT_SIZE = 65537;
 
-	const uint_fast32_t 
-		PROFILE_WITH_DATA_FILE_VEC_SIZE = static_cast<uint_fast32_t>(Profile_Vec.size()),
+	const uint32_t 
+		PROFILE_WITH_DATA_FILE_VEC_SIZE = static_cast<uint32_t>(Profile_Vec.size()),
 		DEFLATED_DATA_FILE_SIZE = PROFILE_WITH_DATA_FILE_VEC_SIZE - COLOR_PROFILE_SIZE;
 	
-	uint_fast8_t bits = 16;	
+	uint8_t bits = 16;	
 		
 	// Default profile and data file fit within the first profile segment block.
 	if (SEGMENT_SIZE + JPG_HEADER_LENGTH >= PROFILE_WITH_DATA_FILE_VEC_SIZE) {
-		constexpr uint_fast8_t SIZE_DIFF = 16;
-		const uint_fast32_t
+		constexpr uint8_t SIZE_DIFF = 16;
+		const uint32_t
 			PROFILE_HEADER_SEGMENT_SIZE = PROFILE_WITH_DATA_FILE_VEC_SIZE - (PROFILE_HEADER_LENGTH + 4), 
 			PROFILE_SIZE = PROFILE_HEADER_SEGMENT_SIZE - SIZE_DIFF;
 
@@ -33,13 +33,13 @@ void insertProfileHeaders(std::vector<uint_fast8_t>&Profile_Vec, std::vector<uin
 		
 	} else { // Data file is too large for a single profile segment. Create multiple profile segements to store data file.
 
-		std::vector<uint_fast8_t>Profile_Header_Vec = { 0xFF, 0xE2, 0xFF, 0xFF, 0x49, 0x43, 0x43, 0x5F, 0x50, 0x52, 0x4F, 0x46, 0x49, 0x4C, 0x45, 0x00, 0x01, 0x01 };
+		std::vector<uint8_t>Profile_Header_Vec = { 0xFF, 0xE2, 0xFF, 0xFF, 0x49, 0x43, 0x43, 0x5F, 0x50, 0x52, 0x4F, 0x46, 0x49, 0x4C, 0x45, 0x00, 0x01, 0x01 };
 		
-		uint_fast8_t profile_header_count_insert_index = 0x0F;
+		uint8_t profile_header_count_insert_index = 0x0F;
 
-		uint_fast16_t profile_header_count = 1;
+		uint16_t profile_header_count = 1;
 
-		uint_fast32_t 
+		uint32_t 
 			read_byte_index{},
 			profile_header_count_inserted_tally = PROFILE_WITH_DATA_FILE_VEC_SIZE / SEGMENT_SIZE, // Approx. number of profile segments required. Does not include remainder profile/segments.
 			profile_header_count_total_byte_value = profile_header_count_inserted_tally * PROFILE_HEADER_LENGTH,
@@ -119,15 +119,15 @@ void insertProfileHeaders(std::vector<uint_fast8_t>&Profile_Vec, std::vector<uin
 		valueUpdater(File_Vec, PROFILE_TALLY_INDEX, profile_header_count_inserted_tally, bits);
 		profile_header_count_inserted_tally++;
 
-		constexpr uint_fast8_t	
+		constexpr uint8_t	
 			ICC_PROFILE_SIG[] { 0x49, 0x43, 0x43, 0x5F, 0x50, 0x52, 0x4F, 0x46, 0x49, 0x4C, 0x45 },
 			profile_total_insert_index_diff = 13,
 			pos_addition = 1,
 			profile_tally_update_max = 255;
 			
-		uint_fast32_t profile_total_insert_index{}; 
+		uint32_t profile_total_insert_index{}; 
 		
-		uint_fast16_t counter = profile_header_count_inserted_tally;
+		uint16_t counter = profile_header_count_inserted_tally;
 		
 		// Within the relevant index position for each profile header found within File_Vec, insert the total value of inserted profile headers/segments.
 		// This is a requirement for platforms such as Mastodon. Mastodon has a limit of 100 (0x64) profiles/segments. Which gives it a max storage size of ~6MB.
