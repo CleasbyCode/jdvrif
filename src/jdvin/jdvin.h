@@ -24,7 +24,7 @@
 #include "jdvin.cpp"
 
 template <uint8_t N>
-uint32_t searchFunc(std::vector<uint8_t>&, uint32_t, uint8_t, const uint8_t (&)[N]);
+uint32_t searchFunc(std::vector<uint8_t>&, uint32_t, const uint8_t, const uint8_t (&)[N]);
 
 bool writeFile(std::vector<uint8_t>&);
 
