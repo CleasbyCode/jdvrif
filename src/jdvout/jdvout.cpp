@@ -30,8 +30,6 @@ int jdvOut(const std::string& IMAGE_FILENAME) {
 		ENCRYPTED_FILENAME_INDEX = 0x27,
 		XOR_KEY_LENGTH = 12;
 
-	constexpr uint16_t FILE_START_INDEX = 0x26D;
-
 	const uint32_t 
 		JDV_SIG_INDEX = searchFunc(Image_Vec, 0, 0, JDV_SIG),
 		PROFILE_SIG_INDEX = searchFunc(Image_Vec, 0, 0, PROFILE_SIG);
@@ -56,6 +54,8 @@ int jdvOut(const std::string& IMAGE_FILENAME) {
 		encrypted_data_filename += Image_Vec[xor_key_index++]; 
 	}
 
+	constexpr uint16_t FILE_START_INDEX = 0x26D;
+				 
 	Image_Vec.erase(Image_Vec.begin(), Image_Vec.begin() + FILE_START_INDEX);
 
 	std::vector<uint32_t> Profile_Headers_Offset_Vec;
