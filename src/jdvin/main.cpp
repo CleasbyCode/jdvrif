@@ -15,23 +15,25 @@ int main(int argc, char** argv) {
 		bool 
 			isFileCheckSuccess = false,
 			isRedditOption = argc > 3 ? true : false;
-
-		const std::regex REG_EXP("(\\.[a-zA-Z_0-9\\.\\\\\\s\\-\\/]+)?[a-zA-Z_0-9\\.\\\\\\s\\-\\/]+?(\\.[a-zA-Z0-9]+)?");
+		
+		constexpr const char* REG_EXP = ("(\\.[a-zA-Z_0-9\\.\\\\\\s\\-\\/]+)?[a-zA-Z_0-9\\.\\\\\\s\\-\\/]+?(\\.[a-zA-Z0-9]+)?");
+		const std::regex regex_pattern(REG_EXP);
 
 		const std::string IMAGE_FILENAME = isRedditOption ? argv[2] : argv[1];
+		
+		std::string data_filename = isRedditOption ? argv[3] : argv[2];
+		
+		std::filesystem::path image_path(IMAGE_FILENAME);
+		std::string image_extension = image_path.extension().string();
+		
+		image_extension = image_extension == ".jpeg" || image_extension == ".jfif" ? ".jpg" : image_extension;
 
-		std::string 
-			image_file_extension = IMAGE_FILENAME.length() > 3 ? IMAGE_FILENAME.substr(IMAGE_FILENAME.length() - 4) : IMAGE_FILENAME,
-			data_filename = isRedditOption ? argv[3] : argv[2];
-
-		image_file_extension = image_file_extension == "jpeg" || image_file_extension == "jfif" ? ".jpg" : image_file_extension;
-
-		if (image_file_extension != ".jpg" || (argc > 3 && std::string(argv[1]) != "-r")) {
-			std::cerr << (image_file_extension != ".jpg" 
+		if (image_extension != ".jpg" || (argc > 3 && std::string(argv[1]) != "-r")) {
+			std::cerr << (image_extension != ".jpg" 
 				? "\nFile Type Error: Invalid file extension. Expecting only \"jpg\""
 				: "\nInput Error: Invalid arguments. Expecting only -r") 
 			<< ".\n\n";
-		} else if (!regex_match(IMAGE_FILENAME, REG_EXP) || !regex_match(data_filename, REG_EXP)) {
+		} else if (!regex_match(IMAGE_FILENAME, regex_pattern) || !regex_match(data_filename, regex_pattern)) {
 			std::cerr << "\nInvalid Input Error: Characters not supported by this program found within filename arguments.\n\n";
 		} else if (!std::filesystem::exists(IMAGE_FILENAME) || !std::filesystem::exists(data_filename) || !std::filesystem::is_regular_file(data_filename)) {
 			std::cerr << (!std::filesystem::exists(IMAGE_FILENAME) 
