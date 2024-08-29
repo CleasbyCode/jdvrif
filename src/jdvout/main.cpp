@@ -16,18 +16,20 @@ int main(int argc, char** argv) {
 	} else {
 		const std::string IMAGE_FILENAME = std::string(argv[1]);
 
-		const std::regex REG_EXP("(\\.[a-zA-Z_0-9\\.\\\\\\s\\-\\/]+)?[a-zA-Z_0-9\\.\\\\\\s\\-\\/]+?(\\.[a-zA-Z0-9]+)?");
+		constexpr const char* REG_EXP = ("(\\.[a-zA-Z_0-9\\.\\\\\\s\\-\\/]+)?[a-zA-Z_0-9\\.\\\\\\s\\-\\/]+?(\\.[a-zA-Z0-9]+)?");
+		const std::regex regex_pattern(REG_EXP);
 
-		std::string file_extension = IMAGE_FILENAME.length() > 3 ? IMAGE_FILENAME.substr(IMAGE_FILENAME.length() - 4) : IMAGE_FILENAME;
+		std::filesystem::path image_path(IMAGE_FILENAME);
+		std::string image_extension = image_path.extension().string();
 
-		file_extension = file_extension == "jpeg" || file_extension == "jfif" ? ".jpg" : file_extension;
+		image_extension = image_extension == ".jpeg" || image_extension == ".jfif" ? ".jpg" : image_extension;
 
-		if (file_extension == ".jpg" && regex_match(IMAGE_FILENAME, REG_EXP) && std::filesystem::exists(IMAGE_FILENAME)) {
+		if (image_extension == ".jpg" && regex_match(IMAGE_FILENAME, regex_pattern) && std::filesystem::exists(IMAGE_FILENAME)) {
 			jdvOut(IMAGE_FILENAME);
 		} else {
-			std::cerr << (file_extension != ".jpg" 
+			std::cerr << (image_extension != ".jpg" 
 				? "\nFile Type Error: Invalid file extension found. Expecting only \"jpg\""
-				: !regex_match(IMAGE_FILENAME, REG_EXP)
+				: !regex_match(IMAGE_FILENAME, regex_pattern)
 					? "\nInvalid Input Error: Characters not supported by this program found within filename arguments"
 						: "\nImage File Error: File not found. Check the filename and try again")
 			 << ".\n\n";
