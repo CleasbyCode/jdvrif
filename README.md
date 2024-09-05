@@ -11,7 +11,7 @@ You can post your image with hidden data on ***Mastodon*** and a few other socia
 **jdvrif** partly derives from the ***[technique](https://www.vice.com/en/article/bj4wxm/tiny-picture-twitter-complete-works-of-shakespeare-steganography)*** demonstrated by security researcher ***[David Buchanan](https://www.da.vidbuchanan.co.uk/).*** 
 
 ![Demo Image](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/jrif_12271.jpg)  
-*Image credit:* [***@z3pio_***](https://x.com/z3pio_)
+*Image credit:* [***@DontSmileAI***](https://x.com/DontSmileAI)
 
 Demo Videos: [***Mastodon***](https://youtu.be/XUUbSXQuD1g) / [***X/Twitter***](https://youtu.be/Ajn5F1BO0Zg) / [***Reddit***](https://youtu.be/xIUsa3F8ZQc) / [***Tumblr***](https://youtu.be/X4TL3EkcXtQ) / [***Flickr***](https://youtu.be/kg_MJHQuzLY) / [***Web Tool***](https://youtu.be/WvZMRp7Z6W4)  
 
