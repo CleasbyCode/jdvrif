@@ -30,7 +30,7 @@ void insertProfileHeaders(std::vector<uint_fast8_t>&Profile_Vec, std::vector<uin
 
 		File_Vec.swap(Profile_Vec);
 		
-	} else { // Data file is too large for a single profile segment. Create additional 64KB profile segments as needed, to store the data file.
+	} else { // Data file is too large for just the first profile segment. Create additional profile segments as needed, to store the data file.
 		constexpr uint_fast8_t PROFILE_HEADER[] { 0xFF, 0xE2, 0xFF, 0xFF, 0x49, 0x43, 0x43, 0x5F, 0x50, 0x52, 0x4F, 0x46, 0x49, 0x4C, 0x45, 0x00, 0x01, 0x01 };
 		
 		uint_fast32_t 
