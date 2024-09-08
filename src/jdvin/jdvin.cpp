@@ -80,9 +80,13 @@ uint_fast8_t jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename
 
 	std::reverse(File_Vec.begin(), File_Vec.end());
 
-	const std::string DATA_FILE_EXTENSION = data_filename.length() > 3 ? data_filename.substr(data_filename.length() - 4) : data_filename;
+	constexpr uint_fast32_t ENABLE_COMPRESSION_SIZE_LIMIT = 209715200; // 200MB
 	
-	deflateFile(File_Vec, DATA_FILE_EXTENSION);
+	if (ENABLE_COMPRESSION_SIZE_LIMIT >= DATA_FILE_SIZE) {
+		constexpr uint_fast8_t PROFILE_COMPRESSION_ENABLE_INDEX = 0x94;
+		Profile_Vec[PROFILE_COMPRESSION_ENABLE_INDEX] = 1;  // Value used by jdvout.
+		deflateFile(File_Vec);
+	} 
 	
 	if (isKdak_Profile) {
 		Profile_Vec.swap(Profile_Kdak_Vec);
