@@ -53,6 +53,10 @@ uint_fast8_t jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename
 	bool isKdak_Profile = false;
 
 	eraseSegments(Image_Vec, isKdak_Profile);
+	
+	if (isKdak_Profile) {
+		Profile_Vec.swap(Profile_Kdak_Vec);
+	}
 
 	const uint_fast8_t LAST_SLASH_POS = static_cast<uint_fast8_t>(data_filename.find_last_of("\\/"));
 
@@ -88,10 +92,6 @@ uint_fast8_t jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename
 		deflateFile(File_Vec);
 	} 
 	
-	if (isKdak_Profile) {
-		Profile_Vec.swap(Profile_Kdak_Vec);
-	}
-
 	encryptFile(Profile_Vec, File_Vec, data_filename);
 
 	File_Vec.clear();
