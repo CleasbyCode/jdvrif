@@ -30,7 +30,7 @@ bool writeFile(std::vector<uint_fast8_t>&);
 
 void
 	eraseSegments(std::vector<uint_fast8_t>&, bool&),
-	deflateFile(std::vector<uint_fast8_t>&, const std::string),
+	deflateFile(std::vector<uint_fast8_t>&),
 	encryptFile(std::vector<uint_fast8_t>&, std::vector<uint_fast8_t>&, std::string&),
 	insertProfileHeaders(std::vector<uint_fast8_t>&, std::vector<uint_fast8_t>&),
 	valueUpdater(std::vector<uint_fast8_t>&, uint_fast32_t, const uint_fast32_t, uint_fast8_t),
