@@ -27,7 +27,7 @@ uint_fast32_t getByteValue(const std::vector<uint_fast8_t>&, const uint_fast32_t
 
 void
 	findProfileHeaders(std::vector<uint_fast8_t>&, std::vector<uint_fast32_t>&, uint_fast16_t),
-	inflateFile(std::vector<uint_fast8_t>&);
+	inflateFile(std::vector<uint_fast8_t>&),
 	displayInfo();
 
 uint_fast8_t jdvOut(const std::string&);	
