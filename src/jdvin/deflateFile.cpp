@@ -1,5 +1,5 @@
 // zlib function, see https://zlib.net/
-void deflateFile(std::vector<uint_fast8_t>& Vec, const std::string DATA_FILE_EXTENSION) {
+void deflateFile(std::vector<uint_fast8_t>& Vec) {
 	
 	constexpr uint_fast32_t BUFSIZE = 2097152;
 	uint_fast8_t* buffer{ new uint_fast8_t[BUFSIZE] };
