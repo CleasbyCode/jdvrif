@@ -20,7 +20,7 @@ Your data file that is embedded within the JPG cover image is *compressed and en
 To **share** *file-embedded* JPG images on **Reddit**, you must use the **-r** option with jdvin.  
 Select the "***Images & Video***" tab on Reddit to post your image.
 
-To correctly download an image from ***X/Twitter*** or ***Reddit***, click the image in the post to fully expand it, before saving.
+To correctly download an image from ***X/Twitter*** or ***Reddit***, click the image in the post to **fully expand it**, before saving.
 
 With **Twitter**, the size limit (~10KB) is measured by the **data file size** and not the combined image size.   
 As the data file is compressed when embedded, you should be able to hide files larger than 10KB.   
