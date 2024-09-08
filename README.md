@@ -15,6 +15,8 @@ You can post your image with hidden data on ***Mastodon*** and a few other socia
 
 Demo Videos: [***Mastodon***](https://youtu.be/rnLf3W60IKQ) / [***X/Twitter***](https://youtu.be/Ajn5F1BO0Zg) / [***Reddit***](https://youtu.be/xIUsa3F8ZQc) / [***Tumblr***](https://youtu.be/8lIyLbx7CO8) / [***Flickr***](https://youtu.be/kg_MJHQuzLY) / [***Web Tool***](https://youtu.be/WvZMRp7Z6W4)  
 
+Your data file that is embedded within the JPG cover image is *compressed and encrypted. (*Compression is disabled for files over 200MB).
+
 To **post/share** file-embedded JPG images on **Reddit**, you must use the **-r** option with jdvin.  
 Select the "***Images & Video***" tab on Reddit to post these images.
 
