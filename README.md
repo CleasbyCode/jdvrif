@@ -17,7 +17,7 @@ Demo Videos: [***Mastodon***](https://youtu.be/rnLf3W60IKQ) / [***X/Twitter***](
 
 Your data file that is embedded within the JPG cover image is *compressed and encrypted. (*Compression is disabled for files over 200MB).
 
-To **post/share** file-embedded JPG images on **Reddit**, you must use the **-r** option with jdvin.  
+To **post** *file-embedded* JPG images on **Reddit**, you must use the **-r** option with jdvin.  
 Select the "***Images & Video***" tab on Reddit to post these images.
 
 To correctly download an image from ***X/Twitter*** or ***Reddit***, click the image in the post to fully expand it, before saving.
