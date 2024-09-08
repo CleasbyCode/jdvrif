@@ -13,12 +13,8 @@ void deflateFile(std::vector<uint_fast8_t>& Vec, const std::string DATA_FILE_EXT
 	strm.avail_in = static_cast<uint_fast32_t>(Vec.size());
 	strm.next_out = buffer;
 	strm.avail_out = BUFSIZE;
-
-	if (DATA_FILE_EXTENSION == ".zip" || DATA_FILE_EXTENSION == ".rar") {
-		deflateInit(&strm, 0); // Compression off.
-	} else {
-		deflateInit(&strm, 6); // Standard compression level 6
-	}
+	
+	deflateInit(&strm, 6); // Standard compression level 6
 	
 	while (strm.avail_in)
 	{
