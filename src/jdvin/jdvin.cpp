@@ -78,7 +78,9 @@ uint_fast8_t jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename
     	 	return 1;
 	}
 
-	std::cout << (DATA_FILE_SIZE > LARGE_FILE_SIZE ? "\nPlease wait. Larger files will take longer to process.\n" : "");
+	if (DATA_FILE_SIZE > LARGE_FILE_SIZE) {
+		std::cout << "\nPlease wait. Larger files will take longer to process.\n";
+	}
 
 	std::vector<uint_fast8_t>File_Vec((std::istreambuf_iterator<char>(data_file_ifs)), std::istreambuf_iterator<char>());
 
