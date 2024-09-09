@@ -95,9 +95,12 @@ void insertProfileHeaders(std::vector<uint_fast8_t>&Profile_Vec, std::vector<uin
 			ICC_PROFILE_SIG[] { 0x49, 0x43, 0x43, 0x5F, 0x50, 0x52, 0x4F, 0x46, 0x49, 0x4C, 0x45 },
 			PROFILE_HEADER_TOTAL_INSERT_INDEX_DIFF = 0x0D,
 			PROFILE_HEADER_COUNT_INSERT_INDEX_DIFF = 0x02,
+			MASTODON_PROFILE_LIMIT = 100,
 			PROFILE_HEADER_TALLY_MAX = 255,
-			POS_ADDITION = 1;		
-		
+			POS_ADDITION = 1;
+					   
+		constexpr uint_fast32_t MASTODON_IMAGE_UPLOAD_LIMIT = 16777216;
+					   
 		// Within the relevant index positions for each profile header found within File_Vec, insert the total value and individual current count value of inserted profile headers/segments.
 		// This is a requirement for image viewers and platforms such as Mastodon. Mastodon has a limit of 100 (0x64) profiles/segments, which gives it a max storage size of ~6MB.
 		while (counter--) {
@@ -110,9 +113,9 @@ void insertProfileHeaders(std::vector<uint_fast8_t>&Profile_Vec, std::vector<uin
 			value_bit_length = 16;	
 			profile_header_insert_count++;
 		}	
-		if (profile_header_count_inserted_tally > 100) {
+		if (profile_header_count_inserted_tally > MASTODON_PROFILE_LIMIT && PROFILE_WITH_DATA_FILE_VEC_SIZE < MASTODON_IMAGE_UPLOAD_LIMIT) {
 			std::cout << "\n**Warning**\n\nEmbedded image is not compatible with Mastodon. Image file exceeds platform size limit.\n";
-		}   
+		}
 	}
 	value_bit_length = 32; 
 
