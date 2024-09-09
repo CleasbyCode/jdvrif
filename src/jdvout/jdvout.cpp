@@ -63,15 +63,15 @@ uint_fast8_t jdvOut(const std::string& IMAGE_FILENAME) {
 	
 	Image_Vec.erase(Image_Vec.begin(), Image_Vec.begin() + FILE_START_INDEX);
 
-	std::vector<uint_fast32_t> Profile_Headers_Offset_Vec;
+	std::vector<uint_fast32_t> Profile_Headers_Index_Vec;
 	
 	if (profile_count) {
-		findProfileHeaders(Image_Vec, Profile_Headers_Offset_Vec, profile_count);
+		findProfileHeaders(Image_Vec, Profile_Headers_Index_Vec, profile_count);
 	}
 
 	Image_Vec.erase(Image_Vec.begin() + EMBEDDED_FILE_SIZE, Image_Vec.end());
 
-	std::string decrypted_data_filename = decryptFile(Image_Vec, Profile_Headers_Offset_Vec, encrypted_data_filename);
+	std::string decrypted_data_filename = decryptFile(Image_Vec, Profile_Headers_Index_Vec, encrypted_data_filename);
 	
 	if (isFileCompressed) {
 		inflateFile(Image_Vec);
