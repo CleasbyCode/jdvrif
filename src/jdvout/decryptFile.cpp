@@ -36,7 +36,8 @@ std::string decryptFile(std::vector<uint_fast8_t>&Image_Vec, std::vector<uint_fa
 		}
 
 		Image_Vec[decrypt_pos++] = Image_Vec[index_pos++] ^ encrypted_data_filename[name_key_pos++];
-
+		
+		// Skip over the 18 byte ICC Profile header found at each index location within vector, so that we don't include them within the decrypted file.
 		if (PROFILE_VEC_SIZE && index_pos == Profile_Headers_Index_Vec[next_header_index]) {
 			index_pos += PROFILE_HEADER_LENGTH; 
 			encrypted_data_file_size += PROFILE_HEADER_LENGTH; 
