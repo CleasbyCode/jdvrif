@@ -16,16 +16,16 @@ With ***jdvin***, you can embed a single file of any type up to a maximum size o
 Demo Videos: [***Mastodon***](https://youtu.be/rnLf3W60IKQ) / [***X/Twitter***](https://youtu.be/Ajn5F1BO0Zg) / [***Reddit***](https://youtu.be/xIUsa3F8ZQc) / [***Tumblr***](https://youtu.be/8lIyLbx7CO8) / [***Flickr***](https://youtu.be/kg_MJHQuzLY) / [***Web Tool***](https://youtu.be/WvZMRp7Z6W4)  
 
 Your data file, if required, is split and stored into multiple **~64KB ICC Profile segments** within the JPG cover image.  
-The data file is also ***compressed and encrypted**. (*Compression is disabled for files over 200MB).
+The data file is also ***compressed and encrypted**. (*Compression is disabled for files over **200MB**).
 
-To **share** *"file-embedded"* JPG images on **Reddit**, you must use the **-r** option with jdvin.  
+To **share** *"file-embedded"* JPG images on **Reddit**, you must use the **-r** option with ***jdvin***.  
 Select the "***Images & Video***" tab on Reddit to post your image.
 
 To correctly download an image from ***X/Twitter*** or ***Reddit***, click the image in the post to **fully expand it**, before saving.
 
 With **X/Twitter & Tumblr**, the small size limits (~10KB / ~64KB) are measured by the **data file size** and not the combined image size.
 As the data file is compressed when embedded, you should be able to hide files larger than 10KB or 64KB.
-For example, a 30KB workflow.json file compressed down to under 10KB, compatible with sharing on **X/Twitter.**
+For example, a 30KB workflow.json file compressed down to under 10KB, making it compatible with sharing on **X/Twitter.**
 
 Also with **Mastodon**, the size limit is measured by the **data file size** and not the combined image size.  
 For example, if your cover image is 2MB you can still embed a data file up to the ~6MB size limit.
