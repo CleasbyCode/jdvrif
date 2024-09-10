@@ -28,7 +28,7 @@ As the data file is compressed when embedded, you should be able to hide files l
 For example, a 30KB workflow.json file compressed down to under 10KB, compatible with sharing on **X/Twitter.**
 
 Also with **Mastodon**, the size limit (~6MB) is measured by the **data file size** and not the combined image size.  
-For example, if your cover image is 2MB you can still embeded a data file upto ~6MB.
+For example, if your cover image is 2MB you can still embeded a data file up to the ~6MB size limit.
 
 You can try **jdvrif** from [**this site**](https://cleasbycode.co.uk/jdvrif/index/) if you don't want to download and compile the source code.
 
