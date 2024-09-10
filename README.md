@@ -23,11 +23,11 @@ Select the "***Images & Video***" tab on Reddit to post your image.
 
 To correctly download an image from ***X/Twitter*** or ***Reddit***, click the image in the post to **fully expand it**, before saving.
 
-With **X/Twitter**, the small size limit (~10KB) is measured by the **data file size** and not the combined image size.   
-As the data file is compressed when embedded, you should be able to hide files larger than 10KB.   
-For example, a 30KB workflow.json file compressed down to under 10KB.
+With **X/Twitter & Tumblr**, the small size limits (~10KB / ~64KB) are measured by the **data file size** and not the combined image size.   
+As the data file is compressed when embedded, you should be able to hide files larger than 10KB or 64KB.   
+For example, a 30KB workflow.json file compressed down to under 10KB, compatible with sharing on **X/Twitter.**
 
-Also with Mastodon, the size limit (~6MB) is measured by the **data file size** and not the combined image size.  
+Also with **Mastodon**, the size limit (~6MB) is measured by the **data file size** and not the combined image size.  
 For example, if your cover image is 2MB you can still embeded a data file upto ~6MB.
 
 You can try **jdvrif** from [**this site**](https://cleasbycode.co.uk/jdvrif/index/) if you don't want to download and compile the source code.
