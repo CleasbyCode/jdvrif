@@ -18,7 +18,7 @@ Demo Videos: [***Mastodon***](https://youtu.be/rnLf3W60IKQ) / [***X/Twitter***](
 Your data file, if required, is split and stored into multiple **~64KB ICC Profile segments** within the JPG cover image.  
 The data file is also ***compressed and encrypted**. (*Compression is disabled for files over 200MB).
 
-To **share** *file-embedded* JPG images on **Reddit**, you must use the **-r** option with jdvin.  
+To **share** *"file-embedded"* JPG images on **Reddit**, you must use the **-r** option with jdvin.  
 Select the "***Images & Video***" tab on Reddit to post your image.
 
 To correctly download an image from ***X/Twitter*** or ***Reddit***, click the image in the post to **fully expand it**, before saving.
