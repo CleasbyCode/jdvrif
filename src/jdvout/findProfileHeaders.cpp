@@ -1,4 +1,4 @@
-// Search the "file-embedded" image file for ICC Profile headers. Store index location of each found header within a vector.
+// Search the "file-embedded" image for ICC Profile headers. Store index location of each found header within a vector.
 // We will use these index positions to skip over the headers when decrypting the data file, so that they are not included within the restored data file.
 void findProfileHeaders(std::vector<uint_fast8_t>&Image_Vec, std::vector<uint_fast32_t>&Profile_Headers_Index_Vec, uint_fast16_t profile_count) {
 
