@@ -31,7 +31,7 @@ void insertProfileHeaders(std::vector<uint_fast8_t>&Profile_Vec, std::vector<uin
 		
 		uint_fast32_t 
 			read_byte_index{},
-			profile_headers_approx_count = PROFILE_WITH_DATA_FILE_VEC_SIZE / SEGMENT_SIZE, // Get majority of number of profile segments required. Does not include last remainder profile/segment(s).
+			profile_headers_approx_count = PROFILE_WITH_DATA_FILE_VEC_SIZE / SEGMENT_SIZE, // First get the majority number of profile segments required. Does not include last remainder profile/segment(s).
 			profile_headers_tally = (PROFILE_WITH_DATA_FILE_VEC_SIZE % SEGMENT_SIZE) / SEGMENT_SIZE + profile_headers_approx_count,
 			profile_headers_total_byte_value = (profile_headers_tally * PROFILE_HEADER_LENGTH) - (JPG_HEADER_LENGTH + APP2_SIG_LENGTH),	
 			final_segments_remainder_size = (PROFILE_WITH_DATA_FILE_VEC_SIZE % SEGMENT_SIZE) + profile_headers_total_byte_value,
