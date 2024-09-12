@@ -1,6 +1,6 @@
 # jdvrif
 
-Command-line tools to hide (*jdvin*) or extract (*jdvout*) any file type via a JPG image.  
+Command-line tools to hide (***jdvin***) or extract (***jdvout***) any file type via a JPG image.  
 You can post your image with hidden data on ***Mastodon*** and a few other social media sites.
 
 With ***jdvin***, you can embed a single file of any type up to a maximum size of ***1GB.**  
