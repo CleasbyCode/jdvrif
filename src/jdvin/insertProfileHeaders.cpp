@@ -74,7 +74,7 @@ void insertProfileHeaders(std::vector<uint_fast8_t>&Profile_Vec, std::vector<uin
 	
 		constexpr uint_fast8_t PROFILE_HEADER_TALLY_INDEX = 0x8A;  // Index start location within ICC Profile where we store the value of total inserted profile headers/segments (-1). 
 		
-		// 2 bytes Max. Write/store total number of profile headers / segments (not including the first one) within the index position of the main ICC Profile. Value used by jdvout.
+		// Write/store total number of profile headers / segments (not including the first one) within the index position of the main ICC Profile. Value used by jdvout.
 		valueUpdater(File_Vec, PROFILE_HEADER_TALLY_INDEX, profile_headers_tally, value_bit_length);
 
 		uint_fast32_t 
