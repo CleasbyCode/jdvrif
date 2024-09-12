@@ -98,7 +98,7 @@ void insertProfileHeaders(std::vector<uint_fast8_t>&Profile_Vec, std::vector<uin
 					   
 		// Within the relevant index positions for each ICC Profile header found within File_Vec, insert the total value & individual sequence value of inserted profile headers/segments.
 		// This is a requirement for image viewers and platforms such as Mastodon. Mastodon has a limit of 100 (0x64) profiles/segments, which gives it a Max. storage size of ~6MB.
-		// For the profile sequence count, we are using two bytes to store the value. While this is non-standard it provides the best compatibilty (imo) for embedding files over 16MB.
+		// For the profile sequence count, we are using two bytes to store the value. While this is non-standard it provides the best compatibility (imo) for embedding files over 16MB.
 		while (counter--) {
 			profile_headers_total_index = searchFunc(File_Vec, profile_headers_total_index, POS_ADDITION, ICC_PROFILE_SIG) + PROFILE_HEADERS_TOTAL_INDEX_DIFF;
 			profile_headers_sequence_index = profile_headers_total_index - PROFILE_HEADERS_SEQUENCE_INDEX_DIFF; 
