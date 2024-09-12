@@ -1,9 +1,10 @@
-// If required, split and store data file into multiple color profile segment blocks.
+// If required, split and store data file into multiple ICC Profile segment blocks.
 void insertProfileHeaders(std::vector<uint_fast8_t>&Profile_Vec, std::vector<uint_fast8_t>&File_Vec) {
 	constexpr uint_fast8_t
 		PROFILE_HEADER_LENGTH = 18,
-		PROFILE_HEADER_SEGMENT_SIZE_INDEX = 0x16, // Two byte JPG color profile header segment size field index.	
-		PROFILE_SIZE_INDEX = 0x28,		  // Four byte profile size field index.	
+		PROFILE_HEADER_SEGMENT_SIZE_INDEX = 0x16, // Two byte JPG ICC Profile header segment size field index.	
+		PROFILE_SIZE_INDEX = 0x28,		  // Four byte ICC Profile size field index.	
+		APP2_SIG_LENGTH = 2, 			  // 0xFFE2.
 		JPG_HEADER_LENGTH = 20;
 
 	constexpr uint_fast32_t SEGMENT_SIZE = 65537;
@@ -16,7 +17,7 @@ void insertProfileHeaders(std::vector<uint_fast8_t>&Profile_Vec, std::vector<uin
 	if (SEGMENT_SIZE + JPG_HEADER_LENGTH >= PROFILE_WITH_DATA_FILE_VEC_SIZE) {
 		constexpr uint_fast8_t SIZE_DIFF = 16;
 		const uint_fast32_t
-			PROFILE_HEADER_SEGMENT_SIZE = PROFILE_WITH_DATA_FILE_VEC_SIZE - (PROFILE_HEADER_LENGTH + 4), 
+			PROFILE_HEADER_SEGMENT_SIZE = PROFILE_WITH_DATA_FILE_VEC_SIZE - (JPG_HEADER_LENGTH + APP2_SIG_LENGTH), 
 			PROFILE_SIZE = PROFILE_HEADER_SEGMENT_SIZE - SIZE_DIFF;
 
 		valueUpdater(Profile_Vec, PROFILE_HEADER_SEGMENT_SIZE_INDEX, PROFILE_HEADER_SEGMENT_SIZE, value_bit_length);
@@ -24,16 +25,19 @@ void insertProfileHeaders(std::vector<uint_fast8_t>&Profile_Vec, std::vector<uin
 
 		File_Vec.swap(Profile_Vec);
 		
-	} else { // Data file is too large for a single profile segment. Create additional 64KB profile segments as needed, to store the data file.
+	} else { // Data file is too large for a single profile segment. Create additional profile segments as needed, to store the data file.
 		constexpr uint_fast8_t PROFILE_HEADER[] { 0xFF, 0xE2, 0xFF, 0xFF, 0x49, 0x43, 0x43, 0x5F, 0x50, 0x52, 0x4F, 0x46, 0x49, 0x4C, 0x45, 0x00, 0x01, 0x01 };
 		
 		uint_fast32_t 
 			read_byte_index{},
-			profile_header_count_inserted_tally = PROFILE_WITH_DATA_FILE_VEC_SIZE / SEGMENT_SIZE, // Approx. number of profile segments required. Does not include last remainder profile/segment(s).
-			profile_header_count_total_byte_value = profile_header_count_inserted_tally * PROFILE_HEADER_LENGTH,			
-			last_segment_remainder_size = (PROFILE_WITH_DATA_FILE_VEC_SIZE % SEGMENT_SIZE) + profile_header_count_total_byte_value,
+			profile_headers_approx_count = PROFILE_WITH_DATA_FILE_VEC_SIZE / SEGMENT_SIZE, // Get majority of number of profile segments required. Does not include last remainder profile/segment(s).
+			profile_headers_tally = (PROFILE_WITH_DATA_FILE_VEC_SIZE % SEGMENT_SIZE) / SEGMENT_SIZE + profile_headers_approx_count,
+			profile_headers_total_byte_value = (profile_headers_tally * PROFILE_HEADER_LENGTH) - (JPG_HEADER_LENGTH + APP2_SIG_LENGTH),	
+			final_segments_remainder_size = (PROFILE_WITH_DATA_FILE_VEC_SIZE % SEGMENT_SIZE) + profile_headers_total_byte_value,
+			final_segments_profile_headers_count = final_segments_remainder_size / SEGMENT_SIZE,
 			segment_tally = SEGMENT_SIZE + JPG_HEADER_LENGTH;
 
+		// Insert the majority of profile headers/segments here.
 		while (PROFILE_WITH_DATA_FILE_VEC_SIZE > read_byte_index) {
 			File_Vec.emplace_back(Profile_Vec[read_byte_index++]);
 			if (read_byte_index == segment_tally) { // Another profile segment required.
@@ -41,89 +45,80 @@ void insertProfileHeaders(std::vector<uint_fast8_t>&Profile_Vec, std::vector<uin
 				segment_tally += SEGMENT_SIZE;	
 			}
 		}
-		
-		auto insert_remainder_segments = [&](int_fast8_t repeat_val, const int_fast8_t DIFF_VAL) {
-			while (repeat_val--) {  // Split the last remainder size into required number of segments. 
+	
+		// This next section we deal with remainder of data file and split that into profile segments if required.
+
+		auto insert_remainder_segments = [&](int_fast8_t repeat_val) {
+			uint_fast8_t index_diff_value = 0;
+			while (repeat_val--) {  // Split the remainder size into required number of segments. 
 				File_Vec.insert(File_Vec.begin() + segment_tally, std::begin(PROFILE_HEADER), std::end(PROFILE_HEADER));
-        			profile_header_count_inserted_tally++;
+        			profile_headers_tally++;
+				index_diff_value += PROFILE_HEADER_LENGTH - 1;
 				if (repeat_val) {
 					segment_tally += SEGMENT_SIZE;
 				}
 		     	}
-			last_segment_remainder_size += DIFF_VAL;
-			valueUpdater(File_Vec, segment_tally + 2, last_segment_remainder_size, value_bit_length);
+			final_segments_remainder_size += index_diff_value;
+			valueUpdater(File_Vec, segment_tally + 2, final_segments_remainder_size, value_bit_length);
 		};
-				
-		constexpr int_fast8_t DIFF_VALUE[] { -5, 12, 29, 46, 63, -22 };	// Adjustment values required for correct last segment size.
-		constexpr uint_fast8_t REPEAT_VALUE[] { 1, 2, 3, 4, 5, 0 }; 	// How many remainder segments to create.
-
-		switch (last_segment_remainder_size / SEGMENT_SIZE) {
-  			case 1:
-				insert_remainder_segments(REPEAT_VALUE[0], DIFF_VALUE[0]);
-				break;
-  			case 2:
-				insert_remainder_segments(REPEAT_VALUE[1], DIFF_VALUE[1]);
-    				break;
-			case 3:
-				insert_remainder_segments(REPEAT_VALUE[2], DIFF_VALUE[2]);
-				break;
-			case 4: 
-				insert_remainder_segments(REPEAT_VALUE[3], DIFF_VALUE[3]);
-				break;
-			case 5:						
-				insert_remainder_segments(REPEAT_VALUE[4], DIFF_VALUE[4]);
-				break;
-  			default:
-		    		segment_tally -= SEGMENT_SIZE;
-				insert_remainder_segments(REPEAT_VALUE[5], DIFF_VALUE[5]);
+		
+		// Additional remainder segments to create, based on count value here.
+		if (final_segments_profile_headers_count) {
+			insert_remainder_segments(final_segments_profile_headers_count);
+		} else {
+			segment_tally -= SEGMENT_SIZE;
+			insert_remainder_segments(final_segments_profile_headers_count);
 		}
 			
+		// The final section deals with updating and storing various values required for the image and/or for the extraction program, jdvout.
+	
 		constexpr uint_fast8_t PROFILE_HEADER_TALLY_INDEX = 0x8A;  // Index start location within ICC Profile where we store the value of total inserted profile headers/segments (-1). 
 		
-		// 2 bytes Max. Write total number of profile headers / segments (not including the first one) within the index position of the color profile. Value used by jdvout.
-		valueUpdater(File_Vec, PROFILE_HEADER_TALLY_INDEX, profile_header_count_inserted_tally, value_bit_length);
+		// 2 bytes Max. Write/store total number of profile headers / segments (not including the first one) within the index position of the main ICC Profile. Value used by jdvout.
+		valueUpdater(File_Vec, PROFILE_HEADER_TALLY_INDEX, profile_headers_tally, value_bit_length);
 
 		uint_fast32_t 
-			profile_header_count_insert_index{},
-			profile_header_total_insert_index{}; 
+			profile_headers_sequence_index{},
+			profile_headers_total_index{}; 
 		
 		uint_fast16_t 
-			profile_header_insert_count = 1,
-			counter = ++profile_header_count_inserted_tally;
+			profile_headers_sequence = 1,
+			counter = ++profile_headers_tally;
 
 		constexpr uint_fast8_t	
 			ICC_PROFILE_SIG[] { 0x49, 0x43, 0x43, 0x5F, 0x50, 0x52, 0x4F, 0x46, 0x49, 0x4C, 0x45 },
-			PROFILE_HEADER_TOTAL_INSERT_INDEX_DIFF = 0x0D,
-			PROFILE_HEADER_COUNT_INSERT_INDEX_DIFF = 0x02,
+			PROFILE_HEADERS_TOTAL_INDEX_DIFF = 0x0D,
+			PROFILE_HEADERS_SEQUENCE_INDEX_DIFF = 0x02,
 			MASTODON_PROFILE_LIMIT = 100,
-			PROFILE_HEADER_TALLY_MAX = 255,
+			PROFILE_HEADERS_MAX = 255,
 			POS_ADDITION = 1;
 					   
 		constexpr uint_fast32_t MASTODON_IMAGE_UPLOAD_LIMIT = 16777216;
 					   
-		// Within the relevant index positions for each profile header found within File_Vec, insert the total value and individual current count value of inserted profile headers/segments.
-		// This is a requirement for image viewers and platforms such as Mastodon. Mastodon has a limit of 100 (0x64) profiles/segments, which gives it a max storage size of ~6MB.
+		// Within the relevant index positions for each ICC Profile header found within File_Vec, insert the total value & individual sequence value of inserted profile headers/segments.
+		// This is a requirement for image viewers and platforms such as Mastodon. Mastodon has a limit of 100 (0x64) profiles/segments, which gives it a Max. storage size of ~6MB.
+		// For the profile sequence count, we are using two bytes to store the value. While this is non-standard it provides the best compatibilty (imo) for embedding files over 16MB.
 		while (counter--) {
-			profile_header_total_insert_index = searchFunc(File_Vec, profile_header_total_insert_index, POS_ADDITION, ICC_PROFILE_SIG) + PROFILE_HEADER_TOTAL_INSERT_INDEX_DIFF;
-			profile_header_count_insert_index = profile_header_total_insert_index - PROFILE_HEADER_COUNT_INSERT_INDEX_DIFF; 
-			File_Vec[profile_header_total_insert_index] = profile_header_count_inserted_tally > PROFILE_HEADER_TALLY_MAX ? PROFILE_HEADER_TALLY_MAX : profile_header_count_inserted_tally;		
+			profile_headers_total_index = searchFunc(File_Vec, profile_headers_total_index, POS_ADDITION, ICC_PROFILE_SIG) + PROFILE_HEADERS_TOTAL_INDEX_DIFF;
+			profile_headers_sequence_index = profile_headers_total_index - PROFILE_HEADERS_SEQUENCE_INDEX_DIFF; 
+			File_Vec[profile_headers_total_index] = profile_headers_tally > PROFILE_HEADERS_MAX ? PROFILE_HEADERS_MAX : profile_headers_tally;		
 			while (value_bit_length) {
-				static_cast<uint_fast16_t>(File_Vec[profile_header_count_insert_index++] = (profile_header_insert_count >> (value_bit_length -= 8)) & 0xff);
+				static_cast<uint_fast16_t>(File_Vec[profile_headers_sequence_index++] = (profile_headers_sequence >> (value_bit_length -= 8)) & 0xff);
 			}
 			value_bit_length = 16;	
-			profile_header_insert_count++;
+			profile_headers_sequence++;
 		}	
-		if (profile_header_count_inserted_tally > MASTODON_PROFILE_LIMIT && PROFILE_WITH_DATA_FILE_VEC_SIZE < MASTODON_IMAGE_UPLOAD_LIMIT) {
+		if (profile_headers_tally > MASTODON_PROFILE_LIMIT && PROFILE_WITH_DATA_FILE_VEC_SIZE < MASTODON_IMAGE_UPLOAD_LIMIT) {
 			std::cout << "\n**Warning**\n\nEmbedded image is not compatible with Mastodon. Image file exceeds platform's profile limit.\n";
 		}
 	}
 	value_bit_length = 32; 
 
-	constexpr uint_fast8_t DEFLATED_DATA_FILE_SIZE_INDEX = 0x90; // Index start location within the ICC Profile where we store the compressed data file size (minus color profile data size). 
-	constexpr uint_fast16_t COLOR_PROFILE_SIZE = 663;
+	constexpr uint_fast8_t DEFLATED_DATA_FILE_SIZE_INDEX = 0x90; // Index start location within the ICC Profile where we store the compressed data file size (minus ICC Profile data size). 
+	constexpr uint_fast16_t ICC_PROFILE_SIZE = 663;
 	
-	const uint_fast32_t DEFLATED_DATA_FILE_SIZE = PROFILE_WITH_DATA_FILE_VEC_SIZE - COLOR_PROFILE_SIZE;
+	const uint_fast32_t DEFLATED_DATA_FILE_SIZE = PROFILE_WITH_DATA_FILE_VEC_SIZE - ICC_PROFILE_SIZE;
 		
-	// 4 bytes Max. Write the compressed file size of the data file (minus color profile size) within index position of color profile. Value used by jdvout.	
+	// 4 bytes Max. Write the compressed file size of the data file (minus ICC Profile size) within index position of ICC Profile. Value used by jdvout.	
 	valueUpdater(File_Vec, DEFLATED_DATA_FILE_SIZE_INDEX, DEFLATED_DATA_FILE_SIZE, value_bit_length);
 }
