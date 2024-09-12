@@ -1,4 +1,4 @@
-// If required, split and store data file into multiple ICC Profile segment blocks.
+// If required, split and store data file into multiple ICC Profile segments.
 void insertProfileHeaders(std::vector<uint_fast8_t>&Profile_Vec, std::vector<uint_fast8_t>&File_Vec) {
 	constexpr uint_fast8_t
 		PROFILE_HEADER_LENGTH = 18,
