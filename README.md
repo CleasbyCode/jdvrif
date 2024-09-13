@@ -23,7 +23,7 @@ Select the "***Images & Video***" tab on Reddit to post your image.
 
 To correctly download an image from ***X/Twitter*** or ***Reddit***, click the image in the post to **fully expand it**, before saving.  
 
-To correctly download an image from ***Flickr***, click the download arrow near the bottom right-hand corner of the site and select ***Original*** for the image size to download.
+To correctly download an image from ***Flickr***, click the download arrow near the bottom right-hand corner of the site and select ***Original*** for the size of image to download.
 
 With ***X/Twitter & Tumblr***, the small size limits (~10KB / ~64KB) are measured by the **data file size** and not the combined image size.
 As the data file is compressed when embedded, you should be able to hide files larger than 10KB or 64KB.
