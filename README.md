@@ -4,7 +4,7 @@ CLI tools ***jdvin*** & ***jdvout***, used to embed or extract a single file of 
 
 ****Compatible hosting sites, listed below, have their own, much smaller size limits (cover image + data file):***
 * ***Flickr*** (**200MB**), ***ImgPile*** (**100MB**), ***ImgBB*** (**32MB**), ***PostImage*** (**32MB**), ***Reddit*** (**20MB** / ***-r option***),
-* Limit measured by data file size: ***Mastodon*** (**~6MB**), ***Tumblr*** (**~64KB**), ***Twitter*** (**~10KB**).*
+* Limit measured by data file size: ***Mastodon*** (**~6MB**), ***Tumblr*** (**~64KB**), ***Twitter*** (**~10KB**).
   
 *There are many other image hosting sites on the web that may also be compatible.*  
 
