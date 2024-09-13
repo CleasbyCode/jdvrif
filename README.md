@@ -1,8 +1,8 @@
 # jdvrif
 
 Command-line tools to embed (***jdvin***) or extract (***jdvout***) any file type via a JPG image.  
-
 With ***jdvin***, you can embed a single file of any type up to a maximum size of ***1GB.**  
+
 ***Compatible hosting sites, listed below, have their own, *much smaller*, size limits (cover image + data file):**
 * *Flickr (200MB), ImgPile (100MB), ImgBB (32MB), PostImage (32MB), Reddit (20MB / -r option)*,
 * Limit measured by data file size: *Mastodon (~6MB), Tumblr (~64KB), Twitter (~10KB).*
