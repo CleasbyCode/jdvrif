@@ -14,7 +14,7 @@ void deflateFile(std::vector<uint_fast8_t>& Vec) {
 	strm.next_out = buffer;
 	strm.avail_out = BUFSIZE;
 	
-	deflateInit(&strm, 6); // Standard compression level 6
+	deflateInit(&strm, Z_DEFAULT_COMPRESSION); 
 	
 	while (strm.avail_in)
 	{
