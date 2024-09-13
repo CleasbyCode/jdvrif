@@ -5,7 +5,7 @@ You can post your image with hidden data on ***Mastodon*** and a few other socia
 
 With ***jdvin***, you can embed a single file of any type up to a maximum size of ***1GB.**  
 ***Compatible hosting sites, listed below, have their own, *much smaller*, size limits (cover image + data file):**
-* *Flickr (200MB), ImgPile (100MB), ImgBB (32MB), PostImage (24MB), Reddit (20MB / -r option)*,
+* *Flickr (200MB), ImgPile (100MB), ImgBB (32MB), PostImage (32MB), Reddit (20MB / -r option)*,
 * Limit measured by data file size: *Mastodon (~6MB), Tumblr (~64KB), Twitter (~10KB).*
   
 **jdvrif** partly derives from the ***[technique](https://www.vice.com/en/article/bj4wxm/tiny-picture-twitter-complete-works-of-shakespeare-steganography)*** demonstrated by security researcher ***[David Buchanan](https://www.da.vidbuchanan.co.uk/).*** 
