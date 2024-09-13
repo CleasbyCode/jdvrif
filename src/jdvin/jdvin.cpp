@@ -85,14 +85,8 @@ uint_fast8_t jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename
 	std::vector<uint_fast8_t>File_Vec((std::istreambuf_iterator<char>(data_file_ifs)), std::istreambuf_iterator<char>());
 
 	std::reverse(File_Vec.begin(), File_Vec.end());
-
-	constexpr uint_fast32_t ENABLE_COMPRESSION_SIZE_LIMIT = 209715200; // 200MB
 	
-	if (ENABLE_COMPRESSION_SIZE_LIMIT >= DATA_FILE_SIZE) {
-		constexpr uint_fast8_t PROFILE_COMPRESSION_ENABLE_INDEX = 0x94;
-		Profile_Vec[PROFILE_COMPRESSION_ENABLE_INDEX] = 1;  // Value used by jdvout.
-		deflateFile(File_Vec);
-	} 
+	deflateFile(File_Vec);
 	
 	if (File_Vec.empty()) {
 		std::cerr << "\nFile Size Error: File is zero bytes. Compression failure.\n\n";
