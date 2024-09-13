@@ -29,7 +29,6 @@ uint_fast8_t jdvOut(const std::string& IMAGE_FILENAME) {
 		PROFILE_SIG[]	{ 0x6D, 0x6E, 0x74, 0x72, 0x52, 0x47, 0x42 },	
 		PROFILE_COUNT_VALUE_INDEX = 0x60,	
 		FILE_SIZE_INDEX = 0x66,
-		COMPRESSION_STATE_VALUE_INDEX = 0x6A,
 		ENCRYPTED_FILENAME_INDEX = 0x27,
 		XOR_KEY_LENGTH = 12;
 
@@ -43,8 +42,6 @@ uint_fast8_t jdvOut(const std::string& IMAGE_FILENAME) {
 	}
 
 	Image_Vec.erase(Image_Vec.begin(), Image_Vec.begin() + (PROFILE_SIG_INDEX - 8));
-	
-	bool isFileCompressed = Image_Vec[COMPRESSION_STATE_VALUE_INDEX];
 	
 	const uint_fast32_t EMBEDDED_FILE_SIZE = getByteValue(Image_Vec, FILE_SIZE_INDEX);
 
@@ -73,10 +70,8 @@ uint_fast8_t jdvOut(const std::string& IMAGE_FILENAME) {
 
 	std::string decrypted_data_filename = decryptFile(Image_Vec, Profile_Headers_Index_Vec, encrypted_data_filename);
 	
-	if (isFileCompressed) {
-		inflateFile(Image_Vec);
-	}
-
+	inflateFile(Image_Vec);
+	
 	if (Image_Vec.empty()) {
 		std::cerr << "\nFile Size Error: File is zero bytes. Failure uncompressing file.\n\n";
 		return 1;
