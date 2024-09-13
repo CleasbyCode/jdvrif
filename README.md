@@ -8,7 +8,7 @@ With ***jdvin***, you can embed a single file of any type up to a maximum size o
 * *Flickr (200MB), ImgPile (100MB), ImgBB (32MB), PostImage (32MB), Reddit (20MB / -r option)*,
 * Limit measured by data file size: *Mastodon (~6MB), Tumblr (~64KB), Twitter (~10KB).*
   
-*There are, of course, many other image hosting sites on the internet that may also be compatible with jdvrif. Just a case of trial & error.*  
+*There are many other image hosting sites on the web that may also be compatible with jdvrif. Just a case of trial & error.*  
 
 **jdvrif** partly derives from the ***[technique](https://www.vice.com/en/article/bj4wxm/tiny-picture-twitter-complete-works-of-shakespeare-steganography)*** demonstrated by security researcher ***[David Buchanan](https://www.da.vidbuchanan.co.uk/).*** 
 
