@@ -21,7 +21,7 @@ The data file is also ****compressed and encrypted***. (*Compression is disabled
 To ***share*** *"file-embedded"* ***JPG*** images on ***Reddit***, you must use the ***-r*** option with ***jdvin***.  
 Select the "***Images & Video***" tab on ***Reddit*** to post your image.
 
-To correctly download an image from ***X/Twitter*** or ***Reddit***, click the image in the post to ***fully expand it***, before saving.  
+To correctly download images from ***X/Twitter*** or ***Reddit***, click the image in the post to ***fully expand it***, before saving.  
 
 To correctly download an image from ***Flickr***, click the download arrow near the bottom right-hand corner of the site and select ***Original*** for the size of image to download.
 
