@@ -47,14 +47,12 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    if (!std::filesystem::exists(IMAGE_FILENAME)) {
-        std::cerr << "\nImage File Error: File not found. Check the filename and try again.\n\n";
-        return 1;
-    }
-
-    if (!std::filesystem::exists(data_filename) || !std::filesystem::is_regular_file(data_filename)) {
-        std::cerr << "\nData File Error: File not found or not a regular file. Check the filename and try again.\n\n";
-        return 1;
+    if (!std::filesystem::exists(IMAGE_FILENAME) || !std::filesystem::exists(data_filename) || !std::filesystem::is_regular_file(data_filename)) {
+        std::cerr << (!std::filesystem::exists(IMAGE_FILENAME)
+            ? "\nImage"
+             : "\nData")
+         << " File Error: File not found or not a regular file. Check the filename and try again.\n\n";
+         return 1;
     }
     jdvIn(IMAGE_FILENAME, data_filename, isRedditOption);
 }
