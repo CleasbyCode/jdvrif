@@ -15,7 +15,7 @@ CLI tools ***jdvin*** & ***jdvout***, used to embed or extract any file type, up
 
 Demo Videos: [***Mastodon***](https://youtu.be/rnLf3W60IKQ) / [***X/Twitter***](https://youtu.be/Ajn5F1BO0Zg) / [***Reddit***](https://youtu.be/xIUsa3F8ZQc) / [***Tumblr***](https://youtu.be/8lIyLbx7CO8) / [***Flickr***](https://youtu.be/kg_MJHQuzLY) / [***Web Tool***](https://youtu.be/WvZMRp7Z6W4)  
 
-Your data file, if required, is split and stored into multiple **~64KB** ***ICC Profile segments*** within the ***JPG*** cover image.  
+Your data file is split and stored into multiple **~64KB** ***ICC Profile segments*** within the ***JPG*** cover image.  
 
 The data file is also ***compressed and encrypted***.
 
