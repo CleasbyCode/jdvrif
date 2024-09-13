@@ -21,7 +21,8 @@ The data file is also ***compressed and encrypted**. (*Compression is disabled f
 To **share** *"file-embedded"* JPG images on **Reddit**, you must use the **-r** option with ***jdvin***.  
 Select the "***Images & Video***" tab on Reddit to post your image.
 
-To correctly download an image from ***X/Twitter*** or ***Reddit***, click the image in the post to **fully expand it**, before saving.
+To correctly download an image from ***X/Twitter*** or ***Reddit***, click the image in the post to **fully expand it**, before saving.  
+To correctly download an image from ***Flickr***, click the download arrow from the bottom right-hand corner and select ***Original*** for the image size.
 
 With ***X/Twitter & Tumblr***, the small size limits (~10KB / ~64KB) are measured by the **data file size** and not the combined image size.
 As the data file is compressed when embedded, you should be able to hide files larger than 10KB or 64KB.
