@@ -1,7 +1,6 @@
 # jdvrif
 
-Command-line tools (***jdvin***) to embed & (***jdvout***) to extract, a single file of any type (Max size 1GB) via a JPG image.  
-With ***jdvin***, you can embed a single file of any type up to a maximum size of ***1GB.**  
+Command-line tools ***jdvin*** to embed & ***jdvout*** to extract, a single file of any type (up to **1GB**) via a JPG image.  
 
 ***Compatible hosting sites, listed below, have their own, *much smaller*, size limits (cover image + data file):**
 * *Flickr (200MB), ImgPile (100MB), ImgBB (32MB), PostImage (32MB), Reddit (20MB / -r option)*,
