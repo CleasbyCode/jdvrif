@@ -94,6 +94,11 @@ uint_fast8_t jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename
 		deflateFile(File_Vec);
 	} 
 	
+	if (File_Vec.empty()) {
+		std::cerr << "\nFile Size Error: File is zero bytes. Compression failure.\n\n";
+		return 1;
+	}
+	
 	encryptFile(Profile_Vec, File_Vec, data_filename);
 
 	File_Vec.clear();
