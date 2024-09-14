@@ -19,23 +19,23 @@ int main(int argc, char** argv) {
         return 1;
     }
    
-    const bool isRedditOption = (argc > 3);
+    const bool 
+	    isRedditOption = (argc > 3 && std::string(argv[1]) == "-r"),
+	    isInvalidOption = (argc > 3 && !isRedditOption);
+
+    if (isInvalidOption) {
+        std::cerr << "\nInput Error: Invalid arguments. Expecting only \"-r\" as the first optional argument.\n\n";
+        return 1;
+    }
 
     const std::string IMAGE_FILENAME = isRedditOption ? argv[2] : argv[1];
     std::string data_filename = isRedditOption ? argv[3] : argv[2];
 
     const std::filesystem::path image_path(IMAGE_FILENAME);
-    std::string image_extension = image_path.extension().string();
+    const std::string IMAGE_EXTENSION = image_path.extension().string();
 
-    image_extension = image_extension == ".jpeg" || image_extension == ".jfif" ? ".jpg" : image_extension;
-
-    if (argc > 3 && std::string(argv[1]) != "-r") {
-        std::cerr << "\nInput Error: Invalid arguments. Expecting only \"-r\" as the first argument option.\n\n";
-        return 1;
-    }
-
-    if (image_extension != ".jpg") {
-        std::cerr << "\nFile Type Error: Invalid file extension. Expecting only \".jpg\" image extension.\n\n";
+    if (IMAGE_EXTENSION != ".jpg" && IMAGE_EXTENSION != ".jpeg" && IMAGE_EXTENSION != ".jfif") {
+        std::cerr << "\nFile Type Error: Invalid file extension. Expecting only \"jpg, jpeg or jfif\" image extensions.\n\n";
         return 1;
     }
 
@@ -49,10 +49,10 @@ int main(int argc, char** argv) {
 
     if (!std::filesystem::exists(IMAGE_FILENAME) || !std::filesystem::exists(data_filename) || !std::filesystem::is_regular_file(data_filename)) {
         std::cerr << (!std::filesystem::exists(IMAGE_FILENAME)
-            ? "\nImage"
-             : "\nData")
-         << " File Error: File not found or not a regular file. Check the filename and try again.\n\n";
-         return 1;
+            ? "\nImage File Error: File not found."
+            : "\nData File Error: File not found or not a regular file.")
+            << " Check the filename and try again.\n\n";
+        return 1;
     }
     jdvIn(IMAGE_FILENAME, data_filename, isRedditOption);
 }
