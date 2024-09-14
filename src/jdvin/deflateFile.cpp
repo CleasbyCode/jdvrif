@@ -1,7 +1,7 @@
 // zlib function, see https://zlib.net/
 void deflateFile(std::vector<uint_fast8_t>& Vec) {
 	
-	uint_fast32_t BUFSIZE = static_cast<uint_fast32_t>(Vec.size());
+	const uint_fast32_t BUFSIZE = static_cast<uint_fast32_t>(Vec.size());
 	uint_fast8_t* buffer{ new uint_fast8_t[BUFSIZE] };
 	
 	std::vector<uint_fast8_t>Deflate_Vec;
