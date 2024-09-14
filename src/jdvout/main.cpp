@@ -29,8 +29,8 @@ int main(int argc, char** argv) {
         	return 1;
     	}
 	
-	std::filesystem::path image_path(IMAGE_FILENAME);
-    	const std::string IMAGE_EXTENSION = image_path.extension().string();
+	const std::filesystem::path IMAGE_PATH(IMAGE_FILENAME);
+    	const std::string IMAGE_EXTENSION = IMAGE_PATH.extension().string();
 
     	if (IMAGE_EXTENSION != ".jpg" && IMAGE_EXTENSION != ".jpeg" && IMAGE_EXTENSION != ".jfif") {
 		std::cerr << "\nFile Type Error: Invalid file extension. Expecting only \"jpg, jpeg or jfif\" image extensions.\n\n";
