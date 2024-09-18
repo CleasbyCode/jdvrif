@@ -13,16 +13,17 @@ uint_fast8_t jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename
 		COMBINED_FILE_SIZE 	= DATA_FILE_SIZE + IMAGE_FILE_SIZE;
 
 	if (COMBINED_FILE_SIZE > MAX_FILE_SIZE
-		 || (isRedditOption && COMBINED_FILE_SIZE > MAX_FILE_SIZE_REDDIT)
-		 || JPG_MIN_FILE_SIZE > IMAGE_FILE_SIZE) {		
-		std::cerr << "\nFile Size Error: " 
-			<< (JPG_MIN_FILE_SIZE > IMAGE_FILE_SIZE
-        			? "Image is too small to be a valid JPG image"
-	        		: "Combined size of image and data file exceeds the maximum limit of "
-        	    		+ std::string(isRedditOption 
-                			? "20MB"
-	                		: "1GB"))
-			<< ".\n\n";
+     		|| (DATA_FILE_SIZE == 0)
+     		|| (isRedditOption && COMBINED_FILE_SIZE > MAX_FILE_SIZE_REDDIT)
+     		|| JPG_MIN_FILE_SIZE > IMAGE_FILE_SIZE) {     
+    		std::cerr << "\nFile Size Error: "
+        		<< (JPG_MIN_FILE_SIZE > IMAGE_FILE_SIZE
+            		? "Image is too small to be a valid JPG image"
+            		: (DATA_FILE_SIZE == 0
+                		? "Data file is empty"
+                		: "Combined size of image and data file exceeds the maximum limit of "
+                    		+ std::string(isRedditOption ? "20MB" : "1GB")))
+        	<< ".\n\n";
     		return 1;
 	}
 	
@@ -74,6 +75,9 @@ uint_fast8_t jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename
     	 	return 1;
 	}
 
+	constexpr uint_fast8_t PROFILE_NAME_LENGTH_INDEX = 0x50;
+	Profile_Vec[PROFILE_NAME_LENGTH_INDEX] = DATA_FILENAME_LENGTH;
+
 	if (DATA_FILE_SIZE > LARGE_FILE_SIZE) {
 		std::cout << "\nPlease wait. Larger files will take longer to complete this process.\n";
 	}
@@ -82,14 +86,14 @@ uint_fast8_t jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename
 	
 	std::reverse(File_Vec.begin(), File_Vec.end());
 
-	deflateFile(File_Vec);
+	uint_fast32_t file_vec_size = deflateFile(File_Vec);
 	
-	if (File_Vec.empty()) {
-		std::cerr << "\nFile Size Error: File is zero bytes. Compression failure.\n\n";
+	if (!file_vec_size) {
+		std::cerr << "\nFile Size Error: File is zero bytes. Probable compression failure.\n\n";
 		return 1;
 	}
 	
-	encryptFile(Profile_Vec, File_Vec, data_filename);
+	encryptFile(Profile_Vec, File_Vec, file_vec_size, data_filename);
 	
 	File_Vec.clear();
 	File_Vec.shrink_to_fit();
