@@ -2,6 +2,7 @@
 // The first/main ICC Profile contains the color profile data, followed by the embedded data file.
 // Additional profile segments just contain the 18 byte ICC Profile header, followed by the embedded data file.
 void insertProfileHeaders(std::vector<uint_fast8_t>&Profile_Vec, std::vector<uint_fast8_t>&File_Vec) {
+
 	constexpr uint_fast8_t
 		PROFILE_HEADER_LENGTH 	= 18,
 		JPG_HEADER_LENGTH 	= 20,
@@ -33,7 +34,7 @@ void insertProfileHeaders(std::vector<uint_fast8_t>&Profile_Vec, std::vector<uin
 		constexpr uint_fast8_t PROFILE_HEADER[] { 0xFF, 0xE2, 0xFF, 0xFF, 0x49, 0x43, 0x43, 0x5F, 0x50, 0x52, 0x4F, 0x46, 0x49, 0x4C, 0x45, 0x00, 0x01, 0x01 };
 		
 		uint_fast32_t 
-			read_byte_index = 0,
+			read_byte_index 			= 0,
 			profile_headers_approx_count 		= PROFILE_WITH_DATA_FILE_VEC_SIZE / SEGMENT_SIZE, 
 			profile_headers_tally 			= (PROFILE_WITH_DATA_FILE_VEC_SIZE % SEGMENT_SIZE) / SEGMENT_SIZE + profile_headers_approx_count,
 			profile_headers_total_byte_value 	= (profile_headers_tally * PROFILE_HEADER_LENGTH) - (JPG_HEADER_LENGTH + APP2_SIG_LENGTH),	
@@ -62,7 +63,7 @@ void insertProfileHeaders(std::vector<uint_fast8_t>&Profile_Vec, std::vector<uin
 				if (repeat_val) {
 					segment_tally += SEGMENT_SIZE;
 				}
-		     	}
+			}
 			final_segments_remainder_size += index_diff_value;
 			uint_fast32_t segment_size_index = segment_tally + 2;
 			valueUpdater(File_Vec, segment_size_index, final_segments_remainder_size, value_bit_length);
