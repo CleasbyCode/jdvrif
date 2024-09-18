@@ -18,8 +18,8 @@ Usage: jdvin [-r] <cover_image> <data_file>
 Post your file-embedded image on the following compatible sites.
 *Image size limits(cover image + data file):
 
-Flickr (200MB), *ImgPile (100MB), ImgBB (32MB), PostImage (32MB), *Reddit (20MB / requires -r option), 
-Mastodon (16MB), *X/Twitter (~10KB / *Limit measured by data file size).
+Limit measured by image + data file size: Flickr (200MB), *ImgPile (100MB), ImgBB (32MB), PostImage (32MB), *Reddit (20MB / requires -r option), 
+Limit measured by data file size: Mastodon (~6MB), Tumblr (~64KB), *X/Twitter (~10KB).
 
 Arguments / options:	
 		
