@@ -1,6 +1,6 @@
 # jdvrif
 
-CLI tools ***jdvin*** & ***jdvout***, used to embed or extract any file type, up to ***1GB**, via a ***JPG*** image.  
+CLI tools ***jdvin*** & ***jdvout***, used to embed or extract any file type, up to ***2GB**, via a ***JPG*** image.  
 
 ****Compatible hosting sites, listed below, have their own, much smaller size limits (cover image + data file):***
 * ***Flickr*** (**200MB**), ***ImgPile*** (**100MB**), ***ImgBB*** (**32MB**), ***PostImage*** (**32MB**), ***Reddit*** (**20MB** / ***-r option***),
