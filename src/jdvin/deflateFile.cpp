@@ -1,12 +1,12 @@
 // zlib function, see https://zlib.net/
 void deflateFile(std::vector<uint_fast8_t>& Vec) {
-		
+	
 	constexpr uint_fast32_t
 		MASSIVE_FILE_SIZE = 734003200, // > 700MB
 		LARGE_FILE_SIZE	  = 314572800, // > 300MB
 		MEDIUM_FILE_SIZE  = 104857600, // > 100MB
 		BUFSIZE = 2097152;
-
+	
 	const uint_fast32_t VEC_SIZE = static_cast<uint_fast32_t>(Vec.size());
 
 	uint_fast8_t* buffer{ new uint_fast8_t[BUFSIZE] };
@@ -35,8 +35,7 @@ void deflateFile(std::vector<uint_fast8_t>& Vec) {
 
 	deflateInit(&strm, compression_level);
 
-	while (strm.avail_in)
-	{
+	while (strm.avail_in) {
 		deflate(&strm, Z_NO_FLUSH);
 		
 		if (!strm.avail_out) {
