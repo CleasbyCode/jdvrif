@@ -1,8 +1,8 @@
 uint_fast8_t jdvOut(const std::string& IMAGE_FILENAME) {
 
 	constexpr uint_fast32_t 
-		MAX_FILE_SIZE 	= 2147483648, // 2GB.
-		LARGE_FILE_SIZE = 419430400;  // 400MB.
+		MAX_FILE_SIZE 	= 2684354560, // 2.5GB
+		LARGE_FILE_SIZE = 419430400;  // 400MB
 
 	const size_t TMP_IMAGE_FILE_SIZE = std::filesystem::file_size(IMAGE_FILENAME);
 	
