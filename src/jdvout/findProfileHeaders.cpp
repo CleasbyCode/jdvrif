@@ -11,6 +11,6 @@ void findProfileHeaders(std::vector<uint_fast8_t>&Image_Vec, std::vector<uint_fa
 
 	while (profile_count--) {
 		profile_header_index = searchFunc(Image_Vec, profile_header_index, NEXT_SEARCH_POS_INC, ICC_PROFILE_SIG) - INDEX_DIFF;
-    		Profile_Headers_Index_Vec.emplace_back(profile_header_index);
+		Profile_Headers_Index_Vec.emplace_back(profile_header_index);
 	}
 }
