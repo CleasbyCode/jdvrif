@@ -53,11 +53,14 @@ void insertProfileHeaders(std::vector<uint_fast8_t>&Profile_Vec, std::vector<uin
 				segment_tally += SEGMENT_SIZE;	
 			}
 		}
-	
+		
+		Profile_Vec.clear();
+		Profile_Vec.shrink_to_fit();
+		
 		// This next section we deal with remainder of data file and split that into profile segments if required.
 
 		auto insert_remainder_segments = [&](int_fast8_t repeat_val) {
-			uint_fast8_t index_diff_value = 0;
+			uint_fast16_t index_diff_value = 0;
 			while (repeat_val--) {  // Split the remainder size into required number of segments. 
 				File_Vec.insert(File_Vec.begin() + segment_tally, std::begin(PROFILE_HEADER), std::end(PROFILE_HEADER));
         			profile_headers_tally++;
