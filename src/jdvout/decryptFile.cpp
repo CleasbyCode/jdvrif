@@ -1,5 +1,5 @@
 std::string decryptFile(std::vector<uint_fast8_t>&Image_Vec, std::vector<uint_fast32_t>&Profile_Headers_Index_Vec, std::string& encrypted_filename, uint_fast8_t encrypted_filename_length) {
-
+	
 	constexpr uint_fast8_t
 		PROFILE_HEADER_LENGTH 	= 18,
 		XOR_KEY_LENGTH 		= 234;	
@@ -18,8 +18,8 @@ std::string decryptFile(std::vector<uint_fast8_t>&Image_Vec, std::vector<uint_fa
 		name_pos = 0;
 
 	for (uint_fast8_t j = 0, i = encrypted_filename_length; i < encrypted_filename_length + XOR_KEY_LENGTH;) {
-        	xor_key[j++] = encrypted_filename[i++]; 
-    	}
+		xor_key[j++] = encrypted_filename[i++]; 
+	}
 
 	std::string decrypted_filename;
 	
