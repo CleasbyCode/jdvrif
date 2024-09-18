@@ -1,5 +1,5 @@
 uint_fast8_t jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, bool isRedditOption) {
-
+	
 	constexpr uint_fast32_t
 		MAX_FILE_SIZE 		= 1078800000, 	// Slightly over 1GB.
 		MAX_FILE_SIZE_REDDIT 	= 20971520,	// 20MB. 	
@@ -32,9 +32,9 @@ uint_fast8_t jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename
 
 	if (!image_file_ifs || !data_file_ifs) {
 		std::cerr << "\nRead File Error: Unable to read " << (!image_file_ifs 
-				? "image file" 
-				: "data file") 
-			<< ".\n\n";
+			? "image file" 
+			: "data file") 
+		<< ".\n\n";
 		return 1;
 	}
 
@@ -70,7 +70,7 @@ uint_fast8_t jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename
 	const uint_fast8_t DATA_FILENAME_LENGTH = static_cast<uint_fast8_t>(data_filename.length());
 
 	if (DATA_FILENAME_LENGTH > MAX_FILENAME_LENGTH) {
-    		std::cerr << "\nData File Error: Length of data filename is too long.\n\nFor compatibility requirements, length of data filename must not exceed 20 characters.\n\n";
+		std::cerr << "\nData File Error: Length of data filename is too long.\n\nFor compatibility requirements, length of data filename must not exceed 20 characters.\n\n";
     	 	return 1;
 	}
 
