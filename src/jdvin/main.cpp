@@ -9,9 +9,10 @@
 #include "jdvin.h"
 
 int main(int argc, char** argv) {
+	
 	if (argc == 2 && std::string(argv[1]) == "--info") {
-        	displayInfo();
-        	return 0;
+		displayInfo();
+		return 0;
     	}
 
     	if (argc < 3 || argc > 4) {
@@ -20,8 +21,8 @@ int main(int argc, char** argv) {
     	}
    
     	const bool 
-            isRedditOption  =  (argc > 3 && std::string(argv[1]) == "-r"),
-            isInvalidOption =  (argc > 3 && !isRedditOption);
+		isRedditOption  =  (argc > 3 && std::string(argv[1]) == "-r"),
+		isInvalidOption =  (argc > 3 && !isRedditOption);
 
     	if (isInvalidOption) {
 		std::cerr << "\nInput Error: Invalid arguments. Expecting only \"-r\" as the first optional argument.\n\n";
@@ -36,7 +37,7 @@ int main(int argc, char** argv) {
 
     	if (!std::regex_match(IMAGE_FILENAME, regex_pattern) || !std::regex_match(data_filename, regex_pattern)) {
 		std::cerr << "\nInvalid Input Error: Characters not supported by this program found within filename arguments.\n\n";
-        	return 1;
+		return 1;
     	}
 
     	const std::filesystem::path IMAGE_PATH(IMAGE_FILENAME);
@@ -44,7 +45,7 @@ int main(int argc, char** argv) {
 
     	if (IMAGE_EXTENSION != ".jpg" && IMAGE_EXTENSION != ".jpeg" && IMAGE_EXTENSION != ".jfif") {
 		std::cerr << "\nFile Type Error: Invalid file extension. Expecting only \"jpg, jpeg or jfif\" image extensions.\n\n";
-        	return 1;
+		return 1;
 	}
 
     	if (!std::filesystem::exists(IMAGE_FILENAME) || !std::filesystem::exists(data_filename) || !std::filesystem::is_regular_file(data_filename)) {
