@@ -6,7 +6,8 @@ void inflateFile(std::vector<uint_fast8_t>& Vec) {
 	uint_fast8_t* buffer{ new uint_fast8_t[BUFSIZE] };
 	
 	std::vector<uint_fast8_t>Inflate_Vec;
-	
+	Inflate_Vec.reserve(Vec.size() + BUFSIZE);
+
 	z_stream strm;
 	strm.zalloc = Z_NULL;
 	strm.zfree = Z_NULL;
