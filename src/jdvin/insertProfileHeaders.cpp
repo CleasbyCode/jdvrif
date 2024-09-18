@@ -42,6 +42,8 @@ void insertProfileHeaders(std::vector<uint_fast8_t>&Profile_Vec, std::vector<uin
 			final_segments_profile_headers_count 	= final_segments_remainder_size / SEGMENT_SIZE,
 			segment_tally 				= SEGMENT_SIZE + JPG_HEADER_LENGTH;
 
+		File_Vec.reserve(PROFILE_WITH_DATA_FILE_VEC_SIZE + profile_headers_total_byte_value);
+		
 		// Insert the majority of profile headers/segments here.
 		while (PROFILE_WITH_DATA_FILE_VEC_SIZE > read_byte_index) {
 			File_Vec.emplace_back(Profile_Vec[read_byte_index++]);
