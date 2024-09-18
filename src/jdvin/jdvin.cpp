@@ -1,10 +1,9 @@
 uint_fast8_t jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, bool isRedditOption) {
 	
 	constexpr uint_fast32_t
-		MAX_FILE_SIZE 		= 1078800000, 	// Slightly over 1GB.
-		MAX_FILE_SIZE_REDDIT 	= 20971520,	// 20MB. 	
-		LARGE_FILE_SIZE 	= 104857600;	// 100MB.
-
+		COMBINED_MAX_FILE_SIZE 	= 2147483648, 	// 2GB. (image + data file)
+		MAX_FILE_SIZE_REDDIT 	= 20971520;	// 20MB. 	
+	
 	constexpr uint_fast8_t JPG_MIN_FILE_SIZE = 134;
 
 	const size_t 
@@ -12,7 +11,7 @@ uint_fast8_t jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename
 		DATA_FILE_SIZE 		= std::filesystem::file_size(data_filename),
 		COMBINED_FILE_SIZE 	= DATA_FILE_SIZE + IMAGE_FILE_SIZE;
 
-	if (COMBINED_FILE_SIZE > MAX_FILE_SIZE
+	if (COMBINED_FILE_SIZE > COMBINED_MAX_FILE_SIZE
      		|| (DATA_FILE_SIZE == 0)
      		|| (isRedditOption && COMBINED_FILE_SIZE > MAX_FILE_SIZE_REDDIT)
      		|| JPG_MIN_FILE_SIZE > IMAGE_FILE_SIZE) {     
@@ -21,8 +20,8 @@ uint_fast8_t jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename
             		? "Image is too small to be a valid JPG image"
             		: (DATA_FILE_SIZE == 0
                 		? "Data file is empty"
-                		: "Combined size of image and data file exceeds the maximum limit of "
-                    		+ std::string(isRedditOption ? "20MB" : "1GB")))
+                		: "Combined size of image and data file exceeds program maximum limit of "
+                    		+ std::string(isRedditOption ? "20MB" : "2GB")))
         	<< ".\n\n";
     		return 1;
 	}
@@ -78,6 +77,8 @@ uint_fast8_t jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename
 	constexpr uint_fast8_t PROFILE_NAME_LENGTH_INDEX = 0x50;
 	Profile_Vec[PROFILE_NAME_LENGTH_INDEX] = DATA_FILENAME_LENGTH;
 
+	constexpr uint_fast32_t LARGE_FILE_SIZE = 104857600;	// 100MB.
+	
 	if (DATA_FILE_SIZE > LARGE_FILE_SIZE) {
 		std::cout << "\nPlease wait. Larger files will take longer to complete this process.\n";
 	}
