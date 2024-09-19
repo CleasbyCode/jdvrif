@@ -13,7 +13,9 @@ void insertProfileHeaders(std::vector<uint_fast8_t>&Profile_Vec, std::vector<uin
 	const uint_fast32_t PROFILE_WITH_DATA_FILE_VEC_SIZE = static_cast<uint_fast32_t>(Profile_Vec.size());
 			
 	uint_fast8_t value_bit_length = 16;	
-		
+	
+	std::vector<uint_fast8_t>().swap(File_Vec);
+
 	if (SEGMENT_SIZE + JPG_HEADER_LENGTH >= PROFILE_WITH_DATA_FILE_VEC_SIZE) { 
 		// Data file is small enough to fit within the first/main ICC Profile segment, along with the color profile data.
 		constexpr uint_fast8_t
@@ -54,8 +56,7 @@ void insertProfileHeaders(std::vector<uint_fast8_t>&Profile_Vec, std::vector<uin
 			}
 		}
 		
-		Profile_Vec.clear();
-		Profile_Vec.shrink_to_fit();
+		std::vector<uint_fast8_t>().swap(Profile_Vec);
 		
 		// This next section we deal with remainder of data file and split that into profile segments if required.
 
