@@ -102,9 +102,6 @@ uint_fast8_t jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename
 	
 	encryptFile(Profile_Vec, File_Vec, file_vec_size, data_filename);
 	
-	File_Vec.clear();
-	File_Vec.shrink_to_fit();
-	
 	insertProfileHeaders(Profile_Vec, File_Vec);
 
 	constexpr uint_fast8_t PROFILE_HEADER_LENGTH = 18;
