@@ -38,5 +38,6 @@ std::string decryptFile(std::vector<uint_fast8_t>&Image_Vec, std::vector<uint_fa
 			next_header_index++;
 		}	
 	}
+	std::vector<uint_fast32_t>().swap(Profile_Headers_Index_Vec);
 	return decrypted_filename;
 }
