@@ -49,7 +49,7 @@ Usage: jdvin [-r] <cover_image> <data_file>
 
 user1@linuxbox:~/Desktop$ jdvin clown.jpg workflow.rar
   
-Saved file-embedded JPG image: jrif_28597.jpg 176345 Bytes.
+Saved "file-embedded" JPG image: jrif_28597.jpg 176345 Bytes.
 
 Complete!
 
