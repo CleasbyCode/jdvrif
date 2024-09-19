@@ -78,7 +78,7 @@ uint_fast8_t jdvOut(const std::string& IMAGE_FILENAME) {
 	inflateFile(Image_Vec);
 	
 	if (Image_Vec.empty()) {
-		std::cerr << "\nFile Size Error: File is zero bytes. Failure uncompressing file.\n\n";
+		std::cerr << "\nFile Size Error: File is zero bytes. Probable failure uncompressing file.\n\n";
 		return 1;
 	}
 
