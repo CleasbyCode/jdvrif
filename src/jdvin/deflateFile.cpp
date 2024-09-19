@@ -2,10 +2,10 @@
 uint_fast32_t deflateFile(std::vector<uint_fast8_t>& Vec) {
 	
 	constexpr uint_fast32_t
-		MASSIVE_FILE_SIZE = 734003200, // > 700MB
-		LARGE_FILE_SIZE	  = 314572800, // > 300MB
-		MEDIUM_FILE_SIZE  = 104857600, // > 100MB
-		BUFSIZE = 2097152;
+		BUFSIZE = 2097152,
+		MASSIVE_FILE_SIZE = 1073741824, //  > 1GB.		
+		LARGE_FILE_SIZE	  = 524288000,  //  > 500MB.
+		MEDIUM_FILE_SIZE  = 157286400;  //  > 150MB.
 	
 	const uint_fast32_t VEC_SIZE = static_cast<uint_fast32_t>(Vec.size());
 
