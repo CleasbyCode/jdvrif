@@ -8,6 +8,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <iterator>
 #include <zlib.h>
 
 #include "getByteValue.cpp"
