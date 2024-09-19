@@ -16,7 +16,9 @@ bool writeFile(std::vector<uint_fast8_t>& Vec) {
 	uint_fast32_t EMBEDDED_IMAGE_SIZE = static_cast<uint_fast32_t>(Vec.size());
 
 	file_ofs.write((char*)&Vec[0], EMBEDDED_IMAGE_SIZE);
-
+	
+	std::vector<uint_fast8_t>().swap(Vec);
+	
 	std::cout << "\nSaved file-embedded JPG image: " + EMBEDDED_IMAGE_FILENAME + '\x20' + std::to_string(EMBEDDED_IMAGE_SIZE) + " Bytes.\n";
 	return true;
 }
