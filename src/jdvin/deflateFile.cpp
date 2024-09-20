@@ -1,5 +1,5 @@
 // zlib function, see https://zlib.net/
-uint_fast32_t deflateFile(std::vector<uint_fast8_t>& Vec) {
+uint_fast32_t deflateFile(std::vector<uint8_t>& Vec) {
 	
 	constexpr uint_fast32_t
 		BUFSIZE = 2097152,
@@ -11,7 +11,7 @@ uint_fast32_t deflateFile(std::vector<uint_fast8_t>& Vec) {
 
 	uint_fast8_t* buffer{ new uint_fast8_t[BUFSIZE] };
 	
-	std::vector<uint_fast8_t>Deflate_Vec;
+	std::vector<uint8_t>Deflate_Vec;
 	Deflate_Vec.reserve(VEC_SIZE + BUFSIZE);
 	
 	z_stream strm;
