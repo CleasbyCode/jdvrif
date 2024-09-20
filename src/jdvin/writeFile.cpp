@@ -1,4 +1,4 @@
-bool writeFile(std::vector<uint_fast8_t>& Vec) {
+bool writeFile(std::vector<uint8_t>& Vec) {
 
 	srand((unsigned)time(NULL));  
 
@@ -17,7 +17,7 @@ bool writeFile(std::vector<uint_fast8_t>& Vec) {
 
 	file_ofs.write((char*)&Vec[0], EMBEDDED_IMAGE_SIZE);
 	
-	std::vector<uint_fast8_t>().swap(Vec);
+	std::vector<uint8_t>().swap(Vec);
 	
 	std::cout << "\nSaved \"file-embedded\" JPG image: " + EMBEDDED_IMAGE_FILENAME + '\x20' + std::to_string(EMBEDDED_IMAGE_SIZE) + " Bytes.\n";
 	return true;
