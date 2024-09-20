@@ -1,8 +1,7 @@
 // If required, split and store data file into multiple ICC Profile segments. 
 // The first/main ICC Profile contains the color profile data, followed by the embedded data file.
 // Additional profile segments just contain the 18 byte ICC Profile header, followed by the embedded data file.
-void insertProfileHeaders(std::vector<uint_fast8_t>&Profile_Vec, std::vector<uint_fast8_t>&File_Vec) {
-
+void insertProfileHeaders(std::vector<uint8_t>&Profile_Vec, std::vector<uint8_t>&File_Vec) {
 	constexpr uint_fast8_t
 		PROFILE_HEADER_LENGTH 	= 18,
 		JPG_HEADER_LENGTH 	= 20,
@@ -14,7 +13,7 @@ void insertProfileHeaders(std::vector<uint_fast8_t>&Profile_Vec, std::vector<uin
 			
 	uint_fast8_t value_bit_length = 16;	
 	
-	std::vector<uint_fast8_t>().swap(File_Vec);
+	std::vector<uint8_t>().swap(File_Vec);
 
 	if (SEGMENT_SIZE + JPG_HEADER_LENGTH >= PROFILE_WITH_DATA_FILE_VEC_SIZE) { 
 		// Data file is small enough to fit within the first/main ICC Profile segment, along with the color profile data.
@@ -56,7 +55,7 @@ void insertProfileHeaders(std::vector<uint_fast8_t>&Profile_Vec, std::vector<uin
 			}
 		}
 		
-		std::vector<uint_fast8_t>().swap(Profile_Vec);
+		std::vector<uint8_t>().swap(Profile_Vec);
 		
 		// This next section we deal with remainder of data file and split that into profile segments if required.
 
