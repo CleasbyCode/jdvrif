@@ -38,7 +38,7 @@ uint_fast8_t jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename
 		return 1;
 	}
 
-	std::vector<uint_fast8_t> Image_Vec;
+	std::vector<uint8_t> Image_Vec;
 	Image_Vec.reserve(COMBINED_FILE_SIZE); 
 	
 	std::copy(std::istreambuf_iterator<char>(image_file_ifs), std::istreambuf_iterator<char>(), std::back_inserter(Image_Vec));
@@ -86,7 +86,7 @@ uint_fast8_t jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename
 		std::cout << "\nPlease wait. Larger files will take longer to complete this process.\n";
 	}
 
-	std::vector<uint_fast8_t> File_Vec;
+	std::vector<uint8_t> File_Vec;
 	File_Vec.reserve(COMBINED_FILE_SIZE); 
 
 	std::copy(std::istreambuf_iterator<char>(data_file_ifs), std::istreambuf_iterator<char>(), std::back_inserter(File_Vec));
