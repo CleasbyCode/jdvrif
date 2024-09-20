@@ -1,11 +1,10 @@
 // zlib function, see https://zlib.net/
-void inflateFile(std::vector<uint_fast8_t>& Vec) {
-	
+void inflateFile(std::vector<uint8_t>& Vec) {
 	constexpr uint_fast32_t BUFSIZE = 2097152;
 
 	uint_fast8_t* buffer{ new uint_fast8_t[BUFSIZE] };
 	
-	std::vector<uint_fast8_t>Inflate_Vec;
+	std::vector<uint8_t>Inflate_Vec;
 	Inflate_Vec.reserve(Vec.size() + BUFSIZE);
 
 	z_stream strm;
@@ -35,6 +34,5 @@ void inflateFile(std::vector<uint_fast8_t>& Vec) {
 	inflateEnd(&strm);
 	
 	delete[] buffer;
-
 	Vec.swap(Inflate_Vec);	
 }
