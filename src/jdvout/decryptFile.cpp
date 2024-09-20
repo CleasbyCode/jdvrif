@@ -1,5 +1,4 @@
-std::string decryptFile(std::vector<uint_fast8_t>&Image_Vec, std::vector<uint_fast32_t>&Profile_Headers_Index_Vec, std::string& encrypted_filename, uint_fast8_t encrypted_filename_length) {
-	
+std::string decryptFile(std::vector<uint8_t>&Image_Vec, std::vector<uint_fast32_t>&Profile_Headers_Index_Vec, std::string& encrypted_filename, uint_fast8_t encrypted_filename_length) {
 	constexpr uint_fast8_t
 		PROFILE_HEADER_LENGTH 	= 18,
 		XOR_KEY_LENGTH 		= 234;	
