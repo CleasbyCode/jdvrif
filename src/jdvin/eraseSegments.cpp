@@ -1,5 +1,5 @@
 // Erase JPG segments such as Exif (APP1) and ICC_Profile (APP2) from cover image.
-void eraseSegments(std::vector<uint_fast8_t>&Vec, bool& isKdak_Profile) {
+void eraseSegments(std::vector<uint8_t>&Vec, bool& isKdak_Profile) {
 	
 	constexpr uint_fast8_t
 		APP1_SIG[] 	{ 0xFF, 0xE1 },
