@@ -114,10 +114,7 @@ void insertProfileHeaders(std::vector<uint8_t>&Profile_Vec, std::vector<uint8_t>
 			profile_headers_total_index = searchFunc(File_Vec, profile_headers_total_index, POS_ADDITION, ICC_PROFILE_SIG) + PROFILE_HEADERS_TOTAL_INDEX_DIFF;
 			profile_headers_sequence_index = profile_headers_total_index - PROFILE_HEADERS_SEQUENCE_INDEX_DIFF; 
 			File_Vec[profile_headers_total_index] = profile_headers_tally > PROFILE_HEADERS_MAX ? PROFILE_HEADERS_MAX : profile_headers_tally;		
-			while (value_bit_length) {
-				static_cast<uint_fast16_t>(File_Vec[profile_headers_sequence_index++] = (profile_headers_sequence >> (value_bit_length -= 8)) & 0xff);
-			}
-			value_bit_length = 16;	
+			valueUpdater(File_Vec, profile_headers_sequence_index, profile_headers_sequence, value_bit_length);
 			profile_headers_sequence++;
 		}	
 		if (profile_headers_tally > MASTODON_PROFILE_LIMIT && PROFILE_WITH_DATA_FILE_VEC_SIZE < MASTODON_IMAGE_UPLOAD_LIMIT) {
