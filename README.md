@@ -47,9 +47,9 @@ user1@linuxbox:~/Desktop$ jdvin
 Usage: jdvin [-r] <cover_image> <data_file>  
        jdvin --info
 
-user1@linuxbox:~/Desktop$ jdvin clown.jpg workflow.rar
+user1@linuxbox:~/Desktop$ jdvin my_cover_image.jpg workflow.json
   
-Saved "file-embedded" JPG image: jrif_28597.jpg 176345 Bytes.
+Saved "file-embedded" JPG image: jrif_28597.jpg 146553 Bytes.
 
 Complete!
 
@@ -63,7 +63,7 @@ Usage: jdvout <file_embedded_image>
         
 user1@linuxbox:~/Desktop$ jdvout jrif_28597.jpg
 
-Extracted hidden file: workflow.rar 4225 Bytes.
+Extracted hidden file: workflow.rar 26364 Bytes.
 
 Complete! Please check your file.
 
