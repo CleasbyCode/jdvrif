@@ -60,7 +60,7 @@ int main(int argc, char** argv) {
         	return 1;
 	}
 
-	const std::set<std::string> COMPRESSED_FILE_EXTENSIONS = { ".zip", ".rar", ".7z", ".bz2", ".gz", ".xz", ".flac" };
+	const std::set<std::string> COMPRESSED_FILE_EXTENSIONS = { ".zip", ".rar", ".7z", ".bz2", ".gz", ".xz", ".mp4", ".flac" };
 	const bool isCompressedFile = COMPRESSED_FILE_EXTENSIONS.count(DATA_FILE_EXTENSION) > 0;
 	
 	jdvIn(IMAGE_FILENAME, data_filename, isRedditOption, isCompressedFile);
