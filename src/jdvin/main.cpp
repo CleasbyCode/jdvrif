@@ -40,8 +40,12 @@ int main(int argc, char** argv) {
 		return 1;
     	}
 
-    	const std::filesystem::path IMAGE_PATH(IMAGE_FILENAME);
-        const std::string IMAGE_EXTENSION = IMAGE_PATH.extension().string();
+    	const std::filesystem::path 
+		IMAGE_PATH(IMAGE_FILENAME),
+		DATA_FILE_PATH(data_filename);
+        const std::string 
+		IMAGE_EXTENSION = IMAGE_PATH.extension().string(),
+		DATA_FILE_EXTENSION = DATA_FILE_PATH.extension().string();
 
     	if (IMAGE_EXTENSION != ".jpg" && IMAGE_EXTENSION != ".jpeg" && IMAGE_EXTENSION != ".jfif") {
 		std::cerr << "\nFile Type Error: Invalid file extension. Expecting only \"jpg, jpeg or jfif\" image extensions.\n\n";
@@ -55,5 +59,9 @@ int main(int argc, char** argv) {
             	<< " Check the filename and try again.\n\n";
         	return 1;
 	}
-	jdvIn(IMAGE_FILENAME, data_filename, isRedditOption);
+
+	const std::set<std::string> COMPRESSED_FILE_EXTENSIONS = { ".zip", ".rar", ".7z", ".bz2", ".gz", ".xz", ".flac" };
+	const bool isCompressedFile = COMPRESSED_FILE_EXTENSIONS.count(DATA_FILE_EXTENSION) > 0;
+	
+	jdvIn(IMAGE_FILENAME, data_filename, isRedditOption, isCompressedFile);
 }
