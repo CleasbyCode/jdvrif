@@ -7,6 +7,7 @@
 #include <string_view>
 #include <fstream>
 #include <regex>
+#include <set>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -27,7 +28,7 @@
 template <uint_fast8_t N>
 uint_fast32_t searchFunc(std::vector<uint8_t>&, uint_fast32_t, const uint_fast8_t, const uint_fast8_t (&)[N]);
 
-uint_fast32_t deflateFile(std::vector<uint8_t>&);
+uint_fast32_t deflateFile(std::vector<uint8_t>&, bool);
 
 bool writeFile(std::vector<uint8_t>&);
 
@@ -38,4 +39,4 @@ void
 	valueUpdater(std::vector<uint8_t>&, uint_fast32_t, const uint_fast32_t, uint_fast8_t),
 	displayInfo();
 
-uint_fast8_t jdvIn(const std::string&, std::string&, bool);
+uint_fast8_t jdvIn(const std::string&, std::string&, bool, bool);
