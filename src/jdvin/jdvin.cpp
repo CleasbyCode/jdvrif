@@ -53,11 +53,11 @@ uint_fast8_t jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename
 		return 1;
 	}
 	
-	bool isKdak_Profile = false;
+	bool isKdakProfile = false;
 
-	eraseSegments(Image_Vec, isKdak_Profile);
+	eraseSegments(Image_Vec, isKdakProfile);
 	
-	if (isKdak_Profile) {
+	if (isKdakProfile) {
 		Profile_Vec.swap(Profile_Kdak_Vec);
 	}
 
