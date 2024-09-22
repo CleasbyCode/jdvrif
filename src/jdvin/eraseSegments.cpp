@@ -1,5 +1,5 @@
 // Erase JPG segments such as Exif (APP1) and ICC_Profile (APP2) from cover image.
-void eraseSegments(std::vector<uint8_t>&Vec, bool& isKdak_Profile) {
+void eraseSegments(std::vector<uint8_t>&Vec, bool& isKdakProfile) {
 	
 	constexpr uint_fast8_t
 		APP1_SIG[] 	{ 0xFF, 0xE1 },
@@ -19,7 +19,7 @@ void eraseSegments(std::vector<uint8_t>&Vec, bool& isKdak_Profile) {
 	
 	if (Vec.size() > APP2_POS) {
 		const uint_fast32_t KDAK_POS = searchFunc(Vec, APP2_POS, 0, KDAK_SIG);
-		isKdak_Profile = Vec.size() > KDAK_POS;
+		isKdakProfile = Vec.size() > KDAK_POS;
 		const uint_fast16_t APP2_BLOCK_SIZE = (static_cast<uint_fast16_t>(Vec[APP2_POS + 2]) << 8) | static_cast<uint_fast16_t>(Vec[APP2_POS + 3]);
 		Vec.erase(Vec.begin() + APP2_POS, Vec.begin() + APP2_POS + APP2_BLOCK_SIZE + 2);
 	}
