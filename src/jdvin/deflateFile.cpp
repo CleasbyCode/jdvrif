@@ -1,9 +1,8 @@
 // zlib function, see https://zlib.net/
-uint_fast32_t deflateFile(std::vector<uint8_t>& Vec) {
+uint_fast32_t deflateFile(std::vector<uint8_t>& Vec, bool isCompressedFile) {
 	
 	constexpr uint_fast32_t
-		BUFSIZE = 2097152,
-		MASSIVE_FILE_SIZE = 1073741824, //  > 1GB.		
+		BUFSIZE = 2097152,	
 		LARGE_FILE_SIZE	  = 524288000,  //  > 500MB.
 		MEDIUM_FILE_SIZE  = 157286400;  //  > 150MB.
 	
@@ -24,7 +23,7 @@ uint_fast32_t deflateFile(std::vector<uint8_t>& Vec) {
 
 	int_fast8_t compression_level;
 
-	if (VEC_SIZE > MASSIVE_FILE_SIZE) {
+	if (isCompressedFile) {
 	    compression_level = Z_NO_COMPRESSION;
 	} else if (VEC_SIZE > LARGE_FILE_SIZE) {
 	    compression_level = Z_BEST_SPEED;
