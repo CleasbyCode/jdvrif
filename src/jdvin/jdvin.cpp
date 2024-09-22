@@ -1,4 +1,4 @@
-uint_fast8_t jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, bool isRedditOption) {
+uint_fast8_t jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, bool isRedditOption, bool isCompressedFile) {
 	
 	constexpr uint_fast32_t
 		COMBINED_MAX_FILE_SIZE 	= 2147483648, 	// 2GB. (image + data file)
@@ -93,7 +93,7 @@ uint_fast8_t jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename
 	
 	std::reverse(File_Vec.begin(), File_Vec.end());
 
-	uint_fast32_t file_vec_size = deflateFile(File_Vec);
+	uint_fast32_t file_vec_size = deflateFile(File_Vec, isCompressedFile);
 	
 	if (!file_vec_size) {
 		std::cerr << "\nFile Size Error: File is zero bytes. Probable compression failure.\n\n";
