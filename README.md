@@ -33,8 +33,6 @@ For example, a **30KB** workflow.json file compressed down to under **10KB**, ma
 Also with ***Mastodon***, the size limit is measured by the ***data file size*** and not the combined image size.  
 For example, if your cover image is **1MB** you can still embed a data file up to the **~6MB** size limit.
 
-You can try ***jdvrif*** from [***this site***](https://cleasbycode.co.uk/jdvrif/index/) if you don't want to download and compile the source code.
-
 ## Usage (Linux - jdvin)
 
 ```console
