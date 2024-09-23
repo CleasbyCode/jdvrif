@@ -35,7 +35,7 @@ For example, if your cover image is **1MB** you can still embed a data file up t
 
 You can try ***jdvrif*** from [***this site***](https://cleasbycode.co.uk/jdvrif/index/) if you don't want to download and compile the source code.
 
-## Usage (Linux - jdvin / jdvout)
+## Usage (Linux - jdvin)
 
 ```console
 
@@ -52,6 +52,11 @@ user1@linuxbox:~/Desktop$ jdvin my_cover_image.jpg workflow.json
 Saved "file-embedded" JPG image: jrif_28597.jpg 146553 Bytes.
 
 Complete!
+
+```
+## Usage (Linux - jdvout)
+
+```console
 
 user1@linuxbox:~/Downloads/jdvrif-main/src/jdvout$ g++ main.cpp -O2 -lz -s -o jdvout
 user1@linuxbox:~/Downloads/jdvrif-main/src/jdvout$ sudo cp jdvout /usr/bin
