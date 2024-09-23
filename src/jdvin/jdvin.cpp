@@ -11,18 +11,11 @@ uint_fast8_t jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename
 		DATA_FILE_SIZE 		= std::filesystem::file_size(data_filename),
 		COMBINED_FILE_SIZE 	= DATA_FILE_SIZE + IMAGE_FILE_SIZE;
 
-	if (COMBINED_FILE_SIZE > COMBINED_MAX_FILE_SIZE
-     		|| (DATA_FILE_SIZE == 0)
-     		|| (isRedditOption && COMBINED_FILE_SIZE > MAX_FILE_SIZE_REDDIT)
-     		|| JPG_MIN_FILE_SIZE > IMAGE_FILE_SIZE) {     
-    		std::cerr << "\nFile Size Error: "
-        		<< (JPG_MIN_FILE_SIZE > IMAGE_FILE_SIZE
-            		? "Image is too small to be a valid JPG image"
-            		: (DATA_FILE_SIZE == 0
-                		? "Data file is empty"
-                		: "Combined size of image and data file exceeds program maximum limit of "
-                    		+ std::string(isRedditOption ? "20MB" : "2GB")))
-        	<< ".\n\n";
+	if (COMBINED_FILE_SIZE > COMBINED_MAX_FILE_SIZE || (DATA_FILE_SIZE == 0)
+     		|| (isRedditOption && COMBINED_FILE_SIZE > MAX_FILE_SIZE_REDDIT) || JPG_MIN_FILE_SIZE > IMAGE_FILE_SIZE) {
+		std::cerr << "\nFile Size Error: " << (JPG_MIN_FILE_SIZE > IMAGE_FILE_SIZE ? "Image is too small to be a valid JPG image"
+            		: (DATA_FILE_SIZE == 0 ? "Data file is empty"
+                	: "Combined size of image and data file exceeds program maximum limit of " + std::string(isRedditOption ? "20MB" : "2GB"))) << ".\n\n";
     		return 1;
 	}
 	
@@ -31,10 +24,7 @@ uint_fast8_t jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename
 		data_file_ifs(data_filename, std::ios::binary);
 
 	if (!image_file_ifs || !data_file_ifs) {
-		std::cerr << "\nRead File Error: Unable to read " << (!image_file_ifs 
-			? "image file" 
-			: "data file") 
-		<< ".\n\n";
+		std::cerr << "\nRead File Error: Unable to read " << (!image_file_ifs ? "image file" : "data file") << ".\n\n";
 		return 1;
 	}
 
@@ -47,8 +37,7 @@ uint_fast8_t jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename
 		SOI_SIG[]	{ 0xFF, 0xD8 },
 		EOI_SIG[] 	{ 0xFF, 0xD9 };
 
-	if (!std::equal(std::begin(SOI_SIG), std::end(SOI_SIG), std::begin(Image_Vec)) 
-		|| !std::equal(std::begin(EOI_SIG), std::end(EOI_SIG), std::end(Image_Vec) - 2)) {
+	if (!std::equal(std::begin(SOI_SIG), std::end(SOI_SIG), std::begin(Image_Vec)) || !std::equal(std::begin(EOI_SIG), std::end(EOI_SIG), std::end(Image_Vec) - 2)) {
         	std::cerr << "\nImage File Error: This is not a valid JPG image.\n\n";
 		return 1;
 	}
