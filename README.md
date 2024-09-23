@@ -15,9 +15,7 @@ Use CLI tools ***jdvin*** & ***jdvout*** with a JPG image, to embed or extract a
 
 Demo Videos: [***Mastodon***](https://youtu.be/rnLf3W60IKQ) / [***X/Twitter***](https://youtu.be/0DEczqIwuQY) / [***Reddit***](https://youtu.be/xIUsa3F8ZQc) / [***Tumblr***](https://youtu.be/8lIyLbx7CO8) / [***Flickr***](https://youtu.be/kg_MJHQuzLY) / [***Web Tool***](https://youtu.be/WvZMRp7Z6W4)  
 
-Your data file is split and stored into multiple **~64KB** ***ICC Profile segments*** within the ***JPG*** cover image.  
-
-The data file is also ***compressed and encrypted***.
+Your embedded data file is ***compressed*** (depends on file type) and ***encrypted***. The file, if required, is also split and stored into multiple **~64KB** ***ICC Profile segments*** within the ***JPG*** cover image.  
 
 To ***share*** *"file-embedded"* ***JPG*** images on ***Reddit***, you must use the ***-r*** option with ***jdvin***.  
 Select the "***Images & Video***" tab on ***Reddit*** to post your image.
