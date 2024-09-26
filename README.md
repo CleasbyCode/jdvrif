@@ -59,7 +59,7 @@ To correctly download images from ***X/Twitter*** or ***Reddit***, click the ima
 https://github.com/user-attachments/assets/d033fb59-50ca-4559-b00e-cbb9df3a17f2
 
 
-To ***share*** *"file-embedded"* ***JPG*** images on [***Reddit***](https://youtu.be/xIUsa3F8ZQc), you must use the ***-r*** option with ***jdvin***.  
+To ***share*** *"file-embedded"* ***JPG*** images on [***Reddit***](https://youtu.be/Ltq7bRRzuYo), you must use the ***-r*** option with ***jdvin***.  
 Select the "***Images & Video***" tab on ***Reddit*** to post your image.
 
 To correctly download an image from [***Flickr***](https://youtu.be/kg_MJHQuzLY), click the download arrow near the bottom right-hand corner of the page and select ***Original*** for the size of image to download.
