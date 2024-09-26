@@ -13,7 +13,7 @@ Compatible hosting sites, ***listed below***, have their own ***much smaller*** 
 ![Demo Image](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/jrif_12272.jpg)  
 ***Image credit:*** [***@DontSmileAI***](https://x.com/DontSmileAI)
 
-Your embedded file is ***compressed*** (depends on file type) and ***encrypted***.  
+Your embedded file is ***compressed*** (depending on file type) and ***encrypted***.  
 The data file, if required, is split into multiple [***64KB ICC Profile segments***](https://youtu.be/qduwJjtT-tY) within the ***JPG*** cover image.  
 ## Usage (Linux - jdvin)
 
