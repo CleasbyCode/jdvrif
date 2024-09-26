@@ -14,7 +14,7 @@ Compatible hosting sites, ***listed below***, have their own ***much smaller*** 
 ***Image credit:*** [***@DontSmileAI***](https://x.com/DontSmileAI)
 
 Your embedded file is ***compressed*** (depends on file type) and ***encrypted***.  
-The data file, if required, is split into multiple **~64KB** ***ICC Profile segments*** within the ***JPG*** cover image.  
+The data file, if required, is split into multiple [***64KB ICC Profile segments***](https://youtu.be/qduwJjtT-tY) within the ***JPG*** cover image.  
 ## Usage (Linux - jdvin)
 
 ```console
