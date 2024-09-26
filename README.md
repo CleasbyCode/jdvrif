@@ -13,25 +13,8 @@ Compatible hosting sites, ***listed below***, have their own ***much smaller*** 
 ![Demo Image](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/jrif_12272.jpg)  
 ***Image credit:*** [***@DontSmileAI***](https://x.com/DontSmileAI)
 
-Demo Videos: [***Mastodon***](https://youtu.be/rnLf3W60IKQ) / [***X/Twitter***](https://youtu.be/0DEczqIwuQY) / [***Reddit***](https://youtu.be/xIUsa3F8ZQc) / [***Tumblr***](https://youtu.be/8lIyLbx7CO8) / [***Flickr***](https://youtu.be/kg_MJHQuzLY)
-
-Your embedded data file is ***compressed*** (depends on file type) and ***encrypted***.  
-The file, if required, is split into multiple **~64KB** ***ICC Profile segments*** within the ***JPG*** cover image.  
-
-To ***share*** *"file-embedded"* ***JPG*** images on ***Reddit***, you must use the ***-r*** option with ***jdvin***.  
-Select the "***Images & Video***" tab on ***Reddit*** to post your image.
-
-To correctly download images from ***X/Twitter*** or ***Reddit***, click the image in the post to ***fully expand it***, before saving.  
-
-To correctly download an image from ***Flickr***, click the download arrow near the bottom right-hand corner of the site and select ***Original*** for the size of image to download.
-
-With ***X/Twitter & Tumblr***, the small size limits (**~10KB** / **~64KB**) are measured by the ***data file size*** and not the combined image size.
-As the data file is compressed when embedded, you should be able to hide files larger than **10KB** or **64KB**.
-For example, a **30KB** workflow.json file compressed down to under **10KB**, making it compatible with sharing on ***X/Twitter.***
-
-Also with ***Mastodon***, the size limit is measured by the ***data file size*** and not the combined image size.  
-For example, if your cover image is **1MB** you can still embed a data file up to the **~6MB** size limit.
-
+Your embedded file is ***compressed*** (depends on file type) and ***encrypted***.  
+The data file, if required, is split into multiple **~64KB** ***ICC Profile segments*** within the ***JPG*** cover image.  
 ## Usage (Linux - jdvin)
 
 ```console
@@ -70,6 +53,24 @@ Extracted hidden file: workflow.rar 26364 Bytes.
 Complete! Please check your file.
 
 ```
+To correctly download images from ***X/Twitter*** or ***Reddit***, click the image in the post to ***fully expand it***, before saving.  
+
+
+https://github.com/user-attachments/assets/d033fb59-50ca-4559-b00e-cbb9df3a17f2
+
+
+To ***share*** *"file-embedded"* ***JPG*** images on [***Reddit***](https://youtu.be/xIUsa3F8ZQc), you must use the ***-r*** option with ***jdvin***.  
+Select the "***Images & Video***" tab on ***Reddit*** to post your image.
+
+To correctly download an image from [***Flickr***](https://youtu.be/kg_MJHQuzLY), click the download arrow near the bottom right-hand corner of the site and select ***Original*** for the size of image to download.
+
+With ***X/Twitter*** & [***Tumblr***](https://youtu.be/8lIyLbx7CO8), the small size limits (**~10KB** / **~64KB**) are measured by the ***data file size*** and not the combined image size.
+As the data file is compressed when embedded, you should be able to hide files larger than **10KB** or **64KB**.
+For example, a **50KB** workflow.json file compressed down to **6KB**, making it compatible with sharing on ***X/Twitter.***
+
+Also with [***Mastodon***](https://youtu.be/rnLf3W60IKQ), the size limit is measured by the ***data file size*** and not the combined image size.  
+For example, if your cover image is **1MB** you can still embed a data file up to the **~6MB** size limit.
+
 You can try ***jdvrif*** from [***this site***](https://cleasbycode.co.uk/jdvrif/index/) if you don't want to download and compile the source code.  
 
 https://github.com/user-attachments/assets/fadde36e-29d5-4a19-80f3-a57c9d971302
