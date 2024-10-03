@@ -1,5 +1,4 @@
 std::string decryptFile(std::vector<uint8_t>&Image_Vec, const uint32_t* HEADERS_INDEX_ARR, const uint8_t* XOR_KEY_ARR, const uint16_t PROFILE_COUNT, std::string& encrypted_filename) {
-
 	constexpr uint8_t 
 		PROFILE_HEADER_LENGTH = 18,
 		XOR_KEY_LENGTH = 234;
