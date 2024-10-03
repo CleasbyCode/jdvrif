@@ -5,7 +5,7 @@ void insertProfileHeaders(std::vector<uint8_t>&Profile_Vec, std::vector<uint8_t>
 	constexpr uint8_t
 		PROFILE_HEADER_LENGTH 	= 18,
 		JPG_HEADER_LENGTH 	= 20,
-		APP2_SIG_LENGTH 	= 2; 	// 0xFFE2.
+		APP2_SIG_LENGTH 	= 2; 	// FFE2.
 		
 	constexpr uint32_t SEGMENT_SIZE = 65537;
 
