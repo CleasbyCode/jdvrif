@@ -1,6 +1,5 @@
 // zlib function, see https://zlib.net/
 void inflateFile(std::vector<uint8_t>& Vec) {
-
 	constexpr uint32_t BUFSIZE = 2097152;
 
 	uint8_t* buffer{ new uint8_t[BUFSIZE] };
