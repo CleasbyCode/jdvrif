@@ -11,7 +11,7 @@
 
 int main(int argc, char** argv) {
 	if (argc == 2 && std::string(argv[1]) == "--info") {
-        	displayInfo();
+		displayInfo();
         	return 0;
     	}
 
@@ -21,8 +21,8 @@ int main(int argc, char** argv) {
     	}
    
     	const bool 
-            isRedditOption  =  (argc > 3 && std::string(argv[1]) == "-r"),
-            isInvalidOption =  (argc > 3 && !isRedditOption);
+		isRedditOption  =  (argc > 3 && std::string(argv[1]) == "-r"),
+            	isInvalidOption =  (argc > 3 && !isRedditOption);
 
     	if (isInvalidOption) {
 		std::cerr << "\nInput Error: Invalid arguments. Expecting only \"-r\" as the first optional argument.\n\n";
