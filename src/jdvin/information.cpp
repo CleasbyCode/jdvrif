@@ -1,5 +1,4 @@
 void displayInfo() {
-
 	std::cout << R"(
 
 JPG Data Vehicle (jdvin v1.5). 
