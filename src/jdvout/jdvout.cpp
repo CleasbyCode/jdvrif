@@ -1,5 +1,4 @@
 uint8_t jdvOut(const std::string& IMAGE_FILENAME) {
-
 	constexpr uint32_t 
 		MAX_FILE_SIZE 	= 2684354560, // 2.5GB.
 		LARGE_FILE_SIZE = 419430400;  // 400MB.
