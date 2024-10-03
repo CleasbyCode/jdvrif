@@ -1,5 +1,4 @@
 bool writeFile(std::vector<uint8_t>& Vec) {
-
 	srand((unsigned)time(NULL));  
 
 	const std::string 
