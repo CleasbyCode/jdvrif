@@ -9,7 +9,7 @@ void encryptFile(std::vector<uint8_t>& Profile_Vec, std::vector<uint8_t>& File_V
 
 	uint16_t xor_key_profile_insert_index = 0x29E;
 
-	for (uint8_t i = 0; i < XOR_KEY_LENGTH; ++i) {
+	for (uint8_t i = 0; XOR_KEY_LENGTH > i; ++i) {
         	xor_key[i] = static_cast<uint8_t>(dis(gen));
 		Profile_Vec[xor_key_profile_insert_index++] = xor_key[i];
     	}
