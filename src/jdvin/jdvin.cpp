@@ -76,6 +76,7 @@ uint8_t jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, boo
 	}
 
 	constexpr uint8_t PROFILE_NAME_LENGTH_INDEX = 0x50;
+	
 	Profile_Vec[PROFILE_NAME_LENGTH_INDEX] = DATA_FILENAME_LENGTH;
 
 	constexpr uint32_t LARGE_FILE_SIZE = 104857600;	// 100MB.
