@@ -12,7 +12,7 @@ bool writeFile(std::vector<uint8_t>& Vec) {
 		return false;
 	}
 	
-	uint32_t EMBEDDED_IMAGE_SIZE = static_cast<uint32_t>(Vec.size());
+	const uint32_t EMBEDDED_IMAGE_SIZE = static_cast<uint32_t>(Vec.size());
 
 	file_ofs.write((char*)&Vec[0], EMBEDDED_IMAGE_SIZE);
 	
