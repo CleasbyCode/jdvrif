@@ -55,7 +55,7 @@ uint8_t jdvOut(const std::string& IMAGE_FILENAME) {
 
 	uint16_t xor_key_index = 0x274;
 		
-	std::string encrypted_filename { Image_Vec.begin() + ENCRYPTED_FILENAME_INDEX, Image_Vec.begin() + ENCRYPTED_FILENAME_INDEX + ENCRYPTED_FILENAME_LENGTH };
+	const std::string ENCRYPTED_FILENAME { Image_Vec.begin() + ENCRYPTED_FILENAME_INDEX, Image_Vec.begin() + ENCRYPTED_FILENAME_INDEX + ENCRYPTED_FILENAME_LENGTH };
 	
 	uint8_t* Xor_Key_Arr = new uint8_t[XOR_KEY_LENGTH];
 
@@ -75,7 +75,7 @@ uint8_t jdvOut(const std::string& IMAGE_FILENAME) {
 
 	Image_Vec.erase(Image_Vec.begin() + EMBEDDED_FILE_SIZE, Image_Vec.end());
 
-	std::string decrypted_filename = decryptFile(Image_Vec, Headers_Index_Arr, Xor_Key_Arr, PROFILE_COUNT, encrypted_filename);
+	const std::string DECRYPTED_FILENAME = decryptFile(Image_Vec, Headers_Index_Arr, Xor_Key_Arr, PROFILE_COUNT, ENCRYPTED_FILENAME);
 
 	delete[] Xor_Key_Arr;
 	delete[] Headers_Index_Arr;
@@ -91,7 +91,7 @@ uint8_t jdvOut(const std::string& IMAGE_FILENAME) {
 	
 	std::reverse(Image_Vec.begin(), Image_Vec.end());
 
-	std::ofstream file_ofs(decrypted_filename, std::ios::binary);
+	std::ofstream file_ofs(DECRYPTED_FILENAME, std::ios::binary);
 
 	if (!file_ofs) {
 		std::cerr << "\nWrite Error: Unable to write to file.\n\n";
@@ -102,6 +102,6 @@ uint8_t jdvOut(const std::string& IMAGE_FILENAME) {
 
 	std::vector<uint8_t>().swap(Image_Vec);
 
-	std::cout << "\nExtracted hidden file: " + decrypted_filename + '\x20' + std::to_string(inflated_file_size) + " Bytes.\n\nComplete! Please check your file.\n\n";
+	std::cout << "\nExtracted hidden file: " + DECRYPTED_FILENAME + '\x20' + std::to_string(inflated_file_size) + " Bytes.\n\nComplete! Please check your file.\n\n";
 	return 0;
 }
