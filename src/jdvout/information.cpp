@@ -9,7 +9,8 @@ A steganography-like CLI tool to extract hidden data from a (jdvin) JPG image.
 Compile & run jdvout (Linux):
 		
 $ g++ main.cpp -O2 -lz -s -o jdvout
-$ ./jdvout
+$ sudo cp jdvout /usr/bin
+$ jdvout
 
 Usage: jdvout <file-embedded-image>
        jdvout --info
