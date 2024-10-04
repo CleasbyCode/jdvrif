@@ -1,4 +1,4 @@
-std::string decryptFile(std::vector<uint8_t>&Image_Vec, const uint32_t* HEADERS_INDEX_ARR, const uint8_t* XOR_KEY_ARR, const uint16_t PROFILE_COUNT, std::string& encrypted_filename) {
+std::string decryptFile(std::vector<uint8_t>&Image_Vec, const uint32_t* HEADERS_INDEX_ARR, const uint8_t* XOR_KEY_ARR, const uint16_t PROFILE_COUNT, const std::string& ENCRYPTED_FILENAME) {
 	constexpr uint8_t 
 		PROFILE_HEADER_LENGTH = 18,
 		XOR_KEY_LENGTH = 234;
@@ -10,14 +10,14 @@ std::string decryptFile(std::vector<uint8_t>&Image_Vec, const uint32_t* HEADERS_
 		index_pos 		= 0;
 
 	uint8_t
-		encrypted_filename_length = static_cast<uint8_t>(encrypted_filename.length()),
+		encrypted_filename_length = static_cast<uint8_t>(ENCRYPTED_FILENAME.length()),
 		xor_key_pos = 0,
 		name_pos = 0;
 
 	std::string decrypted_filename;
 	
 	while (encrypted_filename_length--) {
-		decrypted_filename += encrypted_filename[name_pos++] ^ XOR_KEY_ARR[xor_key_pos++];
+		decrypted_filename += ENCRYPTED_FILENAME[name_pos++] ^ XOR_KEY_ARR[xor_key_pos++];
 	}
 			
 	while (encrypted_file_size > index_pos) {
