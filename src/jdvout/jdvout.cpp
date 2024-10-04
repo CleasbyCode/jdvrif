@@ -87,7 +87,7 @@ uint8_t jdvOut(const std::string& IMAGE_FILENAME) {
 		return 1;
 	}
 
-	uint32_t inflated_file_size = static_cast<uint32_t>(Image_Vec.size());
+	const uint32_t INFLATED_FILE_SIZE = static_cast<uint32_t>(Image_Vec.size());
 	
 	std::reverse(Image_Vec.begin(), Image_Vec.end());
 
@@ -98,10 +98,10 @@ uint8_t jdvOut(const std::string& IMAGE_FILENAME) {
 		return 1;
 	}
 
-	file_ofs.write((char*)&Image_Vec[0], inflated_file_size);
+	file_ofs.write((char*)&Image_Vec[0], INFLATED_FILE_SIZE);
 
 	std::vector<uint8_t>().swap(Image_Vec);
 
-	std::cout << "\nExtracted hidden file: " + DECRYPTED_FILENAME + '\x20' + std::to_string(inflated_file_size) + " Bytes.\n\nComplete! Please check your file.\n\n";
+	std::cout << "\nExtracted hidden file: " + DECRYPTED_FILENAME + '\x20' + std::to_string(INFLATED_FILE_SIZE) + " Bytes.\n\nComplete! Please check your file.\n\n";
 	return 0;
 }
