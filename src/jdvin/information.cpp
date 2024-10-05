@@ -23,11 +23,10 @@ Flickr (200MB), ImgPile (100MB), ImgBB (32MB), PostImage (32MB), Reddit (20MB / 
 
 Arguments / options:	
 		
-To post/share file-embedded PNG images on Reddit, you need to use the -r option.	
+If you want to share a "file-embedded" JPG images on Reddit, you will need to use the -r option with jdvin.	
+-r = Reddit option. $ jdvin -r cover_image.jpg data_file.doc
 		
--r = Reddit option, (jdvin -r cover_image.jpg data_file.doc).
-		
-Reddit: Upload images to Reddit using the "Images & Video" tab/box.
+Select the "Images & Video" tab on the Reddit site to post your JPG image.
 		
 ImgPile - You must sign in to an account before sharing your data-embedded JPG image on this platform.
 Sharing your image without logging in, your embedded data will not be preserved.
