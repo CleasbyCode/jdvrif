@@ -15,18 +15,18 @@ $ jdvin
 Usage: jdvin [-r] <cover_image> <data_file>
        jdvin --info
 		
-Post your file-embedded image on the following compatible sites.
-*Image size limits(cover image + data file):
+Post your "file-embedded" JPG image on the following compatible sites.
+*Image size limits (cover image + data file):
 
 Flickr (200MB), ImgPile (100MB), ImgBB (32MB), PostImage (32MB), Reddit (20MB / requires -r option), 
 *Mastodon (~6MB), *Tumblr(~64KB), *X/Twitter (~10KB). *Limit measured by data file size.
 
 Arguments / options:	
 		
-If you want to share a file-embedded JPG image on Reddit, you will need to use the -r option with jdvin.	
+If you want to share a "file-embedded" JPG image on Reddit, you will need to use the -r option with jdvin.	
 -r = Reddit option. $ jdvin -r cover_image.jpg data_file.doc
 		
-Select the "Images & Video" tab on the Reddit site to post your JPG image.
+From the Reddit site, click "Create Post" then select "Images & Video" tab, to post your JPG image.
 		
 ImgPile - You must sign in to an account before sharing your data-embedded JPG image on this platform.
 Sharing your image without logging in, your embedded data will not be preserved.
