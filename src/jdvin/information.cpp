@@ -4,7 +4,7 @@ void displayInfo() {
 JPG Data Vehicle (jdvin v1.5). 
 Created by Nicholas Cleasby (@CleasbyCode) 24/01/2023.
 
-A steganography-like CLI tool to embed & hide any file type within a JPG image.  
+jdvin a steganography-like CLI tool to embed & hide any file type within a JPG image.  
 
 Compile & run jdvin (Linux):
 		
@@ -15,11 +15,10 @@ $ jdvin
 Usage: jdvin [-r] <cover_image> <data_file>
        jdvin --info
 		
-Post your "file-embedded" JPG image on the following compatible sites.
-*Image size limits (cover image + data file):
+Share your "file-embedded" JPG image on the following compatible sites. Image size limits (cover image + data file):
 
 Flickr (200MB), ImgPile (100MB), ImgBB (32MB), PostImage (32MB), Reddit (20MB / requires -r option), 
-*Mastodon (~6MB), *Tumblr(~64KB), *X/Twitter (~10KB). *Limit measured by data file size.
+*Mastodon (~6MB), *Tumblr(~64KB), *X/Twitter (~10KB). *Limit measured by data file size only.
 
 Arguments / options:	
 		
