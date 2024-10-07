@@ -22,8 +22,8 @@ Flickr (200MB), ImgPile (100MB), ImgBB (32MB), PostImage (32MB), Reddit (20MB / 
 
 Arguments / options:	
 		
-If you want to share a "file-embedded" JPG image on Reddit, you will need to use the -r option with jdvin.	
--r = Reddit option. $ jdvin -r cover_image.jpg data_file.doc
+To create "file-embedded" JPG images compatible for posting on Reddit, use the -r option with jdvin.	
+$ jdvin -r cover_image.jpg data_file.doc
 		
 From the Reddit site, click "Create Post" then select "Images & Video" tab, to post your JPG image.
 		
