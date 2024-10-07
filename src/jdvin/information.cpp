@@ -27,6 +27,8 @@ $ jdvin -r cover_image.jpg data_file.doc
 		
 From the Reddit site, click "Create Post" then select "Images & Video" tab, to post your JPG image.
 		
+To correctly download images from X/Twitter or Reddit, click the image in the post to fully expand it, before saving.
+		
 ImgPile - You must sign in to an account before sharing your data-embedded JPG image on this platform.
 Sharing your image without logging in, your embedded data will not be preserved.
 
