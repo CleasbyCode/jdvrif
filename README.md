@@ -73,7 +73,6 @@ You can try ***jdvrif*** from [***this site***](https://cleasbycode.co.uk/jdvrif
 
 https://github.com/user-attachments/assets/fadde36e-29d5-4a19-80f3-a57c9d971302
 
-***Issues:***
 * **ImgPile -** *You must sign in to an account before sharing your data-embedded JPG image on ImgPile*.  
 *Sharing your image without logging in, your embedded data will not be preserved.*
 
