@@ -55,12 +55,10 @@ Complete! Please check your file.
 ```
 To correctly download images from ***X/Twitter*** or ***Reddit***, click the image in the post to ***fully expand it***, before saving.  
 
-
 https://github.com/user-attachments/assets/d033fb59-50ca-4559-b00e-cbb9df3a17f2
 
-
-To ***share*** *"file-embedded"* ***JPG*** images on [***Reddit***](https://youtu.be/Ltq7bRRzuYo), you must use the ***-r*** option with ***jdvin***.  
-Select the "***Images & Video***" tab on ***Reddit*** to post your image.
+To create "*file-embedded*" ***JPG*** images compatible for posting on [***Reddit***](https://youtu.be/Ltq7bRRzuYo), use the ***-r*** option with ***jdvin***.  
+From the ***Reddit*** site, click "*Create Post*" then select "*Images & Video*" tab, to post your ***JPG*** image.
 
 To correctly download an image from [***Flickr***](https://youtu.be/kg_MJHQuzLY), click the download arrow near the bottom right-hand corner of the page and select ***Original*** for the size of image to download.
 
