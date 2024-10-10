@@ -126,9 +126,7 @@ void insertProfileHeaders(std::vector<uint8_t>&Profile_Vec, std::vector<uint8_t>
 	constexpr uint8_t DEFLATED_DATA_FILE_SIZE_INDEX = 0x90; // Index start location within the ICC Profile where we store the compressed data file size (minus ICC Profile data size). 
 	
 	constexpr uint16_t ICC_PROFILE_SIZE = 912;
-	
-	const uint32_t DEFLATED_DATA_FILE_SIZE = PROFILE_WITH_DATA_FILE_VEC_SIZE - ICC_PROFILE_SIZE;
 		
 	// Write the compressed file size of the data file (minus ICC Profile size) within index position of ICC Profile. Value used by jdvout.	
-	valueUpdater(File_Vec, DEFLATED_DATA_FILE_SIZE_INDEX, DEFLATED_DATA_FILE_SIZE, value_bit_length);
+	valueUpdater(File_Vec, DEFLATED_DATA_FILE_SIZE_INDEX, static_cast<uint32_t>(File_Vec.size()) - ICC_PROFILE_SIZE, value_bit_length);
 }
