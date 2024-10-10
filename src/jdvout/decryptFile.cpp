@@ -1,11 +1,9 @@
 const std::string decryptFile(std::vector<uint8_t>&Image_Vec, std::vector<uint8_t>&Decrypted_File_Vec) {
-
 	constexpr uint16_t ENCRYPTED_FILE_START_INDEX = 0x366;
 	constexpr uint8_t	
 		FILE_SIZE_INDEX 		= 0x66,
 		PROFILE_COUNT_VALUE_INDEX 	= 0x60,
 		ENCRYPTED_FILENAME_INDEX 	= 0x27,
-
 		XOR_KEY_LENGTH 			= 234,	
 		PROFILE_HEADER_LENGTH 		= 18;
 	
@@ -26,8 +24,7 @@ const std::string decryptFile(std::vector<uint8_t>&Image_Vec, std::vector<uint8_
 		xor_key_pos = 0,
 		name_pos = 0;
 
-	const std::string ENCRYPTED_FILENAME { Image_Vec.begin() + ENCRYPTED_FILENAME_INDEX, 
-						Image_Vec.begin() + ENCRYPTED_FILENAME_INDEX + encrypted_filename_length };
+	const std::string ENCRYPTED_FILENAME { Image_Vec.begin() + ENCRYPTED_FILENAME_INDEX, Image_Vec.begin() + ENCRYPTED_FILENAME_INDEX + encrypted_filename_length };
 
 	// Read in the xor key stored in the profile data.
 	for (uint8_t i = 0; XOR_KEY_LENGTH > i; ++i) {
@@ -44,8 +41,8 @@ const std::string decryptFile(std::vector<uint8_t>&Image_Vec, std::vector<uint8_
 	if (PROFILE_COUNT) {	
 		constexpr uint8_t 
 			ICC_PROFILE_SIG[] { 0x49, 0x43, 0x43, 0x5F, 0x50, 0x52, 0x4F, 0x46, 0x49, 0x4C, 0x45 },
-			NEXT_SEARCH_POS_INC 		= 5,
-			INDEX_DIFF 			= 4;
+			NEXT_SEARCH_POS_INC = 5,
+			INDEX_DIFF = 4;
 
 		uint32_t header_index = 0;
 
