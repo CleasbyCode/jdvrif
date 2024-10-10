@@ -94,7 +94,7 @@ uint8_t jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, boo
 	
 	uint32_t file_vec_size = deflateFile(File_Vec, isCompressedFile);
 	
-	if (!file_vec_size) {
+	if (File_Vec.empty()) {
 		std::cerr << "\nFile Size Error: File is zero bytes. Probable compression failure.\n\n";
 		return 1;
 	}
