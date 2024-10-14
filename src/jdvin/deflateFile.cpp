@@ -53,7 +53,7 @@ uint32_t deflateFile(std::vector<uint8_t>& Vec, bool isCompressedFile) {
 	deflateEnd(&strm);
 
 	delete[] buffer;
-	Vec.swap(Deflate_Vec);		
+	Vec = std::move(Deflate_Vec);
 
 	return (static_cast<uint32_t>(Vec.size()));
 }
