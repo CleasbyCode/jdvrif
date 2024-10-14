@@ -4,26 +4,20 @@ const std::string decryptFile(std::vector<uint8_t>&Image_Vec, std::vector<uint8_
 		FILE_SIZE_INDEX 		= 0x66,
 		PROFILE_COUNT_VALUE_INDEX 	= 0x60,
 		ENCRYPTED_FILENAME_INDEX 	= 0x27,
-		XOR_KEY_LENGTH 			= 234,	
-		PROFILE_HEADER_LENGTH 		= 18;
+		XOR_KEY_LENGTH 			= 234;
 	
 	const uint32_t EMBEDDED_FILE_SIZE = getByteValue(Image_Vec, FILE_SIZE_INDEX);
 
 	uint16_t PROFILE_COUNT = (static_cast<uint16_t>(Image_Vec[PROFILE_COUNT_VALUE_INDEX]) << 8) | static_cast<uint16_t>(Image_Vec[PROFILE_COUNT_VALUE_INDEX + 1]);
 
 	uint32_t* Headers_Index_Arr = new uint32_t[PROFILE_COUNT];
-	uint32_t	
-		next_header_index = 0,
-		index_pos = 0;
 
 	uint16_t xor_key_index = 0x274;
 
 	uint8_t
 		encrypted_filename_length = Image_Vec[ENCRYPTED_FILENAME_INDEX - 1],
-		Xor_Key_Arr[XOR_KEY_LENGTH],
-		xor_key_pos = 0,
-		name_pos = 0;
-
+		Xor_Key_Arr[XOR_KEY_LENGTH];
+		
 	const std::string ENCRYPTED_FILENAME { Image_Vec.begin() + ENCRYPTED_FILENAME_INDEX, Image_Vec.begin() + ENCRYPTED_FILENAME_INDEX + encrypted_filename_length };
 
 	// Read in the xor key stored in the profile data.
@@ -41,8 +35,8 @@ const std::string decryptFile(std::vector<uint8_t>&Image_Vec, std::vector<uint8_
 	if (PROFILE_COUNT) {	
 		constexpr uint8_t 
 			ICC_PROFILE_SIG[] { 0x49, 0x43, 0x43, 0x5F, 0x50, 0x52, 0x4F, 0x46, 0x49, 0x4C, 0x45 },
-			NEXT_SEARCH_POS_INC = 5,
-			INDEX_DIFF = 4;
+			NEXT_SEARCH_POS_INC 	= 5,
+			INDEX_DIFF 		= 4;
 
 		uint32_t header_index = 0;
 
@@ -51,12 +45,21 @@ const std::string decryptFile(std::vector<uint8_t>&Image_Vec, std::vector<uint8_
 		}
 	}
 
-	uint32_t encrypted_file_size = static_cast<uint32_t>(Image_Vec.size());
+	constexpr uint8_t PROFILE_HEADER_LENGTH = 18;
+
+	uint32_t 
+		encrypted_file_size 	= static_cast<uint32_t>(Image_Vec.size()),
+		next_header_index 	= 0,
+		index_pos		= 0;
+
+	uint8_t
+		xor_key_pos = 0,
+		char_pos = 0;
 
 	std::string decrypted_filename;
 
 	while (encrypted_filename_length--) {
-		decrypted_filename += ENCRYPTED_FILENAME[name_pos++] ^ Xor_Key_Arr[xor_key_pos++];
+		decrypted_filename += ENCRYPTED_FILENAME[char_pos++] ^ Xor_Key_Arr[xor_key_pos++];
 	}
 			
 	while (encrypted_file_size > index_pos) {
