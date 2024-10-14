@@ -29,7 +29,7 @@ void insertProfileHeaders(std::vector<uint8_t>&Profile_Vec, std::vector<uint8_t>
 		valueUpdater(Profile_Vec, PROFILE_HEADER_SEGMENT_SIZE_INDEX, PROFILE_HEADER_SEGMENT_SIZE, value_bit_length);
 		valueUpdater(Profile_Vec, PROFILE_SIZE_INDEX, PROFILE_SIZE, value_bit_length);
 
-		File_Vec.swap(Profile_Vec);
+		File_Vec = std::move(Profile_Vec);
 	} else { 
 		// Data file is too large for the first/main ICC Profile segment. Create additional profile segments as needed, to store the data file.
 		constexpr uint8_t PROFILE_HEADER[] { 0xFF, 0xE2, 0xFF, 0xFF, 0x49, 0x43, 0x43, 0x5F, 0x50, 0x52, 0x4F, 0x46, 0x49, 0x4C, 0x45, 0x00, 0x01, 0x01 };
@@ -123,10 +123,11 @@ void insertProfileHeaders(std::vector<uint8_t>&Profile_Vec, std::vector<uint8_t>
 	}
 	value_bit_length = 32; 
 
-	constexpr uint8_t DEFLATED_DATA_FILE_SIZE_INDEX = 0x90; // Index start location within the ICC Profile where we store the compressed data file size (minus ICC Profile data size). 
+	constexpr uint8_t DEFLATED_DATA_FILE_SIZE_INSERT_INDEX = 0x90;  
 	
-	constexpr uint16_t ICC_PROFILE_SIZE = 912;
+	constexpr uint16_t PROFILE_SIZE = 912; // Includes JPG header, profile/segment header and color profile data.
 		
-	// Write the compressed file size of the data file (minus ICC Profile size) within index position of ICC Profile. Value used by jdvout.	
-	valueUpdater(File_Vec, DEFLATED_DATA_FILE_SIZE_INDEX, static_cast<uint32_t>(File_Vec.size()) - ICC_PROFILE_SIZE, value_bit_length);
+	// Write the compressed file size of the data file, which now includes all the inserted 18 byte profile/segment headers,
+	// minus profile size, within the index position of color profile data. Value used by jdvout.		
+	valueUpdater(File_Vec, DEFLATED_DATA_FILE_SIZE_INSERT_INDEX, static_cast<uint32_t>(File_Vec.size()) - PROFILE_SIZE, value_bit_length);
 }
