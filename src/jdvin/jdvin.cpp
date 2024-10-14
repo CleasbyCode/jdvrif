@@ -1,7 +1,7 @@
 uint8_t jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, bool isRedditOption, bool isCompressedFile) {
 	constexpr uint32_t
 		COMBINED_MAX_FILE_SIZE 		= 2147483648, 	// 2GB. (image + data file)
-		COMBINEDMAX_FILE_SIZE_REDDIT 	= 20971520;	// 20MB. ""	
+		COMBINED_MAX_FILE_SIZE_REDDIT 	= 20971520;	// 20MB. ""	
 	
 	const size_t 
 		IMAGE_FILE_SIZE 	= std::filesystem::file_size(IMAGE_FILENAME),
