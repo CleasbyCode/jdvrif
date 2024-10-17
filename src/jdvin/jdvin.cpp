@@ -90,6 +90,8 @@ uint8_t jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, boo
 	
 	encryptFile(Profile_Vec, File_Vec, file_vec_size, data_filename);
 	
+	std::vector<uint8_t>().swap(File_Vec);
+	
 	insertProfileHeaders(Profile_Vec, File_Vec);
 
 	constexpr uint8_t PROFILE_HEADER_LENGTH = 18;
