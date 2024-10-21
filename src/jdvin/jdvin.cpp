@@ -92,7 +92,7 @@ uint8_t jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, boo
 	
 	std::vector<uint8_t>().swap(File_Vec);
 	
-	insertProfileHeaders(Profile_Vec, File_Vec);
+	segmentDataFile(Profile_Vec, File_Vec);
 
 	constexpr uint8_t PROFILE_HEADER_LENGTH = 18;
 	
