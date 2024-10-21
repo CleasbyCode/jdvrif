@@ -10,7 +10,6 @@ void segmentDataFile(std::vector<uint8_t>&Profile_Vec, std::vector<uint8_t>&File
 	const uint32_t COLOR_PROFILE_WITH_DATA_FILE_VEC_SIZE = static_cast<uint32_t>(Profile_Vec.size());
 
 	uint32_t segment_data_size = 65519;
-
 	uint8_t value_bit_length = 16;	
 
 	if (segment_data_size + JPG_HEADER_LENGTH + SEGMENT_HEADER_LENGTH >= COLOR_PROFILE_WITH_DATA_FILE_VEC_SIZE) { 
@@ -87,8 +86,7 @@ void segmentDataFile(std::vector<uint8_t>&Profile_Vec, std::vector<uint8_t>&File
     		}
 		std::vector<std::vector<uint8_t>>().swap(Segments_Arr_Vec);
 		
-		constexpr uint8_t MASTODON_SEGMENTS_LIMIT = 100;
-			   
+		constexpr uint8_t MASTODON_SEGMENTS_LIMIT = 100;  
 		constexpr uint32_t MASTODON_IMAGE_UPLOAD_LIMIT = 16777216;
 					   
 		if (segments_sequence_value > MASTODON_SEGMENTS_LIMIT && MASTODON_IMAGE_UPLOAD_LIMIT > COLOR_PROFILE_WITH_DATA_FILE_VEC_SIZE) {
@@ -98,7 +96,6 @@ void segmentDataFile(std::vector<uint8_t>&Profile_Vec, std::vector<uint8_t>&File
 	value_bit_length = 32; 
 
 	constexpr uint8_t DEFLATED_DATA_FILE_SIZE_INDEX = 0x90;  
-	
 	constexpr uint16_t PROFILE_SIZE = 912; // Includes JPG header, profile/segment header and color profile data.
 	
 	// Write the compressed file size of the data file, which now includes multiple segments with the 18 byte profile/segment headers,
