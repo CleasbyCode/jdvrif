@@ -64,9 +64,9 @@ uint8_t jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, boo
     	 	return 1;
 	}
 
-	constexpr uint8_t DATA_FILENAME_LENGTH_INSERT_INDEX = 0x50;
+	constexpr uint8_t DATA_FILENAME_LENGTH_INDEX = 0x50;
 	
-	Profile_Vec[DATA_FILENAME_LENGTH_INSERT_INDEX] = DATA_FILENAME_LENGTH;
+	Profile_Vec[DATA_FILENAME_LENGTH_INDEX] = DATA_FILENAME_LENGTH;
 
 	constexpr uint32_t LARGE_FILE_SIZE = 104857600;	// 100MB.
 
@@ -112,6 +112,5 @@ uint8_t jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, boo
 	std::cout << ((isRedditOption) 
 		?  "\n**Important**\n\nDue to your option selection, for compatibility reasons\nyou should only post this file-embedded JPG image on Reddit.\n\nComplete!\n\n"
 		:  "\nComplete!\n\n");	
-
 	return 0;
 }
