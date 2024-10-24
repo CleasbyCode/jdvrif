@@ -68,7 +68,7 @@ const std::string decryptFile(std::vector<uint8_t>&Image_Vec, std::vector<uint8_
 		// so that we don't include them along with the decrypted file.
 		if (PROFILE_COUNT && index_pos == Headers_Index_Arr[next_header_index]) {
 			index_pos += PROFILE_HEADER_LENGTH; 
-			next_header_index++;
+			++next_header_index;
 		}	
 	}
 	std::vector<uint8_t>().swap(Image_Vec);
