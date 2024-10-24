@@ -63,11 +63,9 @@ const std::string decryptFile(std::vector<uint8_t>&Image_Vec, std::vector<uint8_
 	}
 			
 	while (encrypted_file_size > index_pos) {
-		Decrypted_File_Vec.emplace_back(Image_Vec[index_pos++] ^ Xor_Key_Arr[xor_key_pos++]);
-		xor_key_pos = xor_key_pos >= XOR_KEY_LENGTH ? 0 : xor_key_pos;
-		
-		// Skip over the 18 byte ICC Profile header found at each index location within vector, 
-		// so that we don't include them within the decrypted file.
+		Decrypted_File_Vec.emplace_back(Image_Vec[index_pos++] ^ Xor_Key_Arr[xor_key_pos++ % XOR_KEY_LENGTH]);
+		// Skip over the 18 byte ICC profile header found at each index location within "Headers_Index_Arr", 
+		// so that we don't include them along with the decrypted file.
 		if (PROFILE_COUNT && index_pos == Headers_Index_Arr[next_header_index]) {
 			index_pos += PROFILE_HEADER_LENGTH; 
 			next_header_index++;
