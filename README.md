@@ -29,7 +29,7 @@ Usage: jdvin [-r] <cover_image> <data_file>
 
 user1@linuxbox:~/Desktop$ jdvin my_cover_image.jpg workflow.json
   
-Saved "file-embedded" JPG image: jrif_28597.jpg 146553 Bytes.
+Saved "file-embedded" JPG image: jrif_28597.jpg (146553 bytes).
 
 Complete!
 
