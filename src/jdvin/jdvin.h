@@ -4,7 +4,6 @@
 #include <filesystem>
 #include <random>
 #include <cstdint>
-#include <string_view>
 #include <fstream>
 #include <regex>
 #include <set>
@@ -39,4 +38,4 @@ void
 	valueUpdater(std::vector<uint8_t>&, uint32_t, const uint32_t, uint8_t),
 	displayInfo();
 
-uint8_t jdvIn(const std::string&, std::string&, bool, bool);
+int jdvIn(const std::string&, std::string&, bool, bool);
