@@ -28,4 +28,4 @@ const uint32_t inflateFile(std::vector<uint8_t>&);
 
 void displayInfo();
 
-uint8_t jdvOut(const std::string&);	
+int jdvOut(const std::string&);	
