@@ -64,10 +64,10 @@ int jdvOut(const std::string& IMAGE_FILENAME) {
 		return 1;
 	}
 
-	file_ofs.write((char*)&Decrypted_File_Vec[0], INFLATED_FILE_SIZE);
+	file_ofs.write(reinterpret_cast<const char*>(Decrypted_File_Vec.data()), INFLATED_FILE_SIZE);
 
 	std::vector<uint8_t>().swap(Decrypted_File_Vec);
 
-	std::cout << "\nExtracted hidden file: " + DECRYPTED_FILENAME + '\x20' + std::to_string(INFLATED_FILE_SIZE) + " Bytes.\n\nComplete! Please check your file.\n\n";
+	std::cout << "\nExtracted hidden file: " << DECRYPTED_FILENAME << " (" << INFLATED_FILE_SIZE << " bytes).\n\nComplete! Please check your file.\n\n";
 	return 0;
 }
