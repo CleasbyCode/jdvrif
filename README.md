@@ -48,7 +48,7 @@ Usage: jdvout <file_embedded_image>
         
 user1@linuxbox:~/Desktop$ jdvout jrif_28597.jpg
 
-Extracted hidden file: workflow.rar 26364 Bytes.
+Extracted hidden file: workflow.rar (26364 bytes).
 
 Complete! Please check your file.
 
