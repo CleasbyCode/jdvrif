@@ -1,28 +1,28 @@
-uint8_t jdvOut(const std::string& IMAGE_FILENAME) {
+int jdvOut(const std::string& IMAGE_FILENAME) {
 	constexpr uint32_t 
-		MAX_FILE_SIZE 	= 2684354560, // 2.5GB.
-		LARGE_FILE_SIZE = 419430400;  // 400MB.
+		MAX_FILE_SIZE 	= 3U * 1024U * 1024U * 1024U, 	// 3GB.
+		LARGE_FILE_SIZE = 400 * 1024 * 1024;  		// 400MB.
 
-	const size_t TMP_IMAGE_FILE_SIZE = std::filesystem::file_size(IMAGE_FILENAME);
+	const size_t IMAGE_FILE_SIZE = std::filesystem::file_size(IMAGE_FILENAME);
 	
-	std::ifstream image_ifs(IMAGE_FILENAME, std::ios::binary);
+	std::ifstream image_file_ifs(IMAGE_FILENAME, std::ios::binary);
 
-	if (!image_ifs || TMP_IMAGE_FILE_SIZE > MAX_FILE_SIZE) {
-		std::cerr << (!image_ifs 
+	if (!image_file_ifs || IMAGE_FILE_SIZE > MAX_FILE_SIZE) {
+		std::cerr << (!image_file_ifs 
 			? "\nOpen File Error: Unable to read image file"
 			: "\nImage File Error: Size of file exceeds the maximum limit for this program")
 		<< ".\n\n";
 		return 1;
 	}
 
-	if (TMP_IMAGE_FILE_SIZE > LARGE_FILE_SIZE) {
+	if (IMAGE_FILE_SIZE > LARGE_FILE_SIZE) {
 		std::cout << "\nPlease wait. Larger files will take longer to complete this process.\n";
 	}	
 
 	std::vector<uint8_t> Image_Vec;
-	Image_Vec.reserve(TMP_IMAGE_FILE_SIZE);
+	Image_Vec.resize(IMAGE_FILE_SIZE);
 
-	std::copy(std::istreambuf_iterator<char>(image_ifs), std::istreambuf_iterator<char>(), std::back_inserter(Image_Vec));
+	image_file_ifs.read(reinterpret_cast<char*>(Image_Vec.data()), IMAGE_FILE_SIZE);
 	
 	constexpr uint8_t
 		JDV_SIG[]	{ 0xB4, 0x6A, 0x3E, 0xEA, 0x5E, 0x9D, 0xF9 },
@@ -44,7 +44,7 @@ uint8_t jdvOut(const std::string& IMAGE_FILENAME) {
 	Image_Vec.erase(Image_Vec.begin(), Image_Vec.begin() + (PROFILE_SIG_INDEX - INDEX_DIFF));
 
 	std::vector<uint8_t>Decrypted_File_Vec;
-	Decrypted_File_Vec.reserve(TMP_IMAGE_FILE_SIZE);
+	Decrypted_File_Vec.reserve(IMAGE_FILE_SIZE);
 
 	const std::string DECRYPTED_FILENAME = decryptFile(Image_Vec, Decrypted_File_Vec);	
 	
