@@ -1,11 +1,11 @@
 // zlib function, see https://zlib.net/
-uint32_t deflateFile(std::vector<uint8_t>& Vec, bool isCompressedFile) {
+uint32_t deflateFile(std::vector<uint8_t>& Vec, bool isCompressedFile) {			
 	constexpr uint32_t
-		BUFSIZE = 2097152,	
-		LARGE_FILE_SIZE	  = 524288000,  //  > 500MB.
-		MEDIUM_FILE_SIZE  = 157286400,  //  > 150MB. 
-		COMPRESSED_FILE_TYPE_SIZE_LIMIT = 31457280; // > 30MB. Skip trying to compress already compressed files over 30MB.
-	
+		BUFSIZE = 2 * 1024 * 1024, // 2MB	
+		LARGE_FILE_SIZE	  = 500 * 1024 * 1024,  //  > 500MB.
+		MEDIUM_FILE_SIZE  = 200 * 1024 * 1024,  //  > 200MB. 
+		COMPRESSED_FILE_TYPE_SIZE_LIMIT = 30 * 1024 * 1024; // > 30MB. Skip trying to compress already compressed files over 30MB.
+
 	const uint32_t VEC_SIZE = static_cast<uint32_t>(Vec.size());
 
 	uint8_t* buffer{ new uint8_t[BUFSIZE] };
@@ -53,7 +53,8 @@ uint32_t deflateFile(std::vector<uint8_t>& Vec, bool isCompressedFile) {
 	deflateEnd(&strm);
 
 	delete[] buffer;
-	Vec = std::move(Deflate_Vec);
+	Vec = std::move(Deflate_Vec);		
+	std::vector<uint8_t>().swap(Deflate_Vec);
 
 	return (static_cast<uint32_t>(Vec.size()));
 }
