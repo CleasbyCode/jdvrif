@@ -11,9 +11,9 @@ Compatible hosting sites, ***listed below***, have their own ***much smaller*** 
 ***jdvrif*** partly derives from the ***[technique demonstrated](https://www.vice.com/en/article/bj4wxm/tiny-picture-twitter-complete-works-of-shakespeare-steganography)*** by security researcher ***[David Buchanan](https://www.da.vidbuchanan.co.uk/).*** 
 
 ![Demo Image](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/jrif_5105.jpg)  
-***Image credit:*** [***@DontSmileAI***](https://x.com/DontSmileAI)
+***Image credit:*** [***@DontSmileAI***](https://x.com/DontSmileAI) / ***PIN: 3495979549***
 
-Your embedded file is ***compressed*** (depending on file type) and ***encrypted***.  
+Your embedded file is ***compressed*** (depending on file type) and ***encrypted*** with ***PIN*** protection.  
 The data file, if required, is split into multiple [***64KB ICC Profile segments***](https://youtu.be/qduwJjtT-tY) within the ***JPG*** cover image.  
 ## Usage (Linux - jdvin)
 
@@ -27,9 +27,13 @@ user1@linuxbox:~/Desktop$ jdvin
 Usage: jdvin [-r] <cover_image> <data_file>  
        jdvin --info
 
-user1@linuxbox:~/Desktop$ jdvin my_cover_image.jpg workflow.json
+user1@linuxbox:~/Desktop$ jdvin Cover_Image.jpg Hidden_File.zip
   
-Saved "file-embedded" JPG image: jrif_28597.jpg (146553 bytes).
+Saved "file-embedded" JPG image: jrif_12462.jpg (143029 bytes).
+
+Recovery PIN: [***2166776980***]
+
+Important: Please remember to keep your PIN safe, so that you can extract the hidden file.
 
 Complete!
 
@@ -46,16 +50,18 @@ user1@linuxbox:~/Desktop$ jdvout
 Usage: jdvout <file_embedded_image>
        jdvout --info
         
-user1@linuxbox:~/Desktop$ jdvout jrif_28597.jpg
+user1@linuxbox:~/Desktop$ jdvout jrif_12462.jpg
 
-Extracted hidden file: workflow.rar (26364 bytes).
+PIN: **********
+
+Extracted hidden file: Hidden_File.zip (6165 bytes).
 
 Complete! Please check your file.
 
 ```
 To correctly download images from ***X/Twitter*** or ***Reddit***, click the image in the post to ***fully expand it***, before saving.  
 
-https://github.com/user-attachments/assets/d033fb59-50ca-4559-b00e-cbb9df3a17f2
+https://github.com/user-attachments/assets/ff96df70-69c0-4b66-8c50-902846bcec07
 
 To create "*file-embedded*" ***JPG*** images compatible for posting on [***Reddit***](https://youtu.be/Ltq7bRRzuYo), use the ***-r*** option with ***jdvin***.  
 From the ***Reddit*** site, click "*Create Post*" then select "*Images & Video*" tab, to post your ***JPG*** image.
@@ -70,6 +76,7 @@ Also with [***Mastodon***](https://youtu.be/rnLf3W60IKQ), the size limit is meas
 For example, if your cover image is **1MB** you can still embed a data file up to the **~6MB** size limit.
 
 You can try ***jdvrif*** from [***this site***](https://cleasbycode.co.uk/jdvrif/index/) if you don't want to download and compile the source code.  
+***Note: While the Web App will compress & encrypt the hidden file, it's less secure than the command-line version as it does not currently support PIN protection.***
 
 https://github.com/user-attachments/assets/778a6c98-eea6-40e2-82bf-0ee94cad6c8b
 
