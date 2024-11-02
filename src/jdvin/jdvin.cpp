@@ -1,4 +1,5 @@
 int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, bool isRedditOption, bool isCompressedFile) {
+	
 	constexpr uint32_t 
 		COMBINED_MAX_FILE_SIZE 	 	= 2U * 1024U * 1024U * 1024U,  	// 2GB. (image + data file)
 		COMBINED_MAX_FILE_SIZE_REDDIT 	= 20 * 1024 * 1024;	   	// 20MB. ""	
@@ -87,7 +88,7 @@ int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, bool is
 		return 1;
 	}
 	
-	encryptFile(Profile_Vec, File_Vec, file_vec_size, data_filename);
+	const uint32_t PIN = encryptFile(Profile_Vec, File_Vec, file_vec_size, data_filename);
 
 	std::vector<uint8_t>().swap(File_Vec);
 
@@ -109,9 +110,10 @@ int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, bool is
 	if (!writeFile(Image_Vec)) {
 		return 1;
 	}
-
+	
+	std::cout << "\nRecovery PIN: [***" << PIN << "***]\n\nImportant: Please remember to keep your PIN safe, so that you can extract the hidden file.\n";
 	std::cout << ((isRedditOption) 
-		?  "\n**Important**\n\nDue to your option selection, for compatibility reasons\nyou should only post this file-embedded JPG image on Reddit.\n\nComplete!\n\n"
+		?  "\n\nDue to your option selection, for compatibility reasons\nyou should only post this file-embedded JPG image on Reddit.\n\nComplete!\n\n"
 		:  "\nComplete!\n\n");	
 
 	return 0;

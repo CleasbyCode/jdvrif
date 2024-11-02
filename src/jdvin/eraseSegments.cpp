@@ -15,7 +15,6 @@ void eraseSegments(std::vector<uint8_t>&Vec, bool& isKdakProfile) {
 	}
 
 	const uint32_t APP2_POS = searchFunc(Vec, 0, 0, APP2_SIG);
-	
 	if (Vec.size() > APP2_POS) {
 		const uint32_t KDAK_POS = searchFunc(Vec, APP2_POS, 0, KDAK_SIG);
 		isKdakProfile = Vec.size() > KDAK_POS;
@@ -27,6 +26,6 @@ void eraseSegments(std::vector<uint8_t>&Vec, bool& isKdakProfile) {
 		DQT1_POS = searchFunc(Vec, 0, 0, DQT1_SIG),
 		DQT2_POS = searchFunc(Vec, 0, 0, DQT2_SIG),
 		DQT_POS  = std::min(DQT1_POS, DQT2_POS);
-	
+
 	Vec.erase(Vec.begin(), Vec.begin() + DQT_POS);
 }

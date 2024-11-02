@@ -63,18 +63,18 @@ void segmentDataFile(std::vector<uint8_t>&Profile_Vec, std::vector<uint8_t>&File
 		if (SEGMENT_REMAINDER_SIZE) {
     			segments_required_approx_val++;
 		}	
-		
-		while (segments_required_approx_val--) {
+
+		while (segments_required_approx_val--) {		
 			if (!segments_required_approx_val && SEGMENT_REMAINDER_SIZE) {
-				segment_data_size = SEGMENT_REMAINDER_SIZE;		
-			   	valueUpdater(Segment_Vec, segment_remainder_size_index, SEGMENT_REMAINDER_SIZE + SEGMENT_REMAINDER_DIFF, value_bit_length); 		
+			   segment_data_size = SEGMENT_REMAINDER_SIZE;		
+			   valueUpdater(Segment_Vec, segment_remainder_size_index, SEGMENT_REMAINDER_SIZE + SEGMENT_REMAINDER_DIFF, value_bit_length); 		
 			}
 
 			std::copy_n(Profile_Vec.begin() + byte_index, segment_data_size, std::back_inserter(Segment_Vec));
 			byte_index += segment_data_size;	
 			
 			if (segment_data_size == FIRST_SEGMENT_DATA_SIZE) {
-				Segments_Arr_Vec.emplace_back(Segment_Vec.begin() + SEGMENT_HEADER_LENGTH, Segment_Vec.end());
+       			 	Segments_Arr_Vec.emplace_back(Segment_Vec.begin() + SEGMENT_HEADER_LENGTH, Segment_Vec.end());
 			} else {
         			Segments_Arr_Vec.emplace_back(Segment_Vec);
     			}
@@ -88,7 +88,7 @@ void segmentDataFile(std::vector<uint8_t>&Profile_Vec, std::vector<uint8_t>&File
 		std::vector<uint8_t>().swap(Profile_Vec);
 		File_Vec.reserve(segment_data_size * segments_sequence_value);
 		for (auto& vec : Segments_Arr_Vec) {
-			File_Vec.insert(File_Vec.end(), vec.begin(), vec.end());
+        		File_Vec.insert(File_Vec.end(), vec.begin(), vec.end());
 			std::vector<uint8_t>().swap(vec);
     		}
 		std::vector<std::vector<uint8_t>>().swap(Segments_Arr_Vec);
