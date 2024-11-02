@@ -1,24 +1,50 @@
 const std::string decryptFile(std::vector<uint8_t>&Image_Vec, std::vector<uint8_t>&Decrypted_File_Vec) {
+
 	constexpr uint16_t ENCRYPTED_FILE_START_INDEX = 0x366;
 	constexpr uint8_t	
 		FILE_SIZE_INDEX 		= 0x66,
+		PIN_ENABLED_INDEX 		= 0x6A,
 		PROFILE_COUNT_VALUE_INDEX 	= 0x60,
 		ENCRYPTED_FILENAME_INDEX 	= 0x27,
 		XOR_KEY_LENGTH 			= 234;
 	
 	const uint32_t EMBEDDED_FILE_SIZE = getByteValue(Image_Vec, FILE_SIZE_INDEX);
 
-	uint16_t PROFILE_COUNT = (static_cast<uint16_t>(Image_Vec[PROFILE_COUNT_VALUE_INDEX]) << 8) | static_cast<uint16_t>(Image_Vec[PROFILE_COUNT_VALUE_INDEX + 1]);
+	const uint16_t PROFILE_COUNT = (static_cast<uint16_t>(Image_Vec[PROFILE_COUNT_VALUE_INDEX]) << 8) | static_cast<uint16_t>(Image_Vec[PROFILE_COUNT_VALUE_INDEX + 1]);
 
 	uint32_t* Headers_Index_Arr = new uint32_t[PROFILE_COUNT];
 
-	uint16_t xor_key_index = 0x274;
+	uint16_t 
+		xor_key_index = 0x274,
+		pin_index = ENCRYPTED_FILE_START_INDEX;
 
 	uint8_t
+		value_bit_length = 32,
 		encrypted_filename_length = Image_Vec[ENCRYPTED_FILENAME_INDEX - 1],
 		Xor_Key_Arr[XOR_KEY_LENGTH];
 		
-	const std::string ENCRYPTED_FILENAME { Image_Vec.begin() + ENCRYPTED_FILENAME_INDEX, Image_Vec.begin() + ENCRYPTED_FILENAME_INDEX + encrypted_filename_length };
+	const std::string ENCRYPTED_FILENAME { Image_Vec.begin() + ENCRYPTED_FILENAME_INDEX, 
+						Image_Vec.begin() + ENCRYPTED_FILENAME_INDEX + encrypted_filename_length };
+	
+	if (!Image_Vec[PIN_ENABLED_INDEX]) {  // Condition check for backwards compatiblity of old version images and WebApp images that don't have PIN protection.
+		std::cout << "\nPIN: ";
+	    	uint32_t pin = getPin();
+
+		valueUpdater(Image_Vec, pin_index, pin, value_bit_length);
+
+		constexpr uint8_t PIN_LENGTH = 4;
+
+		uint8_t xor_key_length = XOR_KEY_LENGTH;
+
+		uint16_t
+			decrypt_xor_pos = 0x274,
+			index_xor_pos = decrypt_xor_pos;
+	
+		while(xor_key_length--) {
+			Image_Vec[decrypt_xor_pos++] = Image_Vec[index_xor_pos++] ^ Image_Vec[pin_index++];
+			pin_index = pin_index >= PIN_LENGTH ? ENCRYPTED_FILE_START_INDEX : pin_index;
+		}
+	}
 
 	// Read in the xor key stored in the profile data.
 	for (uint8_t i = 0; XOR_KEY_LENGTH > i; ++i) {
@@ -35,13 +61,13 @@ const std::string decryptFile(std::vector<uint8_t>&Image_Vec, std::vector<uint8_
 	if (PROFILE_COUNT) {	
 		constexpr uint8_t 
 			ICC_PROFILE_SIG[] { 0x49, 0x43, 0x43, 0x5F, 0x50, 0x52, 0x4F, 0x46, 0x49, 0x4C, 0x45 },
-			NEXT_SEARCH_POS_INC 	= 5,
+			INC_NEXT_SEARCH_INDEX 	= 5,
 			INDEX_DIFF 		= 4;
 
 		uint32_t header_index = 0;
 
 		for (uint16_t i = 0; PROFILE_COUNT > i; ++i) {
-			Headers_Index_Arr[i] = header_index = searchFunc(Image_Vec, header_index, NEXT_SEARCH_POS_INC, ICC_PROFILE_SIG) - INDEX_DIFF;
+			Headers_Index_Arr[i] = header_index = searchFunc(Image_Vec, header_index, INC_NEXT_SEARCH_INDEX, ICC_PROFILE_SIG) - INDEX_DIFF;
 		}
 	}
 
@@ -64,7 +90,7 @@ const std::string decryptFile(std::vector<uint8_t>&Image_Vec, std::vector<uint8_
 			
 	while (encrypted_file_size > index_pos) {
 		Decrypted_File_Vec.emplace_back(Image_Vec[index_pos++] ^ Xor_Key_Arr[xor_key_pos++ % XOR_KEY_LENGTH]);
-		// Skip over the 18 byte ICC profile header found at each index location within "Headers_Index_Arr", 
+		// Skip over the 18 byte ICC Profile header found at each index location within "Headers_Index_Arr", 
 		// so that we don't include them along with the decrypted file.
 		if (PROFILE_COUNT && index_pos == Headers_Index_Arr[next_header_index]) {
 			index_pos += PROFILE_HEADER_LENGTH; 

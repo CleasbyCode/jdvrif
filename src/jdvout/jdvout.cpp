@@ -15,10 +15,6 @@ int jdvOut(const std::string& IMAGE_FILENAME) {
 		return 1;
 	}
 
-	if (IMAGE_FILE_SIZE > LARGE_FILE_SIZE) {
-		std::cout << "\nPlease wait. Larger files will take longer to complete this process.\n";
-	}	
-
 	std::vector<uint8_t> Image_Vec;
 	Image_Vec.resize(IMAGE_FILE_SIZE);
 
@@ -46,12 +42,16 @@ int jdvOut(const std::string& IMAGE_FILENAME) {
 	std::vector<uint8_t>Decrypted_File_Vec;
 	Decrypted_File_Vec.reserve(IMAGE_FILE_SIZE);
 
+	if (IMAGE_FILE_SIZE > LARGE_FILE_SIZE) {
+		std::cout << "\nPlease wait. Larger files will take longer to complete this process.\n";
+	}
+
 	const std::string DECRYPTED_FILENAME = decryptFile(Image_Vec, Decrypted_File_Vec);	
 	
 	const uint32_t INFLATED_FILE_SIZE = inflateFile(Decrypted_File_Vec);
 	
 	if (Decrypted_File_Vec.empty()) {
-		std::cerr << "\nFile Size Error: File is zero bytes. Probable failure uncompressing file.\n\n";
+		std::cerr << "\nFile Error: Invalid recovery PIN or file is corrupt.\n\n";
 		return 1;
 	}
 	
