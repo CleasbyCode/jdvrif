@@ -77,7 +77,7 @@ For example, if your cover image is **1MB** you can still embed a data file up t
 
 You can try ***jdvrif*** from [***this site***](https://cleasbycode.co.uk/jdvrif/index/) if you don't want to download and compile the source code.  
 
-***Note: While the Web App will compress & encrypt the hidden file, it's less secure than the command-line version as it does not currently support PIN protection. Images created by the jdvrif command-line program are not currently compatible with the Web App version.***
+***Note: While the Web App will compress & encrypt the hidden file, it's less secure than the command-line version as it does not currently support PIN protection. Images created by the jdvrif command-line program with PIN protection are not currently compatible with the Web App version.***
 
 https://github.com/user-attachments/assets/778a6c98-eea6-40e2-82bf-0ee94cad6c8b
 
