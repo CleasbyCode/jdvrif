@@ -56,7 +56,7 @@ int jdvOut(const std::string& IMAGE_FILENAME) {
 		std::fstream file(IMAGE_FILENAME, std::ios::in | std::ios::out | std::ios::binary);
 		std::streampos failure_index = 0x38F;
 
-		file.seekp(failure_index);
+		file.seekg(failure_index);
 
 		uint8_t byte;
 		file.read(reinterpret_cast<char*>(&byte), sizeof(byte));
@@ -78,7 +78,17 @@ int jdvOut(const std::string& IMAGE_FILENAME) {
 		std::cerr << "\nFile Error: Invalid recovery PIN or file is corrupt.\n\n";
 		return 1;
 	}
+
+	std::fstream file(IMAGE_FILENAME, std::ios::in | std::ios::out | std::ios::binary);
+	std::streampos success_index = 0x38F;
 	
+	uint8_t byte = 0x90;
+
+	file.seekp(success_index);
+	file.write(reinterpret_cast<char*>(&byte), sizeof(byte));
+
+	file.close();
+				 
 	std::reverse(Decrypted_File_Vec.begin(), Decrypted_File_Vec.end());
 
 	std::ofstream file_ofs(DECRYPTED_FILENAME, std::ios::binary);
