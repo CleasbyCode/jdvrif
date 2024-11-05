@@ -19,7 +19,8 @@ int jdvOut(const std::string& IMAGE_FILENAME) {
 	Image_Vec.resize(IMAGE_FILE_SIZE);
 
 	image_file_ifs.read(reinterpret_cast<char*>(Image_Vec.data()), IMAGE_FILE_SIZE);
-	
+	image_file_ifs.close();
+
 	constexpr uint8_t
 		JDV_SIG[]	{ 0xB4, 0x6A, 0x3E, 0xEA, 0x5E, 0x9D, 0xF9 },
 		PROFILE_SIG[] 	{ 0x6D, 0x6E, 0x74, 0x72, 0x52, 0x47, 0x42 },
@@ -51,6 +52,29 @@ int jdvOut(const std::string& IMAGE_FILENAME) {
 	const uint32_t INFLATED_FILE_SIZE = inflateFile(Decrypted_File_Vec);
 	
 	if (Decrypted_File_Vec.empty()) {
+
+		std::fstream file(IMAGE_FILENAME, std::ios::in | std::ios::out | std::ios::binary);
+		std::streampos failure_index = 0x38F;
+
+		file.seekp(failure_index);
+
+		uint8_t byte;
+		file.read(reinterpret_cast<char*>(&byte), sizeof(byte));
+
+		byte = byte == 144 ? 0 : byte;
+
+		++byte;
+		
+		if (byte == 4) {
+			file.close();
+			std::ofstream file(IMAGE_FILENAME, std::ios::out | std::ios::trunc | std::ios::binary);
+		} else {
+			file.seekp(failure_index);
+			file.write(reinterpret_cast<char*>(&byte), sizeof(byte));
+		}
+
+		file.close();
+
 		std::cerr << "\nFile Error: Invalid recovery PIN or file is corrupt.\n\n";
 		return 1;
 	}
