@@ -54,18 +54,18 @@ int jdvOut(const std::string& IMAGE_FILENAME) {
 	if (Decrypted_File_Vec.empty()) {
 
 		std::fstream file(IMAGE_FILENAME, std::ios::in | std::ios::out | std::ios::binary);
-		std::streampos failure_index = 0x38F;
+		std::streampos failure_index = JDV_SIG_INDEX + INDEX_DIFF - 1;
 
 		file.seekg(failure_index);
 
 		uint8_t byte;
 		file.read(reinterpret_cast<char*>(&byte), sizeof(byte));
 
-		byte = byte == 144 ? 0 : byte;
+		byte = byte == 0x90 ? 0 : byte;
 
 		++byte;
 		
-		if (byte == 4) {
+		if (byte > 3) {
 			file.close();
 			std::ofstream file(IMAGE_FILENAME, std::ios::out | std::ios::trunc | std::ios::binary);
 		} else {
@@ -80,8 +80,8 @@ int jdvOut(const std::string& IMAGE_FILENAME) {
 	}
 
 	std::fstream file(IMAGE_FILENAME, std::ios::in | std::ios::out | std::ios::binary);
-	std::streampos success_index = 0x38F;
-	
+	std::streampos success_index = JDV_SIG_INDEX + INDEX_DIFF - 1;
+
 	uint8_t byte = 0x90;
 
 	file.seekp(success_index);
