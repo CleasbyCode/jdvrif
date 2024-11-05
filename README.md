@@ -75,11 +75,9 @@ For example, a **50KB** workflow.json file compressed down to **6KB**, making it
 Also with [***Mastodon***](https://youtu.be/rnLf3W60IKQ), the size limit is measured by the ***data file size*** and not the combined image size.  
 For example, if your cover image is **1MB** you can still embed a data file up to the **~6MB** size limit.
 
-You can try ***jdvrif*** from [***this site***](https://cleasbycode.co.uk/jdvrif/index/) if you don't want to download and compile the source code.  
+You can try [***jdvrif Web App***](https://cleasbycode.co.uk/jdvrif/index/) if you don't want to download and compile the source code.  
 
-***Note: While the Web App will compress & encrypt the hidden file, it's less secure than the command-line version as it does not currently support PIN protection. Images created by the jdvrif command-line program with PIN protection are not currently compatible with the Web App version.***
-
-https://github.com/user-attachments/assets/778a6c98-eea6-40e2-82bf-0ee94cad6c8b
+https://github.com/user-attachments/assets/3e7e4aae-d3f3-426e-86c8-1098460699fb
 
 * **ImgPile -** *You must sign in to an account before sharing your data-embedded JPG image on ImgPile*.  
 *Sharing your image without logging in, your embedded data will not be preserved.*
