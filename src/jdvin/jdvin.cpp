@@ -34,6 +34,7 @@ int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, bool is
 	Image_Vec.resize(IMAGE_FILE_SIZE); 
 	
 	image_file_ifs.read(reinterpret_cast<char*>(Image_Vec.data()), IMAGE_FILE_SIZE);
+	image_file_ifs.close();
 
 	constexpr uint8_t
 		SOI_SIG[]	{ 0xFF, 0xD8 },
@@ -78,6 +79,7 @@ int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, bool is
 	File_Vec.resize(DATA_FILE_SIZE); 
 
 	data_file_ifs.read(reinterpret_cast<char*>(File_Vec.data()), DATA_FILE_SIZE);
+	data_file_ifs.close();
 
 	std::reverse(File_Vec.begin(), File_Vec.end());
 	
