@@ -77,7 +77,7 @@ For example, if your cover image is **1MB** you can still embed a data file up t
 
 You can try [***jdvrif Web App***](https://cleasbycode.co.uk/jdvrif/index/) if you don't want to download and compile the source code.  
 
-https://github.com/user-attachments/assets/3e7e4aae-d3f3-426e-86c8-1098460699fb
+https://github.com/user-attachments/assets/f51b2c89-23cb-423b-8d35-aa2300003f2e
 
 * **ImgPile -** *You must sign in to an account before sharing your data-embedded JPG image on ImgPile*.  
 *Sharing your image without logging in, your embedded data will not be preserved.*
