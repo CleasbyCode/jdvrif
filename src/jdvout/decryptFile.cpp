@@ -3,7 +3,6 @@ const std::string decryptFile(std::vector<uint8_t>&Image_Vec, std::vector<uint8_
 	constexpr uint16_t ENCRYPTED_FILE_START_INDEX = 0x366;
 	constexpr uint8_t	
 		FILE_SIZE_INDEX 		= 0x66,
-		PIN_ENABLED_INDEX 		= 0x6A,
 		PROFILE_COUNT_VALUE_INDEX 	= 0x60,
 		ENCRYPTED_FILENAME_INDEX 	= 0x27,
 		PROFILE_HEADER_LENGTH 		= 18,
