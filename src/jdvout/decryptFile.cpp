@@ -1,12 +1,14 @@
 const std::string decryptFile(std::vector<uint8_t>&Image_Vec, std::vector<uint8_t>&Decrypted_File_Vec) {
 
-	constexpr uint16_t ENCRYPTED_FILE_START_INDEX = 0x366;
-	constexpr uint8_t	
-		FILE_SIZE_INDEX 		= 0x66,
-		PROFILE_COUNT_VALUE_INDEX 	= 0x60,
-		ENCRYPTED_FILENAME_INDEX 	= 0x27,
-		PROFILE_HEADER_LENGTH 		= 18,
+	constexpr uint16_t 
+		ENCRYPTED_FILE_START_INDEX 	= 0x3BD,
+		FILE_SIZE_INDEX 		= 0x1D9,
+		PROFILE_COUNT_VALUE_INDEX 	= 0x1DD,
+		ENCRYPTED_FILENAME_INDEX 	= 0x1C5;
+
+	constexpr uint8_t
 		XOR_KEY_LENGTH 			= 234,
+		PROFILE_HEADER_LENGTH 		= 18,
 		PIN_LENGTH 			= 4;
 	
 	const uint32_t EMBEDDED_FILE_SIZE = getByteValue(Image_Vec, FILE_SIZE_INDEX);
@@ -16,7 +18,7 @@ const std::string decryptFile(std::vector<uint8_t>&Image_Vec, std::vector<uint8_
 	uint32_t* Headers_Index_Arr = new uint32_t[PROFILE_COUNT];
 
 	uint16_t 
-		xor_key_index = 0x274,
+		xor_key_index = 0x2CB,
 		decrypt_xor_pos = xor_key_index,
 		index_xor_pos = decrypt_xor_pos,
 		pin_index = ENCRYPTED_FILE_START_INDEX;
@@ -32,7 +34,11 @@ const std::string decryptFile(std::vector<uint8_t>&Image_Vec, std::vector<uint8_
 	const std::string ENCRYPTED_FILENAME { Image_Vec.begin() + ENCRYPTED_FILENAME_INDEX, Image_Vec.begin() + ENCRYPTED_FILENAME_INDEX + encrypted_filename_length };
 	
 	std::cout << "\nPIN: ";
-	uint32_t pin = getPin();
+	uint32_t 
+		pin = getPin(),
+		encrypted_file_size 	= 0,
+		next_header_index 	= 0,
+		index_pos		= 0;
 
 	valueUpdater(Image_Vec, pin_index, pin, value_bit_length);
 
@@ -66,10 +72,7 @@ const std::string decryptFile(std::vector<uint8_t>&Image_Vec, std::vector<uint8_
 		}
 	}
 
-	uint32_t 
-		encrypted_file_size 	= static_cast<uint32_t>(Image_Vec.size()),
-		next_header_index 	= 0,
-		index_pos		= 0;
+	encrypted_file_size = static_cast<uint32_t>(Image_Vec.size());
 
 	std::string decrypted_filename;
 

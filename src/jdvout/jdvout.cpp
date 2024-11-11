@@ -34,9 +34,9 @@ int jdvOut(const std::string& IMAGE_FILENAME) {
 		std::cerr << "\nImage File Error: Signature check failure. This is not a valid jdvrif file-embedded image.\n\n";
 		return 1;
 	}
-				 
+	
 	uint8_t extract_success_byte_val = Image_Vec[JDV_SIG_INDEX + INDEX_DIFF - 1];
-				 
+
 	// Remove JPG header and the APP2 ICC Profile/segment header,
 	// also, any other segments that could be added by hosting sites (e.g. Mastodon), such as EXIF. 
 	// Vector now contains color profile data, encrypted/compressed data file and cover image data.
@@ -52,8 +52,8 @@ int jdvOut(const std::string& IMAGE_FILENAME) {
 	const std::string DECRYPTED_FILENAME = decryptFile(Image_Vec, Decrypted_File_Vec);	
 	
 	const uint32_t INFLATED_FILE_SIZE = inflateFile(Decrypted_File_Vec);
-	
-	if (Decrypted_File_Vec.empty()) {
+
+	if (Decrypted_File_Vec.empty()) {	
 		std::fstream file(IMAGE_FILENAME, std::ios::in | std::ios::out | std::ios::binary);
 		std::streampos failure_index = JDV_SIG_INDEX + INDEX_DIFF - 1;
 
@@ -77,7 +77,7 @@ int jdvOut(const std::string& IMAGE_FILENAME) {
 		std::cerr << "\nFile Error: Invalid recovery PIN or file is corrupt.\n\n";
 		return 1;
 	}
-				 
+
 	if (extract_success_byte_val != 0x90) {
 		std::fstream file(IMAGE_FILENAME, std::ios::in | std::ios::out | std::ios::binary);
 		std::streampos success_index = JDV_SIG_INDEX + INDEX_DIFF - 1;
@@ -89,7 +89,7 @@ int jdvOut(const std::string& IMAGE_FILENAME) {
 
 		file.close();
 	}
-		 
+
 	std::reverse(Decrypted_File_Vec.begin(), Decrypted_File_Vec.end());
 
 	std::ofstream file_ofs(DECRYPTED_FILENAME, std::ios::binary);
