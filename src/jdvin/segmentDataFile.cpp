@@ -39,10 +39,9 @@ void segmentDataFile(std::vector<uint8_t>&Profile_Vec, std::vector<uint8_t>&File
 			SEGMENT_REMAINDER_SIZE = COLOR_PROFILE_WITH_DATA_FILE_VEC_SIZE % segment_data_size,
 			FIRST_SEGMENT_DATA_SIZE = segment_data_size + JPG_HEADER_LENGTH + SEGMENT_HEADER_LENGTH;
 
-		constexpr uint8_t 
-			SEGMENTS_TOTAL_VAL_INDEX = 0x8A,  // Index location within color profile data area, to store total value of APP2 profile segments (-1). For jdvout.
-			SEGMENT_REMAINDER_DIFF = 16;
-		
+		constexpr uint8_t SEGMENT_REMAINDER_DIFF = 16;
+		constexpr uint16_t SEGMENTS_TOTAL_VAL_INDEX = 0x207;  // Index location within color profile data area, to store total value of APP2 profile segments (-1). For jdvout.
+			
 		// Write total number of APP2 profile segments (minus the first one) within the index position of the first profile segment. For jdvout.
 		valueUpdater(Profile_Vec, SEGMENTS_TOTAL_VAL_INDEX, segments_required_approx_val, value_bit_length);
 
@@ -102,8 +101,9 @@ void segmentDataFile(std::vector<uint8_t>&Profile_Vec, std::vector<uint8_t>&File
 	}
 	value_bit_length = 32; 
 
-	constexpr uint8_t DEFLATED_DATA_FILE_SIZE_INDEX = 0x90;  
-	constexpr uint16_t PROFILE_SIZE = 912; // Includes JPG header, profile/segment header and color profile data.
+	constexpr uint16_t 
+		DEFLATED_DATA_FILE_SIZE_INDEX = 0x203,
+		PROFILE_SIZE = 999; // Includes JPG header, profile/segment header and color profile data.
 	
 	// Write the compressed file size of the data file, which now includes multiple segments with the 18 byte profile/segment headers,
 	// minus profile size, within index position of the profile data section. Value used by jdvout.	

@@ -4,27 +4,29 @@ uint32_t encryptFile(std::vector<uint8_t>& Profile_Vec, std::vector<uint8_t>& Fi
  	std::mt19937 gen(rd());
 	std::uniform_int_distribution<unsigned short> dis(1, 255); 
 	
+	constexpr uint16_t DATA_FILE_START_INDEX = 0x3E7;
+
 	constexpr uint8_t 
 		XOR_KEY_LENGTH = 234,
 		PIN_LENGTH = 4;
 
-	constexpr uint16_t DATA_FILE_START_INDEX = 0x390;
+	uint32_t index_pos = 0;
+
+	uint16_t 
+		cover_index = 0x1EE,
+		data_filename_index = cover_index + 1,
+		xor_key_index = 0x2F5,
+		pin_index = DATA_FILE_START_INDEX,
+		encrypt_xor_pos = xor_key_index,
+		index_xor_pos = encrypt_xor_pos;
 
 	uint8_t 
-		cover_index = 0x50,
-		data_filename_index = 0x51,
-		data_filename_length = Profile_Vec[data_filename_index - 1],
+		data_filename_length = Profile_Vec[cover_index],
 		xor_key[XOR_KEY_LENGTH],
 		value_bit_length = 32,
 		xor_key_length = XOR_KEY_LENGTH,
 		xor_key_pos = 0,
-		char_pos = 0;
-		
-	uint16_t 
-		xor_key_index = 0x29E,
-		pin_index = DATA_FILE_START_INDEX,
-		encrypt_xor_pos = xor_key_index,
-		index_xor_pos = encrypt_xor_pos;
+		char_pos = 0;		
 
 	for (int i = 0; i < XOR_KEY_LENGTH; ++i) {
         	xor_key[i] = static_cast<uint8_t>(dis(gen));
@@ -36,8 +38,6 @@ uint32_t encryptFile(std::vector<uint8_t>& Profile_Vec, std::vector<uint8_t>& Fi
 		Profile_Vec[data_filename_index++] = data_filename[char_pos++];
 	}	
 	
-	uint32_t index_pos = 0;
-
 	Profile_Vec.reserve(Profile_Vec.size() + data_file_size);
 
 	while (data_file_size--) {

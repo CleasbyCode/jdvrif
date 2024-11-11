@@ -45,14 +45,8 @@ int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, bool is
 		return 1;
 	}
 	
-	bool isKdakProfile = false;
-
-	eraseSegments(Image_Vec, isKdakProfile);
+	eraseSegments(Image_Vec);
 	
-	if (isKdakProfile) {
-		Profile_Vec = std::move(Profile_Kdak_Vec);
-	}
-
 	std::filesystem::path filePath(data_filename);
     	data_filename = filePath.filename().string();
 
@@ -65,7 +59,7 @@ int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, bool is
     	 	return 1;
 	}
 
-	constexpr uint8_t DATA_FILENAME_LENGTH_INDEX = 0x50;
+	constexpr uint16_t DATA_FILENAME_LENGTH_INDEX = 0x1EE;
 
 	Profile_Vec[DATA_FILENAME_LENGTH_INDEX] = DATA_FILENAME_LENGTH;
 
