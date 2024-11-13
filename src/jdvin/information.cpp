@@ -4,7 +4,7 @@ void displayInfo() {
 JPG Data Vehicle (jdvin v2.2). 
 Created by Nicholas Cleasby (@CleasbyCode) 24/01/2023.
 
-jdvin is a steganography-like CLI tool for embedding & concealing any file type within a JPG image. 
+jdvin is a data-hiding / steganography-like CLI tool for concealing any file type within a JPG image. 
 
 Compile & run jdvin (Linux):
 		
