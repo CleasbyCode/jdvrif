@@ -4,7 +4,7 @@ void displayInfo() {
 JPG Data Vehicle (jdvout v2.2). 
 Created by Nicholas Cleasby (@CleasbyCode) 24/01/2023.
 
-jdvout is a steganography-like CLI tool for extracting hidden data from a (jdvin) "file-embedded" JPG image. 
+jdvout is a CLI tool for extracting hidden data from a jdvin "file-embedded" JPG image. 
 
 Compile & run jdvout (Linux):
 		
