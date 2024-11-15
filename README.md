@@ -17,7 +17,7 @@ Compatible hosting sites, ***listed below***, have their own ***much smaller*** 
 
 Your embedded data file is ***compressed*** (depending on file size & type) and ***encrypted*** with ***PIN*** protection.  
 The file, if required, is split into multiple [***64KB APP2 Segments (ICC Color Profile)***](https://youtu.be/1213w-k9X9M) within the ***JPG*** cover image.  
-## Usage (Linux - jdvin)
+## Usage (Linux - jdvin / jdvout)
 
 ```console
 
@@ -38,11 +38,6 @@ Recovery PIN: [***2166776980***]
 Important: Please remember to keep your PIN safe, so that you can extract the hidden file.
 
 Complete!
-
-```
-## Usage (Linux - jdvout)
-
-```console
 
 user1@linuxbox:~/Downloads/jdvrif-main/src/jdvout$ g++ main.cpp -O2 -lz -s -o jdvout
 user1@linuxbox:~/Downloads/jdvrif-main/src/jdvout$ sudo cp jdvout /usr/bin
