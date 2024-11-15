@@ -15,8 +15,8 @@ Compatible hosting sites, ***listed below***, have their own ***much smaller*** 
 ![Demo Image](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/jrif_74213.jpg)  
 ***Image credit:*** [***@rdc768***](https://x.com/rdc768) / ***PIN: 2077821728***
 
-Your embedded file is ***compressed*** (depending on file type) and ***encrypted*** with ***PIN*** protection.  
-The data file, if required, is split into multiple [***64KB ICC Profile segments***](https://youtu.be/qduwJjtT-tY) within the ***JPG*** cover image.  
+Your embedded data file is ***compressed*** (depending on file size & type) and ***encrypted*** with ***PIN*** protection.  
+The file, if required, is split into multiple [***64KB APP2 Segments (ICC Color Profile)***]([https://youtu.be/1213w-k9X9M]) within the ***JPG*** cover image.  
 ## Usage (Linux - jdvin)
 
 ```console
