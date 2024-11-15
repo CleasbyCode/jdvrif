@@ -58,16 +58,16 @@ To correctly download images from ***X/Twitter*** or ***Reddit***, click the ima
 
 https://github.com/user-attachments/assets/de958ecb-3281-43b7-a290-f3a831e7bced
 
-To create "*file-embedded*" ***JPG*** images compatible for posting on [***Reddit***](https://youtu.be/Ltq7bRRzuYo), use the ***-r*** option with ***jdvin***.  
+To create "*file-embedded*" ***JPG*** images compatible for posting on ***Reddit***, use the ***-r*** option with ***jdvin***.  
 From the ***Reddit*** site, click "*Create Post*" then select "*Images & Video*" tab, to post your ***JPG*** image.
 
-To correctly download an image from [***Flickr***](https://youtu.be/kg_MJHQuzLY), click the download arrow near the bottom right-hand corner of the page and select ***Original*** for the size of image to download.
+To correctly download an image from ***Flickr***, click the download arrow near the bottom right-hand corner of the page and select ***Original*** for the size of image to download.
 
-With ***X/Twitter*** & [***Tumblr***](https://youtu.be/8lIyLbx7CO8), the small size limits (**~10KB** / **~64KB**) are measured by the ***data file size*** and not the combined image size.
+With ***X/Twitter*** & ***Tumblr***, the small size limits (**~10KB** / **~64KB**) are measured by the ***data file size*** and not the combined image size.
 As the data file is compressed when embedded, you should be able to hide files larger than **10KB** or **64KB**.
 For example, a **50KB** workflow.json file compressed down to **6KB**, making it compatible with sharing on ***X/Twitter.***
 
-Also with [***Mastodon***](https://youtu.be/rnLf3W60IKQ), the size limit is measured by the ***data file size*** and not the combined image size.  
+Also with ***Mastodon***, the size limit is measured by the ***data file size*** and not the combined image size.  
 For example, if your cover image is **1MB** you can still embed a data file up to the **~6MB** size limit.
 
 You can try [***jdvrif Web App***](https://cleasbycode.co.uk/jdvrif/index/) if you don't want to download and compile the source code.  
