@@ -16,7 +16,7 @@ Compatible hosting sites, ***listed below***, have their own ***much smaller*** 
 ***Image credit:*** [***@rdc768***](https://x.com/rdc768) / ***PIN: 2077821728***
 
 Your embedded data file is ***compressed*** (depending on file size & type) and ***encrypted*** with ***PIN*** protection.  
-The file, if required, is split into multiple [***64KB APP2 Segments (ICC Color Profile)***]([https://youtu.be/1213w-k9X9M]) within the ***JPG*** cover image.  
+The file, if required, is split into multiple [***64KB APP2 Segments (ICC Color Profile)***](https://youtu.be/1213w-k9X9M) within the ***JPG*** cover image.  
 ## Usage (Linux - jdvin)
 
 ```console
