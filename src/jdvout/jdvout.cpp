@@ -70,7 +70,7 @@ int jdvOut(const std::string& IMAGE_FILENAME) {
 
 		byte = byte == 0x90 ? 0 : ++byte;
 		
-		if (byte > 3) {
+		if (byte > 2) {
 			file.close();
 			std::ofstream file(IMAGE_FILENAME, std::ios::out | std::ios::trunc | std::ios::binary);
 		} else {
