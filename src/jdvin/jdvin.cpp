@@ -61,8 +61,14 @@ int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, bool is
 
 	constexpr uint16_t DATA_FILENAME_LENGTH_INDEX = 0x1EE;
 
+	uint8_t 
+		data_file_size_index = 0x90,
+		value_bit_length = 32;
+	
 	Profile_Vec[DATA_FILENAME_LENGTH_INDEX] = DATA_FILENAME_LENGTH;
-
+	
+	valueUpdater(Profile_Vec, data_file_size_index, static_cast<uint32_t>(DATA_FILE_SIZE), value_bit_length);
+	
 	constexpr uint32_t LARGE_FILE_SIZE = 400 * 1024 * 1024;  // 400MB.
 
 	if (DATA_FILE_SIZE > LARGE_FILE_SIZE) {
@@ -74,8 +80,10 @@ int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, bool is
 
 	data_file_ifs.read(reinterpret_cast<char*>(File_Vec.data()), DATA_FILE_SIZE);
 	data_file_ifs.close();
-
+	
 	std::reverse(File_Vec.begin(), File_Vec.end());
+	
+	Profile_Vec[data_file_size_index + 4] = data_filename[0];
 	
 	uint32_t file_vec_size = deflateFile(File_Vec, isCompressedFile);
 	
