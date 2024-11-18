@@ -11,10 +11,11 @@
 #include <string>
 #include <vector>
 #include <iterator>
-#include <zlib.h>
+#include <C:\Users\Nick\source\zlib-1.3.1\zlib.h>
 
 #include "profilesVec.cpp"
 #include "writeFile.cpp"
+#include "crc32.cpp"
 #include "searchFunc.cpp"
 #include "eraseSegments.cpp"
 #include "valueUpdater.cpp"
@@ -29,6 +30,7 @@ template <uint8_t N>
 uint32_t searchFunc(std::vector<uint8_t>&, uint32_t, const uint8_t, const uint8_t (&)[N]);
 
 uint32_t 
+	crcUpdate(uint8_t*, uint32_t),
 	encryptFile(std::vector<uint8_t>&, std::vector<uint8_t>&, uint32_t, std::string&),
 	deflateFile(std::vector<uint8_t>&, bool),
 	getByteValue(const std::vector<uint8_t>&, const uint32_t);
