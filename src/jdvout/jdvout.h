@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 #include <iterator>
-#include <zlib.h>
+#include <C:\Users\Nick\source\zlib-1.3.1\zlib.h>
 
 #ifdef _WIN32
 #include <conio.h>
@@ -21,6 +21,7 @@
 
 #include "getPin.cpp"
 #include "getByteValue.cpp"
+#include "crc32.cpp"
 #include "searchFunc.cpp"
 #include "valueUpdater.cpp"
 #include "decryptFile.cpp"
@@ -34,6 +35,7 @@ template <uint8_t N>
 uint32_t searchFunc(std::vector<uint8_t>&, uint32_t, uint8_t, const uint8_t (&SIG)[N]);
 
 uint32_t 
+	crcUpdate(uint8_t*, uint32_t),
 	getByteValue(const std::vector<uint8_t>&, const uint32_t),
 	getPin();
 

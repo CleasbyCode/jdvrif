@@ -7,9 +7,11 @@ const std::string decryptFile(std::vector<uint8_t>&Image_Vec, std::vector<uint8_
 		ENCRYPTED_FILENAME_INDEX 	= 0x1C5;
 
 	constexpr uint8_t
+		DEFAULT_PIN_INDEX = 		0x6B,
+		DEFAULT_PIN_XOR_INDEX =		0x66,
 		XOR_KEY_LENGTH 			= 234,
-		PROFILE_HEADER_LENGTH 		= 18,
-		PIN_LENGTH 			= 4;
+		PROFILE_HEADER_LENGTH 		= 18, 
+		PIN_LENGTH 			= 9;  
 	
 	const uint32_t EMBEDDED_FILE_SIZE = getByteValue(Image_Vec, FILE_SIZE_INDEX);
 
@@ -21,7 +23,8 @@ const std::string decryptFile(std::vector<uint8_t>&Image_Vec, std::vector<uint8_
 		xor_key_index = 0x2CB,
 		decrypt_xor_pos = xor_key_index,
 		index_xor_pos = decrypt_xor_pos,
-		pin_index = ENCRYPTED_FILE_START_INDEX;
+		pin_index = DEFAULT_PIN_INDEX,
+		pin_xor_index = DEFAULT_PIN_XOR_INDEX;
 
 	uint8_t
 		encrypted_filename_length = Image_Vec[ENCRYPTED_FILENAME_INDEX - 1],
@@ -39,14 +42,20 @@ const std::string decryptFile(std::vector<uint8_t>&Image_Vec, std::vector<uint8_
 		encrypted_file_size 	= 0,
 		next_header_index 	= 0,
 		index_pos		= 0;
-
+	
 	valueUpdater(Image_Vec, pin_index, pin, value_bit_length);
 
 	while(xor_key_length--) {
-		Image_Vec[decrypt_xor_pos++] = Image_Vec[index_xor_pos++] ^ Image_Vec[pin_index++];
-		pin_index = pin_index >= PIN_LENGTH + ENCRYPTED_FILE_START_INDEX ? ENCRYPTED_FILE_START_INDEX : pin_index;
+		Image_Vec[decrypt_xor_pos++] = Image_Vec[index_xor_pos++] ^ Image_Vec[pin_xor_index++];
+		pin_xor_index = pin_xor_index >= PIN_LENGTH + DEFAULT_PIN_XOR_INDEX ? DEFAULT_PIN_XOR_INDEX : pin_xor_index;
 	}
 	
+	const uint32_t CRC_CHECK = crcUpdate(&Image_Vec[xor_key_index], XOR_KEY_LENGTH);
+
+	if (pin != CRC_CHECK) {
+		std::reverse(Image_Vec.begin(), Image_Vec.end());
+	}
+
 	// Read in the xor key stored in the profile data.
 	for (int i = 0; XOR_KEY_LENGTH > i; ++i) {
 		Xor_Key_Arr[i] = Image_Vec[xor_key_index++]; 
