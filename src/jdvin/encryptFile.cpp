@@ -3,8 +3,6 @@ uint32_t encryptFile(std::vector<uint8_t>& Profile_Vec, std::vector<uint8_t>& Fi
 	std::random_device rd;
  	std::mt19937 gen(rd());
 	std::uniform_int_distribution<unsigned short> dis(1, 255); 
-	
-	constexpr uint16_t DATA_FILE_START_INDEX = 0x3E7;
 		
 	constexpr uint8_t 
 		DEFAULT_PIN_INDEX = 0x95,
