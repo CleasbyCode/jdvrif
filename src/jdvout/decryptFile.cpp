@@ -22,12 +22,12 @@ const std::string decryptFile(std::vector<uint8_t>&Image_Vec, std::vector<uint8_
 	uint16_t 
 		xor_key_index = 0x2CB,
 		decrypt_xor_pos = xor_key_index,
-		index_xor_pos = decrypt_xor_pos,
-		pin_index = DEFAULT_PIN_INDEX,
-		pin_xor_index = DEFAULT_PIN_XOR_INDEX;
-
+		index_xor_pos = decrypt_xor_pos;
+		
 	uint8_t
 		encrypted_filename_length = Image_Vec[ENCRYPTED_FILENAME_INDEX - 1],
+		pin_index = DEFAULT_PIN_INDEX,
+		pin_xor_index = DEFAULT_PIN_XOR_INDEX,
 		xor_key_length = XOR_KEY_LENGTH,
 		Xor_Key_Arr[XOR_KEY_LENGTH],
 		value_bit_length = 32,
