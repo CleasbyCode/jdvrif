@@ -10,18 +10,18 @@ uint32_t encryptFile(std::vector<uint8_t>& Profile_Vec, std::vector<uint8_t>& Fi
 		XOR_KEY_LENGTH = 234,
 		PIN_LENGTH = 9;
 
-	uint32_t 
-		index_pos = 0;
+	uint32_t index_pos = 0;
+	
 	uint16_t 
 		data_filename_index = 0x1EF,
 		xor_key_index = 0x2F5,
-		pin_index = DEFAULT_PIN_INDEX,
-		pin_xor_index = DEFAULT_PIN_XOR_INDEX,
 		encrypt_xor_pos = xor_key_index,
 		index_xor_pos = encrypt_xor_pos;
 
 	uint8_t 
 		data_filename_length = Profile_Vec[data_filename_index - 1],
+		pin_index = DEFAULT_PIN_INDEX,
+		pin_xor_index = DEFAULT_PIN_XOR_INDEX,
 		xor_key[XOR_KEY_LENGTH],
 		value_bit_length = 32,
 		xor_key_length = XOR_KEY_LENGTH,
