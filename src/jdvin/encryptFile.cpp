@@ -34,8 +34,7 @@ uint32_t encryptFile(std::vector<uint8_t>& Profile_Vec, std::vector<uint8_t>& Fi
     	}
 
 	while (data_filename_length--) {
-		data_filename[char_pos] = data_filename[char_pos] ^ xor_key[xor_key_pos++];
-		Profile_Vec[data_filename_index++] = data_filename[char_pos++];
+		Profile_Vec[data_filename_index++] = data_filename[char_pos++] ^ xor_key[xor_key_pos++];
 	}	
 	
 	Profile_Vec.reserve(Profile_Vec.size() + data_file_size);
