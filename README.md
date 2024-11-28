@@ -15,6 +15,9 @@ Compatible hosting sites, ***listed below***, have their own ***much smaller*** 
 
 Your embedded data file is ***compressed*** (depending on file size & type) and ***encrypted*** with ***PIN*** protection.  
 The file, if required, is split into multiple [***64KB APP2 Segments (ICC Color Profile)***](https://youtu.be/1213w-k9X9M) within the ***JPG*** cover image.  
+
+(*You can try the [***jdvrif Web App***](https://cleasbycode.co.uk/jdvrif/index/) if you don't want to download and compile the source code.*)
+
 ## Usage (Linux - jdvin / jdvout)
 
 ```console
