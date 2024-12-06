@@ -10,7 +10,10 @@
 #include <string>
 #include <vector>
 #include <iterator>
+
+// https://github.com/madler/zlib
 #include <zlib.h>
+// Copyright (C) 1995-2024 Jean-loup Gailly and Mark Adler
 
 #ifdef _WIN32
 #include <conio.h>
