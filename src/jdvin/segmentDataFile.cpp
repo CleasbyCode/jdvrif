@@ -1,5 +1,5 @@
 // If required, split & store users data file into multiple APP2 profile segments. 
-// The first APP2 segment contains the color profile data, followed by the users data file.
+// The first APP2 segment contains the color profile data, followed by the user's data file.
 // Additional segments start with the 18 byte JPG APP2 profile header, followed by the data file.
 void segmentDataFile(std::vector<uint8_t>&Profile_Vec, std::vector<uint8_t>&File_Vec) {
 	constexpr uint8_t
@@ -65,8 +65,8 @@ void segmentDataFile(std::vector<uint8_t>&Profile_Vec, std::vector<uint8_t>&File
 
 		while (segments_required_approx_val--) {		
 			if (!segments_required_approx_val && SEGMENT_REMAINDER_SIZE) {
-			   segment_data_size = SEGMENT_REMAINDER_SIZE;		
-			   valueUpdater(Segment_Vec, segment_remainder_size_index, SEGMENT_REMAINDER_SIZE + SEGMENT_REMAINDER_DIFF, value_bit_length); 		
+				segment_data_size = SEGMENT_REMAINDER_SIZE;		
+			   	valueUpdater(Segment_Vec, segment_remainder_size_index, SEGMENT_REMAINDER_SIZE + SEGMENT_REMAINDER_DIFF, value_bit_length); 		
 			}
 
 			std::copy_n(Profile_Vec.begin() + byte_index, segment_data_size, std::back_inserter(Segment_Vec));
