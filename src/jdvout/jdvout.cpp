@@ -7,12 +7,17 @@ int jdvOut(const std::string& IMAGE_FILENAME) {
 	
 	std::ifstream image_file_ifs(IMAGE_FILENAME, std::ios::binary);
 
-	if (!image_file_ifs || IMAGE_FILE_SIZE > MAX_FILE_SIZE) {
-		std::cerr << (!image_file_ifs 
-			? "\nOpen File Error: Unable to read image file"
-			: "\nImage File Error: Size of file exceeds the maximum limit for this program")
-		<< ".\n\n";
-		return 1;
+	if (!image_file_ifs || IMAGE_FILE_SIZE == 0 || IMAGE_FILE_SIZE > MAX_FILE_SIZE) {
+    		if (!image_file_ifs) {
+			std::cerr << "\nOpen File Error: Unable to read image file.\n\n";
+    		} else {
+			std::cerr << "\nImage File Error: "
+                  	<< (!IMAGE_FILE_SIZE
+                      		? "Image file is empty"
+                      		: "Size of file exceeds the maximum limit for this program")
+                  	<< ".\n\n";
+    		}	
+    		return 1;
 	}
 
 	std::vector<uint8_t> Image_Vec;
@@ -24,13 +29,12 @@ int jdvOut(const std::string& IMAGE_FILENAME) {
 	constexpr uint8_t
 		JDV_SIG[]	{ 0xB4, 0x6A, 0x3E, 0xEA, 0x5E, 0x9D, 0xF9 },
 		PROFILE_SIG[] 	{ 0x6D, 0x6E, 0x74, 0x72, 0x52, 0x47, 0x42 },
-		DATA_FILE_SIZE_INDEX = 0x90,
 		INDEX_DIFF = 8;
 				
 	const uint32_t 
 		JDV_SIG_INDEX 	= searchFunc(Image_Vec, 0, 0, JDV_SIG),
 		PROFILE_SIG_INDEX = searchFunc(Image_Vec, 0, 0, PROFILE_SIG),
-		DATA_FILE_SIZE = getByteValue(Image_Vec, DATA_FILE_SIZE_INDEX);
+		DATA_FILE_SIZE = getByteValue(Image_Vec, PROFILE_SIG_INDEX + 0x5E);
 
 	if (JDV_SIG_INDEX == Image_Vec.size()) {
 		std::cerr << "\nImage File Error: Signature check failure. This is not a valid jdvrif file-embedded image.\n\n";
@@ -38,7 +42,7 @@ int jdvOut(const std::string& IMAGE_FILENAME) {
 	}
 	
 	uint8_t 
-		byte_check = Image_Vec[DATA_FILE_SIZE_INDEX + 4],
+		byte_check = Image_Vec[PROFILE_SIG_INDEX + 0x62],
 		extract_success_byte_val = Image_Vec[JDV_SIG_INDEX + INDEX_DIFF - 1];
 
 	// Remove JPG header and the APP2 ICC Profile/segment header,
