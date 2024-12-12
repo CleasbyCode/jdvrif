@@ -93,7 +93,7 @@ void segmentDataFile(std::vector<uint8_t>&Profile_Vec, std::vector<uint8_t>&File
 		std::vector<std::vector<uint8_t>>().swap(Segments_Arr_Vec);
 		
 		constexpr uint8_t MASTODON_SEGMENTS_LIMIT = 100;		   
-		constexpr uint32_t MASTODON_IMAGE_UPLOAD_LIMIT = 16777216;
+		constexpr uint32_t MASTODON_IMAGE_UPLOAD_LIMIT = 16 * 1024 * 1024; // 16MB
 					   
 		if (segments_sequence_value > MASTODON_SEGMENTS_LIMIT && MASTODON_IMAGE_UPLOAD_LIMIT > COLOR_PROFILE_WITH_DATA_FILE_VEC_SIZE) {
 			std::cout << "\n**Warning**\n\nEmbedded image is not compatible with Mastodon. Image file exceeds platform's segments limit.\n";
