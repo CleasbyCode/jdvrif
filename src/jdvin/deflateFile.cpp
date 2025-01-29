@@ -1,35 +1,7 @@
-/* zlib.h -- interface of the 'zlib' general purpose compression library
-  version 1.3.1, January 22nd, 2024
-
-  Copyright (C) 1995-2024 Jean-loup Gailly and Mark Adler
-
-  This software is provided 'as-is', without any express or implied
-  warranty. In no event will the authors be held liable for any damages
-  arising from the use of this software.
-
-  Permission is granted to anyone to use this software for any purpose,
-  including commercial applications, and to alter it and redistribute it
-  freely, subject to the following restrictions:
-
-  1. The origin of this software must not be misrepresented; you must not
-     claim that you wrote the original software. If you use this software
-     in a product, an acknowledgment in the product documentation would be
-     appreciated but is not required.
-  2. Altered source versions must be plainly marked as such, and must not be
-     misrepresented as being the original software.
-  3. This notice may not be removed or altered from any source distribution.
-
-  Jean-loup Gailly        Mark Adler
-  jloup@gzip.org          madler@alumni.caltech.edu
-*/
-
-uint32_t deflateFile(std::vector<uint8_t>& Vec, bool isCompressedFile) {
+// zlib function, see https://zlib.net/
+uint32_t deflateFile(std::vector<uint8_t>& Vec) {
 			
-	constexpr uint32_t
-		BUFSIZE = 2 * 1024 * 1024, // 2MB	
-		LARGE_FILE_SIZE	  = 500 * 1024 * 1024,  //  > 500MB.
-		MEDIUM_FILE_SIZE  = 200 * 1024 * 1024,  //  > 200MB. 
-		COMPRESSED_FILE_TYPE_SIZE_LIMIT = 30 * 1024 * 1024; // > 30MB. Skip trying to compress already compressed files over 30MB.
+	constexpr uint32_t BUFSIZE = 2 * 1024 * 1024; // 2MB	
 
 	const uint32_t VEC_SIZE = static_cast<uint32_t>(Vec.size());
 
@@ -46,18 +18,8 @@ uint32_t deflateFile(std::vector<uint8_t>& Vec, bool isCompressedFile) {
 	strm.next_out = buffer;
 	strm.avail_out = BUFSIZE;
 
-	int8_t compression_level;
-
-	if (isCompressedFile && VEC_SIZE > COMPRESSED_FILE_TYPE_SIZE_LIMIT) {
-	    compression_level = Z_NO_COMPRESSION;
-	} else if (VEC_SIZE > LARGE_FILE_SIZE) {
-	    compression_level = Z_BEST_SPEED;
-	} else if (VEC_SIZE > MEDIUM_FILE_SIZE) {
-	    compression_level = Z_DEFAULT_COMPRESSION;
-	} else {
-	    compression_level = Z_BEST_COMPRESSION;
-	}
-
+	int8_t compression_level = Z_BEST_COMPRESSION;
+	
 	deflateInit(&strm, compression_level);
 
 	while (strm.avail_in)

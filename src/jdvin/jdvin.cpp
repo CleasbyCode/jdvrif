@@ -1,20 +1,27 @@
-int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, bool isRedditOption, bool isCompressedFile) {
+int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, ArgOption platformOption) {
 	
 	constexpr uint32_t 
 		COMBINED_MAX_FILE_SIZE 	 	= 2U * 1024U * 1024U * 1024U,  	// 2GB. (image + data file)
 		COMBINED_MAX_FILE_SIZE_REDDIT 	= 20 * 1024 * 1024;	   	// 20MB. ""	
+
+	constexpr uint8_t MIN_IMAGE_FILE_SIZE	= 134;	// 134Bytes.
 
 	const size_t 
 		IMAGE_FILE_SIZE 	= std::filesystem::file_size(IMAGE_FILENAME),
 		DATA_FILE_SIZE 		= std::filesystem::file_size(data_filename),
 		COMBINED_FILE_SIZE 	= DATA_FILE_SIZE + IMAGE_FILE_SIZE;
 
+	const bool isRedditOption = (platformOption == ArgOption::Reddit);
+
 	if (COMBINED_FILE_SIZE > COMBINED_MAX_FILE_SIZE
      		|| (DATA_FILE_SIZE == 0)
+		|| (MIN_IMAGE_FILE_SIZE > IMAGE_FILE_SIZE)
      		|| (isRedditOption && COMBINED_FILE_SIZE > COMBINED_MAX_FILE_SIZE_REDDIT)) {     
     			std::cerr << "\nFile Size Error: " << (DATA_FILE_SIZE == 0 
 			? "Data file is empty"
-            		: "Combined size of image and data file exceeds program maximum limit of " + std::string(isRedditOption ? "20MB" : "2GB"))
+			: (MIN_IMAGE_FILE_SIZE > IMAGE_FILE_SIZE
+				? "Image file size is smaller than the minimum allowed: 134 Bytes"
+            			: "Combined size of image and data file exceeds program maximum limit of " + std::string(isRedditOption ? "20MB" : "2GB")))
         		<< ".\n\n";
     		return 1;
 	}
@@ -60,15 +67,15 @@ int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, bool is
 	}
 
 	constexpr uint16_t DATA_FILENAME_LENGTH_INDEX = 0x1EE;
-
+	
 	uint8_t 
 		data_file_size_index = 0x90,
 		value_bit_length = 32;
-	
+
 	Profile_Vec[DATA_FILENAME_LENGTH_INDEX] = DATA_FILENAME_LENGTH;
-	
+
 	valueUpdater(Profile_Vec, data_file_size_index, static_cast<uint32_t>(DATA_FILE_SIZE), value_bit_length);
-	
+
 	constexpr uint32_t LARGE_FILE_SIZE = 400 * 1024 * 1024;  // 400MB.
 
 	if (DATA_FILE_SIZE > LARGE_FILE_SIZE) {
@@ -80,12 +87,12 @@ int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, bool is
 
 	data_file_ifs.read(reinterpret_cast<char*>(File_Vec.data()), DATA_FILE_SIZE);
 	data_file_ifs.close();
-	
+
 	std::reverse(File_Vec.begin(), File_Vec.end());
-	
+
 	Profile_Vec[data_file_size_index + 4] = data_filename[0];
-	
-	uint32_t file_vec_size = deflateFile(File_Vec, isCompressedFile);
+
+	uint32_t file_vec_size = deflateFile(File_Vec);
 	
 	if (File_Vec.empty()) {
 		std::cerr << "\nFile Size Error: File is zero bytes. Probable compression failure.\n\n";

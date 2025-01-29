@@ -6,15 +6,12 @@
 #include <cstdint>
 #include <fstream>
 #include <regex>
-#include <set>
 #include <iostream>
 #include <string>
 #include <vector>
 #include <iterator>
 
-// https://github.com/madler/zlib
-#include <zlib.h>
-// Copyright (C) 1995-2024 Jean-loup Gailly and Mark Adler
+#include <C:\Users\Nick\source\zlib-1.3.1\zlib.h>
 
 #include "profilesVec.cpp"
 #include "writeFile.cpp"
@@ -35,7 +32,7 @@ uint32_t searchFunc(std::vector<uint8_t>&, uint32_t, const uint8_t, const uint8_
 uint32_t 
 	crcUpdate(uint8_t*, uint32_t),
 	encryptFile(std::vector<uint8_t>&, std::vector<uint8_t>&, uint32_t, std::string&),
-	deflateFile(std::vector<uint8_t>&, bool),
+	deflateFile(std::vector<uint8_t>&),
 	getByteValue(const std::vector<uint8_t>&, const uint32_t);
 
 bool writeFile(std::vector<uint8_t>&);
@@ -46,4 +43,4 @@ void
 	valueUpdater(std::vector<uint8_t>&, uint32_t, const uint32_t, uint8_t),
 	displayInfo();
 
-int jdvIn(const std::string&, std::string&, bool, bool);
+int jdvIn(const std::string&, std::string&, ArgOption);
