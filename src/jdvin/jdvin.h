@@ -11,7 +11,9 @@
 #include <vector>
 #include <iterator>
 
+// https://github.com/madler/zlib
 #include <zlib.h>
+// Copyright (C) 1995-2024 Jean-loup Gailly and Mark Adler
 
 #include "profilesVec.cpp"
 #include "writeFile.cpp"
