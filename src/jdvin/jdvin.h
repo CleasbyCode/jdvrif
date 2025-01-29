@@ -11,7 +11,7 @@
 #include <vector>
 #include <iterator>
 
-#include <C:\Users\Nick\source\zlib-1.3.1\zlib.h>
+#include <zlib.h>
 
 #include "profilesVec.cpp"
 #include "writeFile.cpp"
