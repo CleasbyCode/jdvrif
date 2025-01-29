@@ -13,7 +13,7 @@ Use CLI tools ***jdvin*** & ***jdvout*** with a JPG image, to hide/extract any f
 ![Demo Image](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/jrif_79866.jpg)  
 ***Image credit:*** [***@rdc768***](https://x.com/rdc768) / ***PIN: 3611019770***
 
-Your embedded data file is ***compressed*** (depending on file size & type) and ***encrypted*** with ***PIN*** protection.  
+Your embedded data file is ***compressed*** and ***encrypted*** with ***PIN*** protection.  
 The file, if required, is split into multiple [***64KB APP2 Segments (ICC Color Profile)***](https://youtu.be/1213w-k9X9M) within the ***JPG*** cover image.  
 
 (*You can try the [***jdvrif Web App, here,***](https://cleasbycode.co.uk/jdvrif/index/) if you don't want to download and compile the CLI source code.*)
