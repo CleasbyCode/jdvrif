@@ -61,9 +61,9 @@ int jdvOut(const std::string& IMAGE_FILENAME) {
 	
 	const uint32_t INFLATED_FILE_SIZE = inflateFile(Decrypted_File_Vec);
 
-	bool isInflateFailure = Decrypted_File_Vec.empty() || INFLATED_FILE_SIZE != DATA_FILE_SIZE || byte_check != DECRYPTED_FILENAME[0];
+	bool hasInflateFailed = Decrypted_File_Vec.empty() || INFLATED_FILE_SIZE != DATA_FILE_SIZE || byte_check != DECRYPTED_FILENAME[0];
 				 
-	if (isInflateFailure) {	
+	if (hasInflateFailed) {	
 		std::fstream file(IMAGE_FILENAME, std::ios::in | std::ios::out | std::ios::binary);
 		std::streampos failure_index = JDV_SIG_INDEX + INDEX_DIFF - 1;
 
