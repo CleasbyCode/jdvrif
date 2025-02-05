@@ -42,8 +42,6 @@ void segmentDataFile(std::vector<uint8_t>&Profile_Vec, std::vector<uint8_t>&File
 		constexpr uint16_t SEGMENTS_TOTAL_VAL_INDEX = 0x207;  
 		
 		valueUpdater(Profile_Vec, SEGMENTS_TOTAL_VAL_INDEX, segments_required_approx_val, value_bit_length);
-
-		std::vector<std::vector<uint8_t>> Segments_Arr_Vec;
 	
 		segment_data_size = FIRST_SEGMENT_DATA_SIZE;
 
@@ -59,7 +57,9 @@ void segmentDataFile(std::vector<uint8_t>&Profile_Vec, std::vector<uint8_t>&File
 		if (SEGMENT_REMAINDER_SIZE) {
     			segments_required_approx_val++;
 		}	
-
+		
+		File_Vec.reserve(segment_data_size * segments_sequence_value);
+		
 		while (segments_required_approx_val--) {		
 			if (!segments_required_approx_val && SEGMENT_REMAINDER_SIZE) {
 				segment_data_size = SEGMENT_REMAINDER_SIZE;		
@@ -70,9 +70,9 @@ void segmentDataFile(std::vector<uint8_t>&Profile_Vec, std::vector<uint8_t>&File
 			byte_index += segment_data_size;	
 			
 			if (segment_data_size == FIRST_SEGMENT_DATA_SIZE) {
-       			 	Segments_Arr_Vec.emplace_back(Segment_Vec.begin() + SEGMENT_HEADER_LENGTH, Segment_Vec.end());
+				File_Vec.insert(File_Vec.end(), Segment_Vec.begin() + SEGMENT_HEADER_LENGTH, Segment_Vec.end());
 			} else {
-        			Segments_Arr_Vec.emplace_back(Segment_Vec);
+        			File_Vec.insert(File_Vec.end(), Segment_Vec.begin(), Segment_Vec.end());
     			}
 
     			Segment_Vec.erase(Segment_Vec.begin() + SEGMENT_HEADER_LENGTH, Segment_Vec.end());
@@ -82,13 +82,6 @@ void segmentDataFile(std::vector<uint8_t>&Profile_Vec, std::vector<uint8_t>&File
 		}
 		
 		std::vector<uint8_t>().swap(Profile_Vec);
-		File_Vec.reserve(segment_data_size * segments_sequence_value);
-
-		for (auto& vec : Segments_Arr_Vec) {
-        		File_Vec.insert(File_Vec.end(), vec.begin(), vec.end());
-			std::vector<uint8_t>().swap(vec);
-    		}
-		std::vector<std::vector<uint8_t>>().swap(Segments_Arr_Vec);
 		
 		constexpr uint8_t MASTODON_SEGMENTS_LIMIT = 100;		   
 		constexpr uint32_t MASTODON_IMAGE_UPLOAD_LIMIT = 16 * 1024 * 1024; 
