@@ -11,9 +11,10 @@
 #include <vector>
 #include <iterator>
 
-// This project uses [libsodium](https://libsodium.org/) for cryptographic functions.
+// This project uses libsodium (https://libsodium.org/) for cryptographic functions.
 #define SODIUM_STATIC
 #include <sodium.h>
+// Copyright (c) 2013-2024 Frank Denis <github@pureftpd.org>
 
 // https://github.com/madler/zlib
 #include <zlib.h>
