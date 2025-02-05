@@ -1,7 +1,7 @@
 bool writeFile(std::vector<uint8_t>& Vec) {
 	std::random_device rd;
     	std::mt19937 gen(rd());
-    	std::uniform_int_distribution<> dist(10000, 99999);  // Five-digit random number
+    	std::uniform_int_distribution<> dist(10000, 99999);  
 
 	const std::string IMAGE_FILENAME = "jrif_" + std::to_string(dist(gen)) + ".jpg";
 
