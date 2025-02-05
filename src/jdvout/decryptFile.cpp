@@ -1,3 +1,4 @@
+// This project uses [libsodium](https://libsodium.org/) for cryptographic functions.
 const std::string decryptFile(std::vector<uint8_t>&Image_Vec) {
 
 	constexpr uint16_t 
