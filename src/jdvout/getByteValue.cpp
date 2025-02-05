@@ -1,6 +1,10 @@
-uint32_t getByteValue(const std::vector<uint8_t>& VEC, const uint32_t INDEX) {
-	return	(static_cast<uint32_t>(VEC[INDEX]) << 24) |
-		(static_cast<uint32_t>(VEC[INDEX + 1]) << 16) |
-		(static_cast<uint32_t>(VEC[INDEX + 2]) << 8) |
-		 static_cast<uint32_t>(VEC[INDEX + 3]); 
+template <typename T>
+T getByteValue(const std::vector<uint8_t>& VEC, uint32_t INDEX) {
+    constexpr size_t numBytes = sizeof(T);
+
+    T value = 0;
+    for (size_t i = 0; i < numBytes; ++i) {
+        value |= static_cast<T>(VEC[INDEX + i]) << ((numBytes - 1 - i) * 8);
+    }
+    return value;
 }

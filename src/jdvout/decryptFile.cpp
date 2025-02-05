@@ -1,70 +1,82 @@
-const std::string decryptFile(std::vector<uint8_t>&Image_Vec, std::vector<uint8_t>&Decrypted_File_Vec) {
+const std::string decryptFile(std::vector<uint8_t>&Image_Vec) {
 
 	constexpr uint16_t 
-		ENCRYPTED_FILE_START_INDEX 	= 0x3BD,
+		ENCRYPTED_FILE_START_INDEX 	= 0x35B,
 		FILE_SIZE_INDEX 		= 0x1D9,
 		PROFILE_COUNT_VALUE_INDEX 	= 0x1DD,
 		ENCRYPTED_FILENAME_INDEX 	= 0x1C5;
 
 	constexpr uint8_t
-		DEFAULT_PIN_INDEX = 		0x6B,
-		DEFAULT_PIN_XOR_INDEX =		0x66,
-		XOR_KEY_LENGTH 			= 234,
-		PROFILE_HEADER_LENGTH 		= 18, 
-		PIN_LENGTH 			= 9;  
+		SODIUM_XOR_KEY_START_INDEX	= 0x6A,
+		PROFILE_HEADER_LENGTH		= 18, 
+		SODIUM_XOR_KEY_LENGTH		= 9;  
 	
-	const uint32_t EMBEDDED_FILE_SIZE = getByteValue(Image_Vec, FILE_SIZE_INDEX);
+	const uint32_t 
+		EMBEDDED_FILE_SIZE = getByteValue<uint32_t>(Image_Vec, FILE_SIZE_INDEX);
 
+	// How many ICC_PROFILE segments? (Don't count the first, default color profile segment).
 	const uint16_t PROFILE_COUNT = (static_cast<uint16_t>(Image_Vec[PROFILE_COUNT_VALUE_INDEX]) << 8) | static_cast<uint16_t>(Image_Vec[PROFILE_COUNT_VALUE_INDEX + 1]);
 
 	uint32_t* Headers_Index_Arr = new uint32_t[PROFILE_COUNT];
 
 	uint16_t 
-		xor_key_index = 0x2CB,
-		decrypt_xor_pos = xor_key_index,
-		index_xor_pos = decrypt_xor_pos;
-		
+		filename_xor_key_index = 0x2CB,
+		sodium_key_index = 0x31B,
+		nonce_key_index = 0x33B;
+
 	uint8_t
 		encrypted_filename_length = Image_Vec[ENCRYPTED_FILENAME_INDEX - 1],
-		pin_index = DEFAULT_PIN_INDEX,
-		pin_xor_index = DEFAULT_PIN_XOR_INDEX,
-		xor_key_length = XOR_KEY_LENGTH,
-		Xor_Key_Arr[XOR_KEY_LENGTH],
-		value_bit_length = 32,
-		xor_key_pos = 0,
-		char_pos = 0;
+		sodium_xor_key_pos = SODIUM_XOR_KEY_START_INDEX,
+		sodium_part_key_index = 0x6B, 	// Index location where we temp store 8 bytes of the 32 byte sodium key. Used as part of a simple 9 byte XOR key.
+		sodium_keys_length = 48,
+		value_bit_length = 64,
+		filename_char_pos = 0;
 		
 	const std::string ENCRYPTED_FILENAME { Image_Vec.begin() + ENCRYPTED_FILENAME_INDEX, Image_Vec.begin() + ENCRYPTED_FILENAME_INDEX + encrypted_filename_length };
 	
 	std::cout << "\nPIN: ";
-	uint32_t 
-		pin = getPin(),
-		encrypted_file_size 	= 0,
-		next_header_index 	= 0,
-		index_pos		= 0;
+	uint64_t pin = getPin();
+		
+	// This 8 byte value, supplied by user, is part of the 9 byte XOR key used to decrypt part of the main sodium key & all of the nonce key.
+	valueUpdater(Image_Vec, sodium_part_key_index, pin, value_bit_length);	 
+
+	// Insert the same 8 byte value, supplied by user into index location. This value completes the missing part of the main sodium key.
+	valueUpdater(Image_Vec, sodium_key_index, pin, value_bit_length); 
 	
-	valueUpdater(Image_Vec, pin_index, pin, value_bit_length);
+	sodium_key_index += 8;
 
-	while(xor_key_length--) {
-		Image_Vec[decrypt_xor_pos++] = Image_Vec[index_xor_pos++] ^ Image_Vec[pin_xor_index++];
-		pin_xor_index = pin_xor_index >= PIN_LENGTH + DEFAULT_PIN_XOR_INDEX ? DEFAULT_PIN_XOR_INDEX : pin_xor_index;
-	}
-	
-	const uint32_t CRC_CHECK = crcUpdate(&Image_Vec[xor_key_index], XOR_KEY_LENGTH);
-
-	if (pin != CRC_CHECK) {
-		std::reverse(Image_Vec.begin(), Image_Vec.end());
+	// XOR decrypt 48 bytes. This includes 24 bytes of the 32 byte main sodium key and 24 bytes of the nonce key.
+	while(sodium_keys_length--) {
+		Image_Vec[sodium_key_index] = Image_Vec[sodium_key_index] ^ Image_Vec[sodium_xor_key_pos++];
+		sodium_key_index++;
+		sodium_xor_key_pos = (sodium_xor_key_pos >= SODIUM_XOR_KEY_LENGTH + SODIUM_XOR_KEY_START_INDEX) 
+			? SODIUM_XOR_KEY_START_INDEX 
+			: sodium_xor_key_pos;
 	}
 
-	// Read in the xor key stored in the profile data.
-	for (int i = 0; XOR_KEY_LENGTH > i; ++i) {
-		Xor_Key_Arr[i] = Image_Vec[xor_key_index++]; 
+	sodium_key_index = 0x31B;
+
+	uint8_t nonce[crypto_secretbox_NONCEBYTES];
+	uint8_t key[crypto_secretbox_KEYBYTES];
+
+	std::copy(Image_Vec.begin() + nonce_key_index, 
+          	Image_Vec.begin() + nonce_key_index + crypto_secretbox_NONCEBYTES, 
+          	nonce);
+
+	std::copy(Image_Vec.begin() + sodium_key_index, 
+        	  Image_Vec.begin() + sodium_key_index + crypto_secretbox_KEYBYTES, 
+          	key);
+
+	std::string decrypted_filename;
+
+	while (encrypted_filename_length--) {
+		decrypted_filename += ENCRYPTED_FILENAME[filename_char_pos++] ^ Image_Vec[filename_xor_key_index++];
 	}
 
 	// Remove profile data & cover image data from vector. Leaving just the encrypted/compressed data file.
 	std::vector<uint8_t> Temp_Vec(Image_Vec.begin() + ENCRYPTED_FILE_START_INDEX, Image_Vec.begin() + ENCRYPTED_FILE_START_INDEX + EMBEDDED_FILE_SIZE);
 	Image_Vec = std::move(Temp_Vec);
-	
+
 	// Search the "file-embedded" image for ICC Profile headers. Store index location of each found header within the vector.
 	// We will use these index positions to skip over the headers when decrypting the data file, 
 	// so that they are not included within the restored data file.
@@ -81,16 +93,16 @@ const std::string decryptFile(std::vector<uint8_t>&Image_Vec, std::vector<uint8_
 		}
 	}
 
-	encrypted_file_size = static_cast<uint32_t>(Image_Vec.size());
+	uint32_t 
+		encrypted_file_size = static_cast<uint32_t>(Image_Vec.size()),
+		next_header_index = 0,
+		index_pos = 0;
+	
+	std::vector<uint8_t>Sanitize_Vec; // Will contain THE encrypted data file without ICC_Profile headers.
+	Sanitize_Vec.reserve(encrypted_file_size);
 
-	std::string decrypted_filename;
-
-	while (encrypted_filename_length--) {
-		decrypted_filename += ENCRYPTED_FILENAME[char_pos++] ^ Xor_Key_Arr[xor_key_pos++];
-	}
-			
 	while (encrypted_file_size > index_pos) {
-		Decrypted_File_Vec.emplace_back(Image_Vec[index_pos++] ^ Xor_Key_Arr[xor_key_pos++ % XOR_KEY_LENGTH]);
+		Sanitize_Vec.emplace_back(Image_Vec[index_pos++]);
 		// Skip over the 18 byte ICC Profile header found at each index location within "Headers_Index_Arr", 
 		// so that we don't include them along with the decrypted file.
 		if (PROFILE_COUNT && index_pos == Headers_Index_Arr[next_header_index]) {
@@ -98,7 +110,18 @@ const std::string decryptFile(std::vector<uint8_t>&Image_Vec, std::vector<uint8_
 			++next_header_index;
 		}	
 	}
+
 	std::vector<uint8_t>().swap(Image_Vec);
+
+	std::vector<uint8_t>Decrypted_File_Vec(Sanitize_Vec.size() - crypto_secretbox_MACBYTES);
+
+	if (crypto_secretbox_open_easy(Decrypted_File_Vec.data(), Sanitize_Vec.data(), Sanitize_Vec.size(), nonce, key) !=0 ) {
+		std::cerr << "\nDecryption failed!" << std::endl;
+	}
+	
+	std::vector<uint8_t>().swap(Sanitize_Vec);
+	
 	delete[] Headers_Index_Arr;
+	Image_Vec.swap(Decrypted_File_Vec);
 	return decrypted_filename;
 }
