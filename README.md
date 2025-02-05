@@ -10,8 +10,8 @@ Use CLI tools ***jdvin*** & ***jdvout*** with a JPG image, to hide/extract any f
 
 ***jdvrif*** partly derives from the ***[technique demonstrated](https://www.vice.com/en/article/bj4wxm/tiny-picture-twitter-complete-works-of-shakespeare-steganography)*** by security researcher ***[David Buchanan](https://www.da.vidbuchanan.co.uk/).*** 
 
-![Demo Image](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/jrif_79866.jpg)  
-***Image credit:*** [***@rdc768***](https://x.com/rdc768) / ***PIN: 3611019770***
+![Demo Image](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/jrif_28030.jpg)  
+***Image credit:*** [***@blackowl777***](https://x.com/blackowl777) / ***PIN: 13645235965711246891***
 
 Your embedded data file is ***compressed*** and ***encrypted*** with ***PIN*** protection.  
 The file, if required, is split into multiple [***64KB APP2 Segments (ICC Color Profile)***](https://youtu.be/1213w-k9X9M) within the ***JPG*** cover image.  
