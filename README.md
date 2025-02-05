@@ -77,11 +77,14 @@ https://github.com/user-attachments/assets/f51b2c89-23cb-423b-8d35-aa2300003f2e
 
 ## Third-Party Libraries
 
-This project makes use of the following third-party library:
+This project makes use of the following third-party libraries:
 
+- [**libsodium**](https://libsodium.org/) for cryptographic functions.
+  - [**LICENSE**](https://github.com/jedisct1/libsodium/blob/master/LICENSE) 
 - **zlib**: General-purpose compression library
   - License: zlib/libpng license (see [***LICENSE***](https://github.com/madler/zlib/blob/develop/LICENSE) file)
   - Copyright (C) 1995-2024 Jean-loup Gailly and Mark Adler
+    
 
 ##
 
