@@ -13,7 +13,7 @@ Use CLI tools ***jdvin*** & ***jdvout*** with a JPG image, to hide/extract any f
 ![Demo Image](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/jrif_28030.jpg)  
 ***Image credit:*** [***@blackowl777***](https://x.com/blackowl777) / ***PIN: 13645235965711246891***
 
-Your embedded data file is ***compressed*** and ***encrypted*** using the ***libsodium*** crypto library (XSalsa20-Poly1305) with ***PIN*** protection.  
+Your embedded data file is ***compressed*** (*zlib*) and ***encrypted*** using the ***libsodium*** crypto library (XSalsa20-Poly1305).
 
 (*You can try the [***jdvrif Web App, here,***](https://cleasbycode.co.uk/jdvrif/index/) if you don't want to download and compile the CLI source code.*)
 
