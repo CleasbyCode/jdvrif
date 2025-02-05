@@ -1,4 +1,5 @@
-// This project uses [libsodium](https://libsodium.org/) for cryptographic functions.
+// This project uses libsodium (https://libsodium.org/) for cryptographic functions.
+// Copyright (c) 2013-2025 Frank Denis <github@pureftpd.org>
 const std::string decryptFile(std::vector<uint8_t>&Image_Vec) {
 
 	constexpr uint16_t 
