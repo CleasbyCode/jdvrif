@@ -1,7 +1,7 @@
 int jdvOut(const std::string& IMAGE_FILENAME) {
 	constexpr uint32_t 
-		MAX_FILE_SIZE 	= 3U * 1024U * 1024U * 1024U, 	// 3GB.
-		LARGE_FILE_SIZE = 400 * 1024 * 1024;  		// 400MB.
+		MAX_FILE_SIZE 	= 3U * 1024U * 1024U * 1024U, 	
+		LARGE_FILE_SIZE = 400 * 1024 * 1024;  		
 
 	const size_t IMAGE_FILE_SIZE = std::filesystem::file_size(IMAGE_FILENAME);
 	
@@ -42,9 +42,6 @@ int jdvOut(const std::string& IMAGE_FILENAME) {
 	
 	uint8_t extract_success_byte_val = Image_Vec[JDV_SIG_INDEX + INDEX_DIFF - 1];
 
-	// Remove JPG header and the APP2 ICC Profile/segment header,
-	// also, any other segments that could be added by hosting sites (e.g. Mastodon), such as EXIF. 
-	// Vector now contains color profile data, encrypted/compressed data file and cover image data.
 	Image_Vec.erase(Image_Vec.begin(), Image_Vec.begin() + (PROFILE_SIG_INDEX - INDEX_DIFF));
 
 	if (IMAGE_FILE_SIZE > LARGE_FILE_SIZE) {
