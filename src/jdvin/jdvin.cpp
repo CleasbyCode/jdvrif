@@ -1,10 +1,10 @@
 int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, ArgOption platformOption, bool isCompressedFile) {
 	
 	constexpr uint32_t 
-		COMBINED_MAX_FILE_SIZE 	 	= 2U * 1024U * 1024U * 1024U,  	// 2GB. (image + data file)
-		COMBINED_MAX_FILE_SIZE_REDDIT 	= 20 * 1024 * 1024;	   	// 20MB. ""	
+		COMBINED_MAX_FILE_SIZE 	 	= 2U * 1024U * 1024U * 1024U,  	
+		COMBINED_MAX_FILE_SIZE_REDDIT 	= 20 * 1024 * 1024;	   	
 
-	constexpr uint8_t MIN_IMAGE_FILE_SIZE	= 134;	// 134Bytes.
+	constexpr uint8_t MIN_IMAGE_FILE_SIZE	= 134;	
 
 	const size_t 
 		IMAGE_FILE_SIZE 	= std::filesystem::file_size(IMAGE_FILENAME),
@@ -76,7 +76,7 @@ int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, ArgOpti
 
 	valueUpdater(Profile_Vec, data_file_size_index, static_cast<uint32_t>(DATA_FILE_SIZE), value_bit_length);
 
-	constexpr uint32_t LARGE_FILE_SIZE = 400 * 1024 * 1024;  // 400MB.
+	constexpr uint32_t LARGE_FILE_SIZE = 400 * 1024 * 1024;  
 
 	if (DATA_FILE_SIZE > LARGE_FILE_SIZE) {
 		std::cout << "\nPlease wait. Larger files will take longer to complete this process.\n";
