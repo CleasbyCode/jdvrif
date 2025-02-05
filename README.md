@@ -80,7 +80,8 @@ https://github.com/user-attachments/assets/f51b2c89-23cb-423b-8d35-aa2300003f2e
 This project makes use of the following third-party libraries:
 
 - [**libsodium**](https://libsodium.org/) for cryptographic functions.
-  - [**LICENSE**](https://github.com/jedisct1/libsodium/blob/master/LICENSE) 
+  - [**LICENSE**](https://github.com/jedisct1/libsodium/blob/master/LICENSE)
+  - Copyright (c) 2013-2025 Frank Denis <github@pureftpd.org>
 - **zlib**: General-purpose compression library
   - License: zlib/libpng license (see [***LICENSE***](https://github.com/madler/zlib/blob/develop/LICENSE) file)
   - Copyright (C) 1995-2024 Jean-loup Gailly and Mark Adler
