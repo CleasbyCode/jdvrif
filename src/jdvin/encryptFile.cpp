@@ -1,3 +1,4 @@
+// This project uses [libsodium](https://libsodium.org/) for cryptographic functions.
 uint64_t encryptFile(std::vector<uint8_t>& Profile_Vec, std::vector<uint8_t>& File_Vec, std::string& filename) {
 	
 	std::random_device rd;
