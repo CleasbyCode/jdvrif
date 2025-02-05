@@ -31,12 +31,17 @@ void segmentDataFile(std::vector<uint8_t>&Profile_Vec, std::vector<uint8_t>&File
 		File_Vec = std::move(Profile_Vec);
 	} else { 
 		// Data file is too large for the first APP2 profile segment. Create additional segments as needed, to store the data file.
+		
+		constexpr uint8_t LIBSODIUM_DISCREPANCY_VALUE = 38;
+
+		const uint32_t NEW_COLOR_PROFILE_WITH_DATA_FILE_VEC_SIZE = COLOR_PROFILE_WITH_DATA_FILE_VEC_SIZE - LIBSODIUM_DISCREPANCY_VALUE;
+
 		uint32_t 
-			segments_required_approx_val = COLOR_PROFILE_WITH_DATA_FILE_VEC_SIZE / segment_data_size,
+			segments_required_approx_val = (NEW_COLOR_PROFILE_WITH_DATA_FILE_VEC_SIZE) / segment_data_size,
 			byte_index 		     = 0;
 
 		const uint32_t 
-			SEGMENT_REMAINDER_SIZE = COLOR_PROFILE_WITH_DATA_FILE_VEC_SIZE % segment_data_size,
+			SEGMENT_REMAINDER_SIZE = (NEW_COLOR_PROFILE_WITH_DATA_FILE_VEC_SIZE) % segment_data_size,
 			FIRST_SEGMENT_DATA_SIZE = segment_data_size + JPG_HEADER_LENGTH + SEGMENT_HEADER_LENGTH;
 
 		constexpr uint8_t SEGMENT_REMAINDER_DIFF = 16;
@@ -86,6 +91,7 @@ void segmentDataFile(std::vector<uint8_t>&Profile_Vec, std::vector<uint8_t>&File
 		
 		std::vector<uint8_t>().swap(Profile_Vec);
 		File_Vec.reserve(segment_data_size * segments_sequence_value);
+
 		for (auto& vec : Segments_Arr_Vec) {
         		File_Vec.insert(File_Vec.end(), vec.begin(), vec.end());
 			std::vector<uint8_t>().swap(vec);
@@ -95,7 +101,7 @@ void segmentDataFile(std::vector<uint8_t>&Profile_Vec, std::vector<uint8_t>&File
 		constexpr uint8_t MASTODON_SEGMENTS_LIMIT = 100;		   
 		constexpr uint32_t MASTODON_IMAGE_UPLOAD_LIMIT = 16 * 1024 * 1024; // 16MB
 					   
-		if (segments_sequence_value > MASTODON_SEGMENTS_LIMIT && MASTODON_IMAGE_UPLOAD_LIMIT > COLOR_PROFILE_WITH_DATA_FILE_VEC_SIZE) {
+		if (segments_sequence_value > MASTODON_SEGMENTS_LIMIT && MASTODON_IMAGE_UPLOAD_LIMIT > NEW_COLOR_PROFILE_WITH_DATA_FILE_VEC_SIZE) {
 			std::cout << "\n**Warning**\n\nEmbedded image is not compatible with Mastodon. Image file exceeds platform's segments limit.\n";
 		}
 	}
@@ -103,7 +109,7 @@ void segmentDataFile(std::vector<uint8_t>&Profile_Vec, std::vector<uint8_t>&File
 
 	constexpr uint16_t 
 		DEFLATED_DATA_FILE_SIZE_INDEX = 0x203,
-		PROFILE_SIZE = 999; // Includes JPG header, profile/segment header and color profile data.
+		PROFILE_SIZE = 901; // Includes JPG header, profile/segment header and color profile data.
 	
 	// Write the compressed file size of the data file, which now includes multiple segments with the 18 byte profile/segment headers,
 	// minus profile size, within index position of the profile data section. Value used by jdvout.	

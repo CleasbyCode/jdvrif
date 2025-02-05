@@ -22,9 +22,14 @@
   Jean-loup Gailly        Mark Adler
   jloup@gzip.org          madler@alumni.caltech.edu
 */
-uint32_t deflateFile(std::vector<uint8_t>& Vec) {
+
+void deflateFile(std::vector<uint8_t>& Vec, bool isCompressedFile) {
 			
-	constexpr uint32_t BUFSIZE = 2 * 1024 * 1024; // 2MB	
+	constexpr uint32_t
+		BUFSIZE = 2 * 1024 * 1024, // 2MB	
+		LARGE_FILE_SIZE	  = 500 * 1024 * 1024,  //  > 500MB.
+		MEDIUM_FILE_SIZE  = 200 * 1024 * 1024,  //  > 200MB. 
+		COMPRESSED_FILE_TYPE_SIZE_LIMIT = 50 * 1024 * 1024; // > 50MB. Skip trying to compress already compressed files over 50MB.
 
 	const uint32_t VEC_SIZE = static_cast<uint32_t>(Vec.size());
 
@@ -41,8 +46,18 @@ uint32_t deflateFile(std::vector<uint8_t>& Vec) {
 	strm.next_out = buffer;
 	strm.avail_out = BUFSIZE;
 
-	int8_t compression_level = Z_BEST_COMPRESSION;
-	
+	int8_t compression_level = Z_DEFAULT_COMPRESSION;
+
+	if (isCompressedFile && VEC_SIZE > COMPRESSED_FILE_TYPE_SIZE_LIMIT) {
+	    compression_level = Z_NO_COMPRESSION;
+	} else if (VEC_SIZE > LARGE_FILE_SIZE) {
+	    compression_level = Z_BEST_SPEED;
+	} else if (VEC_SIZE > MEDIUM_FILE_SIZE) {
+	    compression_level = Z_DEFAULT_COMPRESSION;
+	} else {
+	    compression_level = Z_BEST_COMPRESSION;
+	}
+
 	deflateInit(&strm, compression_level);
 
 	while (strm.avail_in)
@@ -65,6 +80,4 @@ uint32_t deflateFile(std::vector<uint8_t>& Vec) {
 	delete[] buffer;
 	Vec = std::move(Deflate_Vec);		
 	std::vector<uint8_t>().swap(Deflate_Vec);
-
-	return (static_cast<uint32_t>(Vec.size()));
 }

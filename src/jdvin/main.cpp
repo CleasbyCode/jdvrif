@@ -1,4 +1,4 @@
-//	JPG Data Vehicle (jdvin v2.2) Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
+//	JPG Data Vehicle (jdvin v3.1) Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
 //
 //	To compile program (Linux):
 // 	$ g++ main.cpp -O2 -lz -s -o jdvin
@@ -36,7 +36,7 @@ int main(int argc, char** argv) {
      	 platformOption = ArgOption::Reddit;
      	 argIndex = 2;
     	}
-
+   
         const std::string IMAGE_FILENAME = argv[argIndex];
         std::string data_filename        = argv[++argIndex];
 
@@ -52,7 +52,9 @@ int main(int argc, char** argv) {
 		IMAGE_PATH(IMAGE_FILENAME),
 		DATA_FILE_PATH(data_filename);
 		 
-        const std::string IMAGE_EXTENSION = IMAGE_PATH.extension().string();
+        const std::string 
+            IMAGE_EXTENSION = IMAGE_PATH.extension().string(),
+            DATA_FILE_EXTENSION = DATA_FILE_PATH.extension().string();
 
 	if (IMAGE_EXTENSION != ".jpg" && IMAGE_EXTENSION != ".jpeg" && IMAGE_EXTENSION != ".jfif") {  
 		std::cerr << "\nFile Type Error: Invalid file extension. Only expecting \".jpg, .jpeg or .jfif\" image extensions.\n\n";
@@ -67,5 +69,8 @@ int main(int argc, char** argv) {
         	return 1;
 	}
 
-	jdvIn(IMAGE_FILENAME, data_filename, platformOption);
+    const std::set<std::string> COMPRESSED_FILE_EXTENSIONS = { ".zip", "jar", ".rar", ".7z", ".bz2", ".gz", ".xz", ".tar", ".lz", ".lz4", ".cab", ".rpm", ".deb", ".mp4", ".mp3", ".jpg", ".png", ".ogg", ".flac" };
+    const bool isCompressedFile = COMPRESSED_FILE_EXTENSIONS.count(DATA_FILE_EXTENSION) > 0;
+
+	jdvIn(IMAGE_FILENAME, data_filename, platformOption, isCompressedFile);
 }

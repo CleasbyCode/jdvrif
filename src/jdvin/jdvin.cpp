@@ -1,4 +1,4 @@
-int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, ArgOption platformOption) {
+int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, ArgOption platformOption, bool isCompressedFile) {
 	
 	constexpr uint32_t 
 		COMBINED_MAX_FILE_SIZE 	 	= 2U * 1024U * 1024U * 1024U,  	// 2GB. (image + data file)
@@ -92,14 +92,14 @@ int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, ArgOpti
 
 	Profile_Vec[data_file_size_index + 4] = data_filename[0];
 
-	uint32_t file_vec_size = deflateFile(File_Vec);
+	deflateFile(File_Vec, isCompressedFile);
 	
 	if (File_Vec.empty()) {
 		std::cerr << "\nFile Size Error: File is zero bytes. Probable compression failure.\n\n";
 		return 1;
 	}
 	
-	const uint32_t PIN = encryptFile(Profile_Vec, File_Vec, file_vec_size, data_filename);
+	const uint64_t PIN = encryptFile(Profile_Vec, File_Vec, data_filename);
 
 	std::vector<uint8_t>().swap(File_Vec);
 
