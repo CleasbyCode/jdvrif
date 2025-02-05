@@ -68,7 +68,7 @@ To correctly download an image from ***Flickr***, click the download arrow near 
 
 With ***X/Twitter*** & ***Tumblr***, the small size limits (**~10KB** / **~64KB**) are measured by the ***data file size*** and not the combined image size.
 As the data file is compressed when embedded, you should be able to hide files larger than **10KB** or **64KB**.
-For example, a **50KB** workflow.json file compressed down to **6KB**, making it compatible with sharing on ***X/Twitter.***
+For example, a **50KB** workflow.json file compressed down to **6KB**, making it compatible with sharing on ***X/Twitter.*** 
 
 Also with ***Mastodon***, the size limit is measured by the ***data file size*** and not the combined image size.  
 For example, if your cover image is **1MB** you can still embed a data file up to the **~6MB** size limit.
