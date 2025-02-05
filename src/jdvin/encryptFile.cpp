@@ -1,4 +1,5 @@
-// This project uses [libsodium](https://libsodium.org/) for cryptographic functions.
+// This project uses libsodium (https://libsodium.org/) for cryptographic functions.
+// Copyright (c) 2013-2025 Frank Denis <github@pureftpd.org>
 uint64_t encryptFile(std::vector<uint8_t>& Profile_Vec, std::vector<uint8_t>& File_Vec, std::string& filename) {
 	
 	std::random_device rd;
