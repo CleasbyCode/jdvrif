@@ -11,6 +11,7 @@
 #include <vector>
 #include <iterator>
 
+// This project uses [libsodium](https://libsodium.org/) for cryptographic functions.
 #define SODIUM_STATIC
 #include <sodium.h>
 
