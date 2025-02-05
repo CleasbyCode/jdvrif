@@ -15,7 +15,7 @@ Use CLI tools ***jdvin*** & ***jdvout*** with a JPG image, to hide/extract any f
 
 Your data file is ***compressed*** (*zlib*) and ***encrypted*** using the ***libsodium*** crypto library (*XSalsa20-Poly1305*).
 
-(*You can try the [***jdvrif Web App, here,***](https://cleasbycode.co.uk/jdvrif/index/) if you don't want to download and compile the CLI source code.*)
+*You can try the [***jdvrif Web App, here,***](https://cleasbycode.co.uk/jdvrif/index/) if you don't want to download and compile the CLI source code.*
 
 ## Usage (Linux - jdvin / jdvout)
 
