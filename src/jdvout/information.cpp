@@ -8,7 +8,8 @@ jdvout is a CLI tool for extracting hidden data from a jdvin "file-embedded" JPG
 
 Compile & run jdvout (Linux):
 		
-$ g++ main.cpp -O2 -lz -s -o jdvout
+$ sudo apt-get install libsodium-dev
+$ g++ main.cpp -O2 -lz -lsodium -s -o jdvout
 $ sudo cp jdvout /usr/bin
 $ jdvout
 
