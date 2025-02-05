@@ -7,8 +7,9 @@ Created by Nicholas Cleasby (@CleasbyCode) 24/01/2023.
 jdvin is a steganography-like CLI tool for embedding & concealing any file type within a JPG image. 
 
 Compile & run jdvin (Linux):
-		
-$ g++ main.cpp -O2 -lz -s -o jdvin
+
+$ sudo apt-get install libsodium-dev
+$ g++ main.cpp -O2 -lz -lsodium -s -o jdvin
 $ sudo cp jdvin /usr/bin
 $ jdvin
 		
