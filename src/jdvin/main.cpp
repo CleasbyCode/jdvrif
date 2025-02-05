@@ -1,7 +1,9 @@
 //	JPG Data Vehicle (jdvin v3.1) Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
 //
 //	To compile program (Linux):
-// 	$ g++ main.cpp -O2 -lz -s -o jdvin
+
+//	$ sudo apt-get install libsodium-dev
+//	$ g++ main.cpp -O2 -lz -lsodium -s -o jdvin
 //	$ sudo cp jdvin /usr/bin	
 
 // 	Run it:
