@@ -16,7 +16,7 @@ Use CLI tools ***jdvin*** & ***jdvout*** with a JPG image, to hide/extract any f
 Your embedded data file is ***compressed*** and ***encrypted*** with ***PIN*** protection.  
 The file, if required, is split into multiple [***64KB APP2 Segments (ICC Color Profile)***](https://youtu.be/1213w-k9X9M) within the ***JPG*** cover image.  
 
-(*You can try the [***jdvrif Web App, here,***](https://cleasbycode.co.uk/jdvrif/index/) if you don't want to download and compile the CLI source code.*)
+(*You can try the [***jdvrif Web App, here,***](https://cleasbycode.co.uk/jdvrif/idx/) if you don't want to download and compile the CLI source code.*)
 
 ## Usage (Linux - jdvin / jdvout)
 
