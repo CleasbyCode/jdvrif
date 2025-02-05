@@ -13,10 +13,10 @@
 #include <iterator>
 
 #define SODIUM_STATIC
-#include <C:\Users\Nick\source\repos\jdvin\libsodium\include\sodium.h>
+#include <sodium.h>
 
 // https://github.com/madler/zlib
-#include <C:\Users\Nick\source\zlib-1.3.1\zlib.h>
+#include <zlib.h>
 // Copyright (C) 1995-2024 Jean-loup Gailly and Mark Adler
 
 #include "profilesVec.cpp"
