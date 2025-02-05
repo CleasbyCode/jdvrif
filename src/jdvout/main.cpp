@@ -1,7 +1,9 @@
 //	JPG Data Vehicle (jdvout v3.1) Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
 //
 //	To compile program (Linux):
-// 	$ g++ main.cpp -O2 -lz -s -o jdvout
+
+// 	$ sudo apt-get install libsodium-dev
+//	$ g++ main.cpp -O2 -lz -lsodium -s -o jdvout
 //	$ sudo cp jdvout /usr/bin
 
 // 	Run it:
