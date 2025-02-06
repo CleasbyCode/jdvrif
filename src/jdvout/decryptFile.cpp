@@ -1,74 +1,72 @@
 // This project uses libsodium (https://libsodium.org/) for cryptographic functions.
 // Copyright (c) 2013-2025 Frank Denis <github@pureftpd.org>
-const std::string decryptFile(std::vector<uint8_t>&Image_Vec) {
-
+const std::string decryptFile(std::vector<uint8_t>&Image_Vec) {	
 	constexpr uint16_t 
-		ENCRYPTED_FILE_START_INDEX 	= 0x35B,
-		FILE_SIZE_INDEX 		= 0x1D9,
-		PROFILE_COUNT_VALUE_INDEX 	= 0x1DD,
-		ENCRYPTED_FILENAME_INDEX 	= 0x1C5;
-
-	constexpr uint8_t
-		SODIUM_XOR_KEY_START_INDEX	= 0x6A,
-		PROFILE_HEADER_LENGTH		= 18, 
-		SODIUM_XOR_KEY_LENGTH		= 9;  
-	
-	const uint32_t 
-		EMBEDDED_FILE_SIZE = getByteValue<uint32_t>(Image_Vec, FILE_SIZE_INDEX);
-
-	const uint16_t PROFILE_COUNT = (static_cast<uint16_t>(Image_Vec[PROFILE_COUNT_VALUE_INDEX]) << 8) | static_cast<uint16_t>(Image_Vec[PROFILE_COUNT_VALUE_INDEX + 1]);
-
-	uint32_t* Headers_Index_Arr = new uint32_t[PROFILE_COUNT];
+		SODIUM_KEY_INDEX = 0x31B,
+		NONCE_KEY_INDEX = 0x33B;
 
 	uint16_t 
-		filename_xor_key_index = 0x2CB,
-		sodium_key_index = 0x31B,
-		nonce_key_index = 0x33B;
+		sodium_key_pos = SODIUM_KEY_INDEX,
+		sodium_xor_key_pos = SODIUM_KEY_INDEX;
 
 	uint8_t
-		encrypted_filename_length = Image_Vec[ENCRYPTED_FILENAME_INDEX - 1],
-		sodium_xor_key_pos = SODIUM_XOR_KEY_START_INDEX,
-		sodium_part_key_index = 0x6B, 	
 		sodium_keys_length = 48,
-		value_bit_length = 64,
-		filename_char_pos = 0;
+		value_bit_length = 64;
 		
-	const std::string ENCRYPTED_FILENAME { Image_Vec.begin() + ENCRYPTED_FILENAME_INDEX, Image_Vec.begin() + ENCRYPTED_FILENAME_INDEX + encrypted_filename_length };
-	
 	std::cout << "\nPIN: ";
 	uint64_t pin = getPin();
-		
-	valueUpdater(Image_Vec, sodium_part_key_index, pin, value_bit_length);	 
-	valueUpdater(Image_Vec, sodium_key_index, pin, value_bit_length); 
+
+	valueUpdater(Image_Vec, sodium_key_pos, pin, value_bit_length); 
 	
-	sodium_key_index += 8;
+	sodium_key_pos += 8;
+
+	constexpr uint8_t SODIUM_XOR_KEY_LENGTH	= 8; 
 
 	while(sodium_keys_length--) {
-		Image_Vec[sodium_key_index] = Image_Vec[sodium_key_index] ^ Image_Vec[sodium_xor_key_pos++];
-		sodium_key_index++;
-		sodium_xor_key_pos = (sodium_xor_key_pos >= SODIUM_XOR_KEY_LENGTH + SODIUM_XOR_KEY_START_INDEX) 
-			? SODIUM_XOR_KEY_START_INDEX 
+		Image_Vec[sodium_key_pos] = Image_Vec[sodium_key_pos] ^ Image_Vec[sodium_xor_key_pos++];
+		sodium_key_pos++;
+		sodium_xor_key_pos = (sodium_xor_key_pos >= SODIUM_XOR_KEY_LENGTH + SODIUM_KEY_INDEX) 
+			? SODIUM_KEY_INDEX 
 			: sodium_xor_key_pos;
 	}
-
-	sodium_key_index = 0x31B;
 
 	uint8_t nonce[crypto_secretbox_NONCEBYTES];
 	uint8_t key[crypto_secretbox_KEYBYTES];
 
-	std::copy(Image_Vec.begin() + nonce_key_index, 
-          	Image_Vec.begin() + nonce_key_index + crypto_secretbox_NONCEBYTES, 
+	std::copy(Image_Vec.begin() + NONCE_KEY_INDEX, 
+          	Image_Vec.begin() + NONCE_KEY_INDEX + crypto_secretbox_NONCEBYTES, 
           	nonce);
 
-	std::copy(Image_Vec.begin() + sodium_key_index, 
-        	  Image_Vec.begin() + sodium_key_index + crypto_secretbox_KEYBYTES, 
+	std::copy(Image_Vec.begin() + SODIUM_KEY_INDEX, 
+        	  Image_Vec.begin() + SODIUM_KEY_INDEX + crypto_secretbox_KEYBYTES, 
           	key);
 
 	std::string decrypted_filename;
 
+	constexpr uint16_t ENCRYPTED_FILENAME_INDEX = 0x1C5;
+
+	uint16_t filename_xor_key_pos = 0x2CB;
+	
+	uint8_t
+		encrypted_filename_length = Image_Vec[ENCRYPTED_FILENAME_INDEX - 1],
+		filename_char_pos = 0;
+
+	const std::string ENCRYPTED_FILENAME { Image_Vec.begin() + ENCRYPTED_FILENAME_INDEX, Image_Vec.begin() + ENCRYPTED_FILENAME_INDEX + encrypted_filename_length };
+
 	while (encrypted_filename_length--) {
-		decrypted_filename += ENCRYPTED_FILENAME[filename_char_pos++] ^ Image_Vec[filename_xor_key_index++];
+		decrypted_filename += ENCRYPTED_FILENAME[filename_char_pos++] ^ Image_Vec[filename_xor_key_pos++];
 	}
+
+	constexpr uint16_t 
+		ENCRYPTED_FILE_START_INDEX 	= 0x35B,
+		FILE_SIZE_INDEX 		= 0x1D9,
+		PROFILE_COUNT_VALUE_INDEX 	= 0x1DD;
+
+	const uint32_t EMBEDDED_FILE_SIZE = getByteValue<uint32_t>(Image_Vec, FILE_SIZE_INDEX);
+
+	const uint16_t PROFILE_COUNT = (static_cast<uint16_t>(Image_Vec[PROFILE_COUNT_VALUE_INDEX]) << 8) | static_cast<uint16_t>(Image_Vec[PROFILE_COUNT_VALUE_INDEX + 1]);
+
+	uint32_t* Headers_Index_Arr = new uint32_t[PROFILE_COUNT];
 
 	std::vector<uint8_t> Temp_Vec(Image_Vec.begin() + ENCRYPTED_FILE_START_INDEX, Image_Vec.begin() + ENCRYPTED_FILE_START_INDEX + EMBEDDED_FILE_SIZE);
 	Image_Vec = std::move(Temp_Vec);
@@ -94,6 +92,8 @@ const std::string decryptFile(std::vector<uint8_t>&Image_Vec) {
 	std::vector<uint8_t>Sanitize_Vec; 
 	Sanitize_Vec.reserve(encrypted_file_size);
 
+	constexpr uint8_t PROFILE_HEADER_LENGTH	= 18;
+
 	while (encrypted_file_size > index_pos) {
 		Sanitize_Vec.emplace_back(Image_Vec[index_pos++]);
 		if (PROFILE_COUNT && index_pos == Headers_Index_Arr[next_header_index]) {
@@ -101,6 +101,8 @@ const std::string decryptFile(std::vector<uint8_t>&Image_Vec) {
 			++next_header_index;
 		}	
 	}
+	
+	delete[] Headers_Index_Arr;
 
 	std::vector<uint8_t>().swap(Image_Vec);
 
@@ -111,8 +113,6 @@ const std::string decryptFile(std::vector<uint8_t>&Image_Vec) {
 	}
 	
 	std::vector<uint8_t>().swap(Sanitize_Vec);
-	
-	delete[] Headers_Index_Arr;
 	Image_Vec.swap(Decrypted_File_Vec);
 	return decrypted_filename;
 }
