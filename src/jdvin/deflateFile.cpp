@@ -23,8 +23,7 @@
   jloup@gzip.org          madler@alumni.caltech.edu
 */
 
-void deflateFile(std::vector<uint8_t>& Vec, bool isCompressedFile) {
-			
+void deflateFile(std::vector<uint8_t>& Vec, bool isCompressedFile) {			
 	constexpr uint32_t
 		BUFSIZE = 2 * 1024 * 1024, 
 		LARGE_FILE_SIZE	  = 500 * 1024 * 1024,  
