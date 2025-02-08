@@ -1,5 +1,4 @@
 uint64_t getPin() {
-
     constexpr uint64_t MAX_UINT64 = std::numeric_limits<uint64_t>::max();
     std::string input;
     char ch; 
