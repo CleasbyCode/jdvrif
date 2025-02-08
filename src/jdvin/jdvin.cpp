@@ -1,5 +1,4 @@
 int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, ArgOption platformOption, bool isCompressedFile) {
-	
 	constexpr uint32_t 
 		COMBINED_MAX_FILE_SIZE 	 	= 2U * 1024U * 1024U * 1024U,  	
 		COMBINED_MAX_FILE_SIZE_REDDIT 	= 20 * 1024 * 1024;	   	
@@ -124,7 +123,7 @@ int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, ArgOpti
 	
 	std::cout << "\nRecovery PIN: [***" << PIN << "***]\n\nImportant: Please remember to keep your PIN safe, so that you can extract the hidden file.\n";
 	std::cout << ((isRedditOption) 
-		?  "\n\nDue to your option selection, for compatibility reasons\nyou should only post this file-embedded JPG image on Reddit.\n\nComplete!\n\n"
+		?  "\nNote: Due to your option selection, for compatibility reasons\nyou should only post this file-embedded JPG image on Reddit.\n\nComplete!\n\n"
 		:  "\nComplete!\n\n");	
 
 	return 0;
