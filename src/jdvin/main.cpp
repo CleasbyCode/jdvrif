@@ -70,9 +70,9 @@ int main(int argc, char** argv) {
             	<< " Check the filename and try again.\n\n";
         	return 1;
 	}
-
-    const std::set<std::string> COMPRESSED_FILE_EXTENSIONS = { ".zip", "jar", ".rar", ".7z", ".bz2", ".gz", ".xz", ".tar", ".lz", ".lz4", ".cab", ".rpm", ".deb", ".mp4", ".mp3", ".jpg", ".png", ".ogg", ".flac" };
-    const bool isCompressedFile = COMPRESSED_FILE_EXTENSIONS.count(DATA_FILE_EXTENSION) > 0;
-
+	
+	const std::set<std::string> COMPRESSED_FILE_EXTENSIONS = { ".zip", "jar", ".rar", ".7z", ".bz2", ".gz", ".xz", ".tar", ".lz", ".lz4", ".cab", ".rpm", ".deb", ".mp4", ".mp3", ".jpg", ".png", ".ogg", ".flac" };
+	const bool isCompressedFile = COMPRESSED_FILE_EXTENSIONS.count(DATA_FILE_EXTENSION) > 0;
+	
 	jdvIn(IMAGE_FILENAME, data_filename, platformOption, isCompressedFile);
 }
