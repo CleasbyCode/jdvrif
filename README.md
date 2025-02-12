@@ -59,7 +59,7 @@ Complete! Please check your file.
 ```
 To correctly download images from ***X/Twitter*** or ***Reddit***, click the image in the post to ***fully expand it***, before saving.  
 
-https://github.com/user-attachments/assets/de958ecb-3281-43b7-a290-f3a831e7bced
+https://github.com/user-attachments/assets/b54dd925-2c0b-4fbf-890e-4ea5cc197292
 
 To create "*file-embedded*" ***JPG*** images compatible for posting on ***Reddit***, use the ***-r*** option with ***jdvin***.  
 From the ***Reddit*** site, click "*Create Post*" then select "*Images & Video*" tab, to post your ***JPG*** image.
