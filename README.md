@@ -34,7 +34,7 @@ user1@linuxbox:~/Desktop$ jdvin Cover_Image.jpg Hidden_File.zip
   
 Saved "file-embedded" JPG image: jrif_12462.jpg (143029 bytes).
 
-Recovery PIN: [***2166776980***]
+Recovery PIN: [***2166776980318349924***]
 
 Important: Please remember to keep your PIN safe, so that you can extract the hidden file.
 
@@ -50,7 +50,7 @@ Usage: jdvout <file_embedded_image>
         
 user1@linuxbox:~/Desktop$ jdvout jrif_12462.jpg
 
-PIN: **********
+PIN: *******************
 
 Extracted hidden file: Hidden_File.zip (6165 bytes).
 
