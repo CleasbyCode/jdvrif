@@ -75,6 +75,8 @@ For example, if your cover image is **1MB** you can still embed a data file up t
 
 https://github.com/user-attachments/assets/cbae0361-bbb7-433c-a9a6-851c74940cd9
 
+https://github.com/user-attachments/assets/7e243233-ae8d-4220-9dfd-eff6d28b8f2b
+
 ## Third-Party Libraries
 
 This project makes use of the following third-party libraries:
