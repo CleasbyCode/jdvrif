@@ -10,17 +10,17 @@ int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, ArgOpti
 		DATA_FILE_SIZE 		= std::filesystem::file_size(data_filename),
 		COMBINED_FILE_SIZE 	= DATA_FILE_SIZE + IMAGE_FILE_SIZE;
 
-	const bool isRedditOption = (platformOption == ArgOption::Reddit);
+	const bool hasRedditOption = (platformOption == ArgOption::Reddit);
 
 	if (COMBINED_FILE_SIZE > COMBINED_MAX_FILE_SIZE
      		|| (DATA_FILE_SIZE == 0)
 		|| (MIN_IMAGE_FILE_SIZE > IMAGE_FILE_SIZE)
-     		|| (isRedditOption && COMBINED_FILE_SIZE > COMBINED_MAX_FILE_SIZE_REDDIT)) {     
+     		|| (hasRedditOption && COMBINED_FILE_SIZE > COMBINED_MAX_FILE_SIZE_REDDIT)) {     
     			std::cerr << "\nFile Size Error: " << (DATA_FILE_SIZE == 0 
 			? "Data file is empty"
 			: (MIN_IMAGE_FILE_SIZE > IMAGE_FILE_SIZE
 				? "Image file size is smaller than the minimum allowed: 134 Bytes"
-            			: "Combined size of image and data file exceeds program maximum limit of " + std::string(isRedditOption ? "20MB" : "2GB")))
+            			: "Combined size of image and data file exceeds program maximum limit of " + std::string(hasRedditOption ? "20MB" : "2GB")))
         		<< ".\n\n";
     		return 1;
 	}
@@ -108,7 +108,7 @@ int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, ArgOpti
 	
 	Image_Vec.reserve(IMAGE_FILE_SIZE + File_Vec.size());	
 
-	if (isRedditOption) {
+	if (hasRedditOption) {
 		Image_Vec.insert(Image_Vec.begin(), std::begin(SOI_SIG), std::end(SOI_SIG));
 		Image_Vec.insert(Image_Vec.end() - 2, File_Vec.begin() + PROFILE_HEADER_LENGTH, File_Vec.end());
 	} else {
@@ -122,7 +122,7 @@ int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, ArgOpti
 	}
 	
 	std::cout << "\nRecovery PIN: [***" << PIN << "***]\n\nImportant: Please remember to keep your PIN safe, so that you can extract the hidden file.\n";
-	std::cout << ((isRedditOption) 
+	std::cout << ((hasRedditOption) 
 		?  "\nNote: Due to your option selection, for compatibility reasons\nyou should only post this file-embedded JPG image on Reddit.\n\nComplete!\n\n"
 		:  "\nComplete!\n\n");	
 
