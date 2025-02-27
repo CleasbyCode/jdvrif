@@ -2,10 +2,10 @@
 
 #include <cstdint>
 #include <limits>
+#include <set>
 #include <filesystem>
 #include <algorithm>
 #include <fstream>
-#include <regex>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -13,11 +13,11 @@
 
 // This project uses libsodium (https://libsodium.org/) for cryptographic functions.
 #define SODIUM_STATIC
-#include <sodium.h>
+#include <C:\Users\Nick\source\repos\jdvout\libsodium\include\sodium.h>
 // Copyright (c) 2013-2025 Frank Denis <github@pureftpd.org>
 
 // https://github.com/madler/zlib
-#include <zlib.h>
+#include <C:\Users\Nick\source\zlib-1.3.1\zlib.h>
 // Copyright (C) 1995-2024 Jean-loup Gailly and Mark Adler
 
 #ifdef _WIN32
@@ -28,12 +28,14 @@
 #endif
 
 #include "getPin.cpp"
+#include "information.cpp"
+#include "programArgs.cpp"
+#include "fileChecks.cpp"
 #include "getByteValue.cpp"
 #include "searchFunc.cpp"
 #include "valueUpdater.cpp"
 #include "decryptFile.cpp"
 #include "inflateFile.cpp"
-#include "information.cpp"
 #include "jdvout.cpp"
 
 const std::string decryptFile(std::vector<uint8_t>&);
@@ -49,7 +51,10 @@ uint64_t getPin();
 const uint32_t inflateFile(std::vector<uint8_t>&);
 
 void 
+	validateFiles(const std::string&),
 	valueUpdater(std::vector<uint8_t>&, uint32_t, const uint64_t, uint8_t),
 	displayInfo();
 
-int jdvOut(const std::string&);	
+bool hasValidFilename(const std::string&);
+
+int jdvOut(const std::string&);

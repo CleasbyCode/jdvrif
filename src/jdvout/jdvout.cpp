@@ -1,24 +1,13 @@
 int jdvOut(const std::string& IMAGE_FILENAME) {
-	constexpr uint32_t 
-		MAX_FILE_SIZE 	= 3U * 1024U * 1024U * 1024U, 	
-		LARGE_FILE_SIZE = 400 * 1024 * 1024;  		
-
-	const size_t IMAGE_FILE_SIZE = std::filesystem::file_size(IMAGE_FILENAME);
+	
+	const uintmax_t IMAGE_FILE_SIZE = std::filesystem::file_size(IMAGE_FILENAME);
 	
 	std::ifstream image_file_ifs(IMAGE_FILENAME, std::ios::binary);
 
-	if (!image_file_ifs || IMAGE_FILE_SIZE == 0 || IMAGE_FILE_SIZE > MAX_FILE_SIZE) {
-    		if (!image_file_ifs) {
-			std::cerr << "\nOpen File Error: Unable to read image file.\n\n";
-    		} else {
-			std::cerr << "\nImage File Error: "
-                  	<< (!IMAGE_FILE_SIZE
-                      		? "Image file is empty"
-                      		: "Size of file exceeds the maximum limit for this program")
-                  	<< ".\n\n";
-    		}	
-    		return 1;
-	}
+	if (!image_file_ifs) {
+		std::cerr << "\nOpen File Error: Unable to read image file.\n\n";
+		return 1;
+    	} 
 
 	std::vector<uint8_t> Image_Vec;
 	Image_Vec.resize(IMAGE_FILE_SIZE);
@@ -42,7 +31,12 @@ int jdvOut(const std::string& IMAGE_FILENAME) {
 	
 	uint8_t extract_success_byte_val = Image_Vec[JDV_SIG_INDEX + INDEX_DIFF - 1];
 
+	// Remove JPG header and the APP2 ICC Profile/segment header,
+	// also, any other segments that could be added by hosting sites (e.g. Mastodon), such as EXIF. 
+	// Vector now contains color profile data, encrypted/compressed data file and cover image data.
 	Image_Vec.erase(Image_Vec.begin(), Image_Vec.begin() + (PROFILE_SIG_INDEX - INDEX_DIFF));
+
+	constexpr uint32_t LARGE_FILE_SIZE = 400 * 1024 * 1024;  // 400MB.
 
 	if (IMAGE_FILE_SIZE > LARGE_FILE_SIZE) {
 		std::cout << "\nPlease wait. Larger files will take longer to complete this process.\n";
