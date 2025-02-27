@@ -13,7 +13,7 @@ $ g++ main.cpp -O2 -lz -lsodium -s -o jdvin
 $ sudo cp jdvin /usr/bin
 $ jdvin
 		
-Usage: jdvin [-r] <cover_image> <data_file>
+Usage: jdvin [-r] <cover_image> <secret_file>
        jdvin --info
 		
 Share your "file-embedded" JPG image on the following compatible sites. Image size limits (cover image + data file):
