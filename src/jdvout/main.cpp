@@ -19,7 +19,6 @@ int main(int argc, char** argv) {
             throw std::runtime_error("Invalid Input Error: Unsupported characters in filename arguments.");
         }
         validateFiles(args.imageFile);
-       
         jdvOut(args.imageFile);
     }
     catch (const std::runtime_error& e) {
