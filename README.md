@@ -27,7 +27,7 @@ user1@linuxbox:~/Downloads/jdvrif-main/src/jdvin$ sudo cp jdvin /usr/bin
 
 user1@linuxbox:~/Desktop$ jdvin 
 
-Usage: jdvin [-r] <cover_image> <data_file>  
+Usage: jdvin [-r] <cover_image> <secret_file>  
        jdvin --info
 
 user1@linuxbox:~/Desktop$ jdvin Cover_Image.jpg Hidden_File.zip
@@ -36,7 +36,7 @@ Saved "file-embedded" JPG image: jrif_12462.jpg (143029 bytes).
 
 Recovery PIN: [***2166776980318349924***]
 
-Important: Please remember to keep your PIN safe, so that you can extract the hidden file.
+Important: Keep your PIN safe, so that you can extract the hidden file.
 
 Complete!
 
