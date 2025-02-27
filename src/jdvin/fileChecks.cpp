@@ -27,11 +27,11 @@ void validateFiles(const std::string& imageFile, const std::string& dataFile, Ar
     	}
 
     	if (!std::filesystem::exists(imagePath)) {
-        	throw std::runtime_error("Image File Error: File not found.");
+        	throw std::runtime_error("Image File Error: File not found. Check the filename and try again.");
     	}
 
     	if (!std::filesystem::exists(dataPath) || !std::filesystem::is_regular_file(dataPath)) {
-        	throw std::runtime_error("Data File Error: File not found or not a regular file.");
+        	throw std::runtime_error("Data File Error: File not found or not a regular file. Check the filename and try again.");
     	}
 
     	constexpr uint8_t MINIMUM_IMAGE_SIZE = 134;
