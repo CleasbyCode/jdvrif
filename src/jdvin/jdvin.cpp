@@ -1,40 +1,14 @@
 int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, ArgOption platformOption, bool isCompressedFile) {
-	constexpr uint32_t 
-		COMBINED_MAX_FILE_SIZE 	 	= 2U * 1024U * 1024U * 1024U,  	
-		COMBINED_MAX_FILE_SIZE_REDDIT 	= 20 * 1024 * 1024;	   	
-
-	constexpr uint8_t MIN_IMAGE_FILE_SIZE	= 134;	
-
-	const size_t 
-		IMAGE_FILE_SIZE 	= std::filesystem::file_size(IMAGE_FILENAME),
-		DATA_FILE_SIZE 		= std::filesystem::file_size(data_filename),
-		COMBINED_FILE_SIZE 	= DATA_FILE_SIZE + IMAGE_FILE_SIZE;
-
-	const bool hasRedditOption = (platformOption == ArgOption::Reddit);
-
-	if (COMBINED_FILE_SIZE > COMBINED_MAX_FILE_SIZE
-     		|| (DATA_FILE_SIZE == 0)
-		|| (MIN_IMAGE_FILE_SIZE > IMAGE_FILE_SIZE)
-     		|| (hasRedditOption && COMBINED_FILE_SIZE > COMBINED_MAX_FILE_SIZE_REDDIT)) {     
-    			std::cerr << "\nFile Size Error: " << (DATA_FILE_SIZE == 0 
-			? "Data file is empty"
-			: (MIN_IMAGE_FILE_SIZE > IMAGE_FILE_SIZE
-				? "Image file size is smaller than the minimum allowed: 134 Bytes"
-            			: "Combined size of image and data file exceeds program maximum limit of " + std::string(hasRedditOption ? "20MB" : "2GB")))
-        		<< ".\n\n";
-    		return 1;
-	}
-	
 	std::ifstream
 		image_file_ifs(IMAGE_FILENAME, std::ios::binary),
 		data_file_ifs(data_filename, std::ios::binary);
 
 	if (!image_file_ifs || !data_file_ifs) {
-		std::cerr << "\nRead File Error: Unable to read " << (!image_file_ifs 
-			? "image file" 
-			: "data file") << ".\n\n";
+		std::cerr << "\nRead File Error: Unable to read " << (!image_file_ifs ? "image file" : "data file") << ".\n\n";
 		return 1;
 	}
+
+	const uintmax_t IMAGE_FILE_SIZE = std::filesystem::file_size(IMAGE_FILENAME);
 
 	std::vector<uint8_t> Image_Vec;
 	Image_Vec.resize(IMAGE_FILE_SIZE); 
@@ -52,6 +26,8 @@ int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, ArgOpti
 	}
 	
 	eraseSegments(Image_Vec);
+
+	const uintmax_t DATA_FILE_SIZE = std::filesystem::file_size(data_filename);
 	
 	std::filesystem::path filePath(data_filename);
     	data_filename = filePath.filename().string();
@@ -75,7 +51,7 @@ int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, ArgOpti
 
 	valueUpdater(Profile_Vec, data_file_size_index, static_cast<uint32_t>(DATA_FILE_SIZE), value_bit_length);
 
-	constexpr uint32_t LARGE_FILE_SIZE = 400 * 1024 * 1024;  
+	constexpr uint32_t LARGE_FILE_SIZE = 400 * 1024 * 1024;  // 400MB.
 
 	if (DATA_FILE_SIZE > LARGE_FILE_SIZE) {
 		std::cout << "\nPlease wait. Larger files will take longer to complete this process.\n";
@@ -102,14 +78,17 @@ int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, ArgOpti
 
 	std::vector<uint8_t>().swap(File_Vec);
 
-	segmentDataFile(Profile_Vec, File_Vec);
+	bool shouldDisplayMastodonWarning = segmentDataFile(Profile_Vec, File_Vec);
 
 	constexpr uint8_t PROFILE_HEADER_LENGTH = 18;
 	
 	Image_Vec.reserve(IMAGE_FILE_SIZE + File_Vec.size());	
 
+	bool hasRedditOption = (platformOption == ArgOption::Reddit);
+
 	if (hasRedditOption) {
 		Image_Vec.insert(Image_Vec.begin(), std::begin(SOI_SIG), std::end(SOI_SIG));
+		Image_Vec.insert(Image_Vec.end() - 2, 8000, 0x23);
 		Image_Vec.insert(Image_Vec.end() - 2, File_Vec.begin() + PROFILE_HEADER_LENGTH, File_Vec.end());
 	} else {
 		Image_Vec.insert(Image_Vec.begin(), File_Vec.begin(), File_Vec.end());
@@ -121,9 +100,14 @@ int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, ArgOpti
 		return 1;
 	}
 	
-	std::cout << "\nRecovery PIN: [***" << PIN << "***]\n\nImportant: Please remember to keep your PIN safe, so that you can extract the hidden file.\n";
+	std::cout << "\nRecovery PIN: [***" << PIN << "***]\n\nImportant: Keep your PIN safe, so that you can extract the hidden file.\n";
+
+	if (shouldDisplayMastodonWarning && !hasRedditOption) {
+		std::cout << "\n**Warning**\n\nEmbedded image is not compatible with Mastodon. Image file exceeds platform's segments limit.\n";
+	}
+
 	std::cout << ((hasRedditOption) 
-		?  "\nNote: Due to your option selection, for compatibility reasons\nyou should only post this file-embedded JPG image on Reddit.\n\nComplete!\n\n"
+		?  "\nReddit option selected: Only share/post this file-embedded JPG image on Reddit.\n\nComplete!\n\n"
 		:  "\nComplete!\n\n");	
 
 	return 0;
