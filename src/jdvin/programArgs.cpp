@@ -3,7 +3,6 @@ enum class ArgOption {
 	Reddit
 };
 
-// Struct for parsing program arguments
 struct ProgramArgs {
 	ArgOption platform = ArgOption::Default;
     	std::string imageFile;
