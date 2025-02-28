@@ -1,7 +1,5 @@
 uint64_t getPin() {
-
-    constexpr uint64_t MAX_UINT64 = std::numeric_limits<uint64_t>::max();
-
+	
     const std::string MAX_UINT64_STR = "18446744073709551615";
 
     std::string input;
