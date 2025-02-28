@@ -1,5 +1,9 @@
 uint64_t getPin() {
+
     constexpr uint64_t MAX_UINT64 = std::numeric_limits<uint64_t>::max();
+
+    const std::string MAX_UINT64_STR = "18446744073709551615";
+
     std::string input;
     char ch; 
     bool sync_status = std::cout.sync_with_stdio(false);
@@ -51,9 +55,8 @@ uint64_t getPin() {
     std::cout << std::endl; 
 
     std::cout.sync_with_stdio(sync_status);
-
     uint64_t user_pin;
-    if (input.empty() || input.length() > 20 || std::stoull(input) > MAX_UINT64) {
+    if (input.empty() || (input.length() == 20 && input > MAX_UINT64_STR)) {
         user_pin = 0; 
     } else {
         user_pin = std::stoull(input); 
