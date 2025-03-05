@@ -1,5 +1,5 @@
 struct ProgramArgs {
-	std::string imageFile;
+	std::string image_file;
     	static ProgramArgs parse(int argc, char** argv);
 };
 
@@ -15,6 +15,6 @@ ProgramArgs ProgramArgs::parse(int argc, char** argv) {
         	std::exit(0);
 	}
 
-    	args.imageFile = argv[1];
+    	args.image_file = argv[1];
     	return args;
 }
