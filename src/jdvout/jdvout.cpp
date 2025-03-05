@@ -1,5 +1,4 @@
 int jdvOut(const std::string& IMAGE_FILENAME) {
-	
 	const uintmax_t IMAGE_FILE_SIZE = std::filesystem::file_size(IMAGE_FILENAME);
 	
 	std::ifstream image_file_ifs(IMAGE_FILENAME, std::ios::binary);
@@ -33,12 +32,9 @@ int jdvOut(const std::string& IMAGE_FILENAME) {
 	
 	uint8_t extract_success_byte_val = image_vec[JDV_SIG_INDEX + INDEX_DIFF - 1];
 
-	// Remove JPG header and the APP2 ICC Profile/segment header,
-	// also, any other segments that could be added by hosting sites (e.g. Mastodon), such as EXIF. 
-	// Vector now contains color profile data, encrypted/compressed data file and cover image data.
 	image_vec.erase(image_vec.begin(), image_vec.begin() + (PROFILE_SIG_INDEX - INDEX_DIFF));
 
-	constexpr uint32_t LARGE_FILE_SIZE = 400 * 1024 * 1024;  // 400MB.
+	constexpr uint32_t LARGE_FILE_SIZE = 400 * 1024 * 1024;  
 
 	if (IMAGE_FILE_SIZE > LARGE_FILE_SIZE) {
 		std::cout << "\nPlease wait. Larger files will take longer to complete this process.\n";
