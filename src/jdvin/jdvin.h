@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <array>
 #include <filesystem>
 #include <set>
 #include <random>
@@ -13,11 +14,11 @@
 
 // This project uses libsodium (https://libsodium.org/) for cryptographic functions.
 #define SODIUM_STATIC
-#include <sodium.h>
+#include <C:\Users\Nick\source\repos\jdvin\libsodium\include\sodium.h>
 // Copyright (c) 2013-2025 Frank Denis <github@pureftpd.org>
 
 // https://github.com/madler/zlib
-#include <zlib.h>
+#include <C:\Users\Nick\source\zlib-1.3.1\zlib.h>
 // Copyright (C) 1995-2024 Jean-loup Gailly and Mark Adler
 
 #include "profilesVec.cpp"
@@ -34,8 +35,8 @@
 #include "segmentDataFile.cpp"
 #include "jdvin.cpp"
 
-template <uint8_t N>
-uint32_t searchFunc(std::vector<uint8_t>&, uint32_t, const uint8_t, const uint8_t (&)[N]);
+template <typename T, size_t N>
+uint32_t searchFunc(std::vector<uint8_t>&, uint32_t, const uint8_t, const std::array<T, N>&);
 
 template <typename T>
 T getByteValue(const std::vector<uint8_t>&, uint32_t);

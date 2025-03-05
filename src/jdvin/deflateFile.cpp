@@ -23,24 +23,25 @@
   jloup@gzip.org          madler@alumni.caltech.edu
 */
 
-void deflateFile(std::vector<uint8_t>& Vec, bool isCompressedFile) {			
+void deflateFile(std::vector<uint8_t>& vec, bool isCompressedFile) {
+		
 	constexpr uint32_t
-		BUFSIZE = 2 * 1024 * 1024, 
-		LARGE_FILE_SIZE	  = 500 * 1024 * 1024,  
-		MEDIUM_FILE_SIZE  = 200 * 1024 * 1024,   
-		COMPRESSED_FILE_TYPE_SIZE_LIMIT = 50 * 1024 * 1024; 
+		BUFSIZE = 2 * 1024 * 1024, // 2MB	
+		LARGE_FILE_SIZE	  = 500 * 1024 * 1024,  //  > 500MB.
+		MEDIUM_FILE_SIZE  = 200 * 1024 * 1024,  //  > 200MB. 
+		COMPRESSED_FILE_TYPE_SIZE_LIMIT = 50 * 1024 * 1024; // > 50MB. Skip trying to compress already compressed files over 50MB.
 
-	const uint32_t VEC_SIZE = static_cast<uint32_t>(Vec.size());
+	const uint32_t VEC_SIZE = static_cast<uint32_t>(vec.size());
 
 	uint8_t* buffer{ new uint8_t[BUFSIZE] };
 	
-	std::vector<uint8_t>Deflate_Vec;
-	Deflate_Vec.reserve(VEC_SIZE + BUFSIZE);
+	std::vector<uint8_t>deflate_vec;
+	deflate_vec.reserve(VEC_SIZE + BUFSIZE);
 
 	z_stream strm;
 	strm.zalloc = Z_NULL;
 	strm.zfree = Z_NULL;
-	strm.next_in = Vec.data();
+	strm.next_in = vec.data();
 	strm.avail_in = VEC_SIZE;
 	strm.next_out = buffer;
 	strm.avail_out = BUFSIZE;
@@ -64,7 +65,7 @@ void deflateFile(std::vector<uint8_t>& Vec, bool isCompressedFile) {
 		deflate(&strm, Z_NO_FLUSH);
 		
 		if (!strm.avail_out) {
-			Deflate_Vec.insert(Deflate_Vec.end(), buffer, buffer + BUFSIZE);
+			deflate_vec.insert(deflate_vec.end(), buffer, buffer + BUFSIZE);
 			strm.next_out = buffer;
 			strm.avail_out = BUFSIZE;
 		} else {
@@ -73,10 +74,10 @@ void deflateFile(std::vector<uint8_t>& Vec, bool isCompressedFile) {
 	}
 	
 	deflate(&strm, Z_FINISH);
-	Deflate_Vec.insert(Deflate_Vec.end(), buffer, buffer + BUFSIZE - strm.avail_out);
+	deflate_vec.insert(deflate_vec.end(), buffer, buffer + BUFSIZE - strm.avail_out);
 	deflateEnd(&strm);
 
 	delete[] buffer;
-	Vec = std::move(Deflate_Vec);		
-	std::vector<uint8_t>().swap(Deflate_Vec);
+	vec = std::move(deflate_vec);		
+	std::vector<uint8_t>().swap(deflate_vec);
 }

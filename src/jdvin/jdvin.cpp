@@ -8,26 +8,26 @@ int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, ArgOpti
 		return 1;
 	}
 
-	const uint32_t IMAGE_FILE_SIZE = std::filesystem::file_size(IMAGE_FILENAME);
+	const uintmax_t IMAGE_FILE_SIZE = std::filesystem::file_size(IMAGE_FILENAME);
 
-	std::vector<uint8_t> Image_Vec;
-	Image_Vec.resize(IMAGE_FILE_SIZE); 
+	std::vector<uint8_t> image_vec;
+	image_vec.resize(IMAGE_FILE_SIZE); 
 	
-	image_file_ifs.read(reinterpret_cast<char*>(Image_Vec.data()), IMAGE_FILE_SIZE);
+	image_file_ifs.read(reinterpret_cast<char*>(image_vec.data()), IMAGE_FILE_SIZE);
 	image_file_ifs.close();
 
-	constexpr uint8_t
-		SOI_SIG[]	{ 0xFF, 0xD8 },
-		EOI_SIG[] 	{ 0xFF, 0xD9 };
+	constexpr std::array<uint8_t, 2>
+		SOI_SIG	{ 0xFF, 0xD8 },
+		EOI_SIG { 0xFF, 0xD9 };
 
-	if (!std::equal(std::begin(SOI_SIG), std::end(SOI_SIG), std::begin(Image_Vec)) || !std::equal(std::begin(EOI_SIG), std::end(EOI_SIG), std::end(Image_Vec) - 2)) {
+	if (!std::equal(SOI_SIG.begin(), SOI_SIG.end(), image_vec.begin()) || !std::equal(EOI_SIG.begin(), EOI_SIG.end(), image_vec.end() - 2)) {
         	std::cerr << "\nImage File Error: This is not a valid JPG image.\n\n";
 		return 1;
 	}
 	
-	eraseSegments(Image_Vec);
+	eraseSegments(image_vec);
 
-	const uint32_t DATA_FILE_SIZE = std::filesystem::file_size(data_filename);
+	const uintmax_t DATA_FILE_SIZE = std::filesystem::file_size(data_filename);
 	
 	std::filesystem::path file_path(data_filename);
     	data_filename = file_path.filename().string();
@@ -47,9 +47,9 @@ int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, ArgOpti
 		data_file_size_index = 0x90,
 		value_bit_length = 32;
 
-	Profile_Vec[DATA_FILENAME_LENGTH_INDEX] = DATA_FILENAME_LENGTH;
+	profile_vec[DATA_FILENAME_LENGTH_INDEX] = DATA_FILENAME_LENGTH;
 
-	valueUpdater(Profile_Vec, data_file_size_index, static_cast<uint32_t>(DATA_FILE_SIZE), value_bit_length);
+	valueUpdater(profile_vec, data_file_size_index, static_cast<uint32_t>(DATA_FILE_SIZE), value_bit_length);
 
 	constexpr uint32_t LARGE_FILE_SIZE = 400 * 1024 * 1024;  // 400MB.
 
@@ -57,46 +57,46 @@ int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, ArgOpti
 		std::cout << "\nPlease wait. Larger files will take longer to complete this process.\n";
 	}
 
-	std::vector<uint8_t> File_Vec;
-	File_Vec.resize(DATA_FILE_SIZE); 
+	std::vector<uint8_t> data_file_vec;
+	data_file_vec.resize(DATA_FILE_SIZE); 
 
-	data_file_ifs.read(reinterpret_cast<char*>(File_Vec.data()), DATA_FILE_SIZE);
+	data_file_ifs.read(reinterpret_cast<char*>(data_file_vec.data()), DATA_FILE_SIZE);
 	data_file_ifs.close();
 
-	std::reverse(File_Vec.begin(), File_Vec.end());
+	std::reverse(data_file_vec.begin(), data_file_vec.end());
 
-	Profile_Vec[data_file_size_index + 4] = data_filename[0];
+	profile_vec[data_file_size_index + 4] = data_filename[0];
 
-	deflateFile(File_Vec, isCompressedFile);
+	deflateFile(data_file_vec, isCompressedFile);
 	
-	if (File_Vec.empty()) {
+	if (data_file_vec.empty()) {
 		std::cerr << "\nFile Size Error: File is zero bytes. Probable compression failure.\n\n";
 		return 1;
 	}
 	
-	const uint64_t PIN = encryptFile(Profile_Vec, File_Vec, data_filename);
+	const uint64_t PIN = encryptFile(profile_vec, data_file_vec, data_filename);
 
-	std::vector<uint8_t>().swap(File_Vec);
+	std::vector<uint8_t>().swap(data_file_vec);
 
-	bool shouldDisplayMastodonWarning = segmentDataFile(Profile_Vec, File_Vec);
+	bool shouldDisplayMastodonWarning = segmentDataFile(profile_vec, data_file_vec);
 
 	constexpr uint8_t PROFILE_HEADER_LENGTH = 18;
 	
-	Image_Vec.reserve(IMAGE_FILE_SIZE + File_Vec.size());	
+	image_vec.reserve(IMAGE_FILE_SIZE + data_file_vec.size());	
 
 	bool hasRedditOption = (platformOption == ArgOption::Reddit);
 
 	if (hasRedditOption) {
-		Image_Vec.insert(Image_Vec.begin(), std::begin(SOI_SIG), std::end(SOI_SIG));
-		Image_Vec.insert(Image_Vec.end() - 2, 8000, 0x23);
-		Image_Vec.insert(Image_Vec.end() - 2, File_Vec.begin() + PROFILE_HEADER_LENGTH, File_Vec.end());
+		image_vec.insert(image_vec.begin(), SOI_SIG.begin(), SOI_SIG.end());
+		image_vec.insert(image_vec.end() - 2, 8000, 0x23);
+		image_vec.insert(image_vec.end() - 2, data_file_vec.begin() + PROFILE_HEADER_LENGTH, data_file_vec.end());
 	} else {
-		Image_Vec.insert(Image_Vec.begin(), File_Vec.begin(), File_Vec.end());
+		image_vec.insert(image_vec.begin(), data_file_vec.begin(), data_file_vec.end());
 	}
 
-	std::vector<uint8_t>().swap(File_Vec);
+	std::vector<uint8_t>().swap(data_file_vec);
 
-	if (!writeFile(Image_Vec)) {
+	if (!writeFile(image_vec)) {
 		return 1;
 	}
 	

@@ -1,7 +1,7 @@
-bool writeFile(std::vector<uint8_t>& Vec) {
+bool writeFile(std::vector<uint8_t>& vec) {
 	std::random_device rd;
     	std::mt19937 gen(rd());
-    	std::uniform_int_distribution<> dist(10000, 99999);  
+    	std::uniform_int_distribution<> dist(10000, 99999);  // Five-digit random number
 
 	const std::string IMAGE_FILENAME = "jrif_" + std::to_string(dist(gen)) + ".jpg";
 
@@ -12,11 +12,11 @@ bool writeFile(std::vector<uint8_t>& Vec) {
 		return false;
 	}
 	
-	const uint32_t IMAGE_SIZE = static_cast<uint32_t>(Vec.size());
+	const uint32_t IMAGE_SIZE = static_cast<uint32_t>(vec.size());
 
-	file_ofs.write(reinterpret_cast<const char*>(Vec.data()), IMAGE_SIZE);
+	file_ofs.write(reinterpret_cast<const char*>(vec.data()), IMAGE_SIZE);
 	
-	std::vector<uint8_t>().swap(Vec);
+	std::vector<uint8_t>().swap(vec);
 	
 	std::cout << "\nSaved \"file-embedded\" JPG image: " << IMAGE_FILENAME << " (" << IMAGE_SIZE << " bytes).\n";
 	return true;

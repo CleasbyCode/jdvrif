@@ -3,6 +3,7 @@ enum class ArgOption {
 	Reddit
 };
 
+// Struct for parsing program arguments
 struct ProgramArgs {
 	ArgOption platform = ArgOption::Default;
     	std::string image_file;
@@ -23,8 +24,9 @@ ProgramArgs ProgramArgs::parse(int argc, char** argv) {
     	}
 
     	uint8_t arg_index = 1;
+
     	if (argc == 4) {
-		if (std::string(argv[1]) != "-r") {
+		if (std::string(argv[arg_index]) != "-r") {
             		throw std::runtime_error("Input Error: Invalid arguments. Expecting \"-r\" as the only optional argument.");
         	}
         	args.platform = ArgOption::Reddit;

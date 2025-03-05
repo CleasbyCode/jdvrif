@@ -1,10 +1,10 @@
 bool isCompressedFile(const std::string& extension) {
-	static const std::set<std::string> compressedExtensions = {
+	static const std::set<std::string> compressed_extensions = {
 		".zip", ".jar", ".rar", ".7z", ".bz2", ".gz", ".xz", ".tar",
         	".lz", ".lz4", ".cab", ".rpm", ".deb", ".mp4", ".mp3",
         	".jpg", ".png", ".ogg", ".flac"
 	};
-	return compressedExtensions.count(extension) > 0;
+	return compressed_extensions.count(extension) > 0;
 }
 
 bool hasValidFilename(const std::string& filename) {
@@ -13,8 +13,8 @@ bool hasValidFilename(const std::string& filename) {
 }
 
 bool isValidImageExtension(const std::string& ext) {
-	static const std::set<std::string> validExtensions = {".jpg", ".jpeg", ".jfif"};
-    	return validExtensions.count(ext) > 0;
+	static const std::set<std::string> valid_extensions = {".jpg", ".jpeg", ".jfif"};
+    	return valid_extensions.count(ext) > 0;
 }
 
 void validateFiles(const std::string& image_file, const std::string& data_file, ArgOption platformOption) {
@@ -27,11 +27,11 @@ void validateFiles(const std::string& image_file, const std::string& data_file, 
     	}
 
     	if (!std::filesystem::exists(image_path)) {
-        	throw std::runtime_error("Image File Error: File not found. Check the filename and try again.");
+        	throw std::runtime_error("Image File Error: File not found.");
     	}
 
     	if (!std::filesystem::exists(data_path) || !std::filesystem::is_regular_file(data_path)) {
-        	throw std::runtime_error("Data File Error: File not found or not a regular file. Check the filename and try again.");
+        	throw std::runtime_error("Data File Error: File not found or not a regular file.");
     	}
 
     	constexpr uint8_t MINIMUM_IMAGE_SIZE = 134;

@@ -1,19 +1,18 @@
 void displayInfo() {
 	std::cout << R"(
 
-JPG Data Vehicle (jdvin v3.3). 
+JPG Data Vehicle (jdvin v3.1). 
 Created by Nicholas Cleasby (@CleasbyCode) 24/01/2023.
 
 jdvin is a steganography-like CLI tool for embedding & concealing any file type within a JPG image. 
 
 Compile & run jdvin (Linux):
-
-$ sudo apt-get install libsodium-dev
-$ g++ main.cpp -O2 -lz -lsodium -s -o jdvin
+		
+$ g++ main.cpp -O2 -lz -s -o jdvin
 $ sudo cp jdvin /usr/bin
 $ jdvin
 		
-Usage: jdvin [-r] <cover_image> <secret_file>
+Usage: jdvin [-r] <cover_image> <data_file>
        jdvin --info
 		
 Share your "file-embedded" JPG image on the following compatible sites. Image size limits (cover image + data file):
