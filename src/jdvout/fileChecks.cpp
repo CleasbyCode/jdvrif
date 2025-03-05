@@ -8,26 +8,26 @@ bool isValidImageExtension(const std::string& ext) {
     	return validExtensions.count(ext) > 0;
 }
 
-void validateFiles(const std::string& imageFile) {
-	std::filesystem::path imagePath(imageFile);
+void validateFiles(const std::string& image_file) {
+	std::filesystem::path image_path(image_file);
 
-    	std::string imageExt = imagePath.extension().string();
+    	std::string image_ext = image_path.extension().string();
 
-    	if (!isValidImageExtension(imageExt)) {
+    	if (!isValidImageExtension(image_ext)) {
         	throw std::runtime_error("File Type Error: Invalid image extension. Only expecting \".jpg\", \".jpeg\", or \".jfif\".");
     	}
 
-    	if (!std::filesystem::exists(imagePath)) {
+    	if (!std::filesystem::exists(image_path)) {
         	throw std::runtime_error("Image File Error: File not found. Check the filename and try again.");
     	}
 
-   	if (std::filesystem::file_size(imagePath) == 0) {
+   	if (std::filesystem::file_size(image_path) == 0) {
 		throw std::runtime_error("Image File Error: File is empty.");
     	}
     	
     	constexpr uintmax_t MAX_FILE_SIZE = 3ULL * 1024 * 1024 * 1024;   
 	
-   	if (std::filesystem::file_size(imagePath) > MAX_FILE_SIZE) {
+   	if (std::filesystem::file_size(image_path) > MAX_FILE_SIZE) {
    		throw std::runtime_error("File Size Error: Image file exceeds maximum size limit.");
    	}
 }
