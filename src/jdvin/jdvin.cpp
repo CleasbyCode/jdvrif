@@ -29,8 +29,8 @@ int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, ArgOpti
 
 	const uint32_t DATA_FILE_SIZE = std::filesystem::file_size(data_filename);
 	
-	std::filesystem::path filePath(data_filename);
-    	data_filename = filePath.filename().string();
+	std::filesystem::path file_path(data_filename);
+    	data_filename = file_path.filename().string();
 
 	constexpr uint8_t DATA_FILENAME_MAX_LENGTH = 20;
 
