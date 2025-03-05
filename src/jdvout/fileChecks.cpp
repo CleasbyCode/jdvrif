@@ -4,8 +4,8 @@ bool hasValidFilename(const std::string& filename) {
 }
 
 bool isValidImageExtension(const std::string& ext) {
-	static const std::set<std::string> validExtensions = {".jpg", ".jpeg", ".jfif"};
-    	return validExtensions.count(ext) > 0;
+	static const std::set<std::string> valid_extensions = {".jpg", ".jpeg", ".jfif"};
+    	return valid_extensions.count(ext) > 0;
 }
 
 void validateFiles(const std::string& image_file) {
@@ -25,7 +25,7 @@ void validateFiles(const std::string& image_file) {
 		throw std::runtime_error("Image File Error: File is empty.");
     	}
     	
-    	constexpr uintmax_t MAX_FILE_SIZE = 3ULL * 1024 * 1024 * 1024;   
+    	constexpr uintmax_t MAX_FILE_SIZE = 3ULL * 1024 * 1024 * 1024;   // 3GB (cover image + data file)
 	
    	if (std::filesystem::file_size(image_path) > MAX_FILE_SIZE) {
    		throw std::runtime_error("File Size Error: Image file exceeds maximum size limit.");

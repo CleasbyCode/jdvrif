@@ -1,5 +1,5 @@
 uint64_t getPin() {
-	
+
     const std::string MAX_UINT64_STR = "18446744073709551615";
 
     std::string input;
@@ -32,8 +32,8 @@ uint64_t getPin() {
     tcsetattr(STDIN_FILENO, TCSANOW, &newt);
 
    while (input.length() < 20) {
-        ssize_t bytesRead = read(STDIN_FILENO, &ch, 1); 
-        if (bytesRead <= 0) continue; 
+        ssize_t bytes_read = read(STDIN_FILENO, &ch, 1); 
+        if (bytes_read <= 0) continue; 
        
         if (ch >= '0' && ch <= '9') {
             input.push_back(ch);

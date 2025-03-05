@@ -22,19 +22,21 @@
   Jean-loup Gailly        Mark Adler
   jloup@gzip.org          madler@alumni.caltech.edu
 */
-const uint32_t inflateFile(std::vector<uint8_t>& Vec) {
-	constexpr uint32_t BUFSIZE = 2 * 1024 * 1024; 
+
+const uint32_t inflateFile(std::vector<uint8_t>& vec) {
+
+	constexpr uint32_t BUFSIZE = 2 * 1024 * 1024; // 2MB.
 
 	uint8_t* buffer{ new uint8_t[BUFSIZE] };
 	
-	std::vector<uint8_t>Inflate_Vec;
-	Inflate_Vec.reserve(Vec.size() + BUFSIZE);
+	std::vector<uint8_t>inflate_vec;
+	inflate_vec.reserve(vec.size() + BUFSIZE);
 
 	z_stream strm;
 	strm.zalloc = Z_NULL;
 	strm.zfree = Z_NULL;
-	strm.next_in = Vec.data();
-	strm.avail_in = static_cast<uint32_t>(Vec.size());
+	strm.next_in = vec.data();
+	strm.avail_in = static_cast<uint32_t>(vec.size());
 	strm.next_out = buffer;
 	strm.avail_out = BUFSIZE;
 
@@ -44,7 +46,7 @@ const uint32_t inflateFile(std::vector<uint8_t>& Vec) {
 		inflate(&strm, Z_NO_FLUSH);
 
 		if (!strm.avail_out) {
-			Inflate_Vec.insert(Inflate_Vec.end(), buffer, buffer + BUFSIZE);
+			inflate_vec.insert(inflate_vec.end(), buffer, buffer + BUFSIZE);
 			strm.next_out = buffer;
 			strm.avail_out = BUFSIZE;
 		} else {
@@ -53,12 +55,12 @@ const uint32_t inflateFile(std::vector<uint8_t>& Vec) {
 	}
 
 	inflate(&strm, Z_FINISH);
-	Inflate_Vec.insert(Inflate_Vec.end(), buffer, buffer + BUFSIZE - strm.avail_out);
+	inflate_vec.insert(inflate_vec.end(), buffer, buffer + BUFSIZE - strm.avail_out);
 	inflateEnd(&strm);
 	
 	delete[] buffer;
-	Vec = std::move(Inflate_Vec);	
-	std::vector<uint8_t>().swap(Inflate_Vec);
+	vec = std::move(inflate_vec);	
+	std::vector<uint8_t>().swap(inflate_vec);
 
-	return(static_cast<uint32_t>(Vec.size()));
+	return(static_cast<uint32_t>(vec.size()));
 }

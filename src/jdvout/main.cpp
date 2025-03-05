@@ -1,5 +1,4 @@
-
-// JPG Data Vehicle(jdvout v3.3) Created by Nicholas Cleasby(@CleasbyCode) 10/04/2023
+// JPG Data Vehicle(jdvout v3.4) Created by Nicholas Cleasby(@CleasbyCode) 10 / 04 / 2023
 //
 //	Compile program (Linux):
 
@@ -19,6 +18,7 @@ int main(int argc, char** argv) {
             throw std::runtime_error("Invalid Input Error: Unsupported characters in filename arguments.");
         }
         validateFiles(args.image_file);
+       
         jdvOut(args.image_file);
     }
     catch (const std::runtime_error& e) {

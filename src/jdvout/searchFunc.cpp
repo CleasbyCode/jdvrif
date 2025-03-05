@@ -1,4 +1,5 @@
-template <uint8_t N>
-uint32_t searchFunc(std::vector<uint8_t>& Vec, uint32_t start_index, const uint8_t INC_NEXT_SEARCH_INDEX, const uint8_t (&SIG)[N]) {
-	return static_cast<uint32_t>(std::search(Vec.begin() + start_index + INC_NEXT_SEARCH_INDEX, Vec.end(), std::begin(SIG), std::end(SIG)) - Vec.begin());
+// Search and return a vector index position of given string signature.
+template <typename T, size_t N>
+uint32_t searchFunc(std::vector<uint8_t>& vec, uint32_t start_index, const uint8_t INCREMENT_SEARCH_INDEX, const std::array<T, N>& SIG) {
+    return static_cast<uint32_t>(std::search(vec.begin() + start_index + INCREMENT_SEARCH_INDEX, vec.end(), SIG.begin(), SIG.end()) - vec.begin());
 }
