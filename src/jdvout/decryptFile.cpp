@@ -1,3 +1,5 @@
+// This project uses libsodium (https://libsodium.org/) for cryptographic functions.
+// Copyright (c) 2013-2025 Frank Denis <github@pureftpd.org>
 const std::string decryptFile(std::vector<uint8_t>& image_vec) {	
 	constexpr uint16_t 
 		SODIUM_KEY_INDEX = 0x31B,
@@ -14,14 +16,12 @@ const std::string decryptFile(std::vector<uint8_t>& image_vec) {
 	std::cout << "\nPIN: ";
 	uint64_t pin = getPin();
 
-	// Insert the 8 byte PIN value, supplied by user into index location. This value completes the missing part of the main sodium key.
 	valueUpdater(image_vec, sodium_key_pos, pin, value_bit_length); 
 	
 	sodium_key_pos += 8;
 
 	constexpr uint8_t SODIUM_XOR_KEY_LENGTH	= 8; 
 
-	// XOR decrypt 48 bytes. This includes 24 bytes of the 32 byte main sodium key and 24 bytes of the nonce key.
 	while(sodium_keys_length--) {
 		image_vec[sodium_key_pos] = image_vec[sodium_key_pos] ^ image_vec[sodium_xor_key_pos++];
 		sodium_key_pos++;
@@ -53,7 +53,6 @@ const std::string decryptFile(std::vector<uint8_t>& image_vec) {
 	while (encrypted_filename_length--) {
 		decrypted_filename += ENCRYPTED_FILENAME[filename_char_pos++] ^ image_vec[filename_xor_key_pos++];
 	}
-	// decrpyted filename end
 
 	constexpr uint16_t 
 		ENCRYPTED_FILE_START_INDEX 	= 0x35B,
@@ -62,18 +61,13 @@ const std::string decryptFile(std::vector<uint8_t>& image_vec) {
 
 	const uint32_t EMBEDDED_FILE_SIZE = getByteValue<uint32_t>(image_vec, FILE_SIZE_INDEX);
 
-	// How many ICC_PROFILE segments? (Don't count the first, default color profile segment).
 	const uint16_t PROFILE_COUNT = (static_cast<uint16_t>(image_vec[PROFILE_COUNT_VALUE_INDEX]) << 8) | static_cast<uint16_t>(image_vec[PROFILE_COUNT_VALUE_INDEX + 1]);
 
 	uint32_t* Headers_Index_Arr = new uint32_t[PROFILE_COUNT];
 
-	// Remove profile data & cover image data from vector. Leaving just the encrypted/compressed data file.
 	std::vector<uint8_t> temp_vec(image_vec.begin() + ENCRYPTED_FILE_START_INDEX, image_vec.begin() + ENCRYPTED_FILE_START_INDEX + EMBEDDED_FILE_SIZE);
 	image_vec = std::move(temp_vec);
 
-	// Search the "file-embedded" image for ICC Profile headers. Store index location of each found header within the vector.
-	// We will use these index positions to skip over the headers when decrypting the data file, 
-	// so that they are not included within the restored data file.
 	if (PROFILE_COUNT) {	
 		constexpr std::array<uint8_t, 11> ICC_PROFILE_SIG { 0x49, 0x43, 0x43, 0x5F, 0x50, 0x52, 0x4F, 0x46, 0x49, 0x4C, 0x45 };
 
@@ -93,15 +87,13 @@ const std::string decryptFile(std::vector<uint8_t>& image_vec) {
 		next_header_index = 0,
 		index_pos = 0;
 	
-	std::vector<uint8_t>sanitize_vec; // Will contain THE encrypted data file without ICC_Profile headers.
+	std::vector<uint8_t>sanitize_vec; 
 	sanitize_vec.reserve(encrypted_file_size);
 
 	constexpr uint8_t PROFILE_HEADER_LENGTH	= 18;
 
 	while (encrypted_file_size > index_pos) {
 		sanitize_vec.emplace_back(image_vec[index_pos++]);
-		// Skip over the 18 byte ICC Profile header found at each index location within "Headers_Index_Arr", 
-		// so that we don't include them along with the decrypted file.
 		if (PROFILE_COUNT && index_pos == Headers_Index_Arr[next_header_index]) {
 			index_pos += PROFILE_HEADER_LENGTH; 
 			++next_header_index;
