@@ -8,7 +8,7 @@ int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, ArgOpti
 		return 1;
 	}
 
-	const uintmax_t IMAGE_FILE_SIZE = std::filesystem::file_size(IMAGE_FILENAME);
+	const uint32_t IMAGE_FILE_SIZE = std::filesystem::file_size(IMAGE_FILENAME);
 
 	std::vector<uint8_t> Image_Vec;
 	Image_Vec.resize(IMAGE_FILE_SIZE); 
@@ -27,7 +27,7 @@ int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, ArgOpti
 	
 	eraseSegments(Image_Vec);
 
-	const uintmax_t DATA_FILE_SIZE = std::filesystem::file_size(data_filename);
+	const uint32_t DATA_FILE_SIZE = std::filesystem::file_size(data_filename);
 	
 	std::filesystem::path filePath(data_filename);
     	data_filename = filePath.filename().string();
