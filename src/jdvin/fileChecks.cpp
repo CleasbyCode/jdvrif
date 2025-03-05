@@ -41,9 +41,9 @@ void validateFiles(const std::string& image_file, const std::string& data_file, 
     	}
 
     	constexpr uintmax_t 
-		MAX_SIZE_DEFAULT = 2ULL * 1024 * 1024 * 1024,   // 2GB (cover image + data file)
-    		MAX_SIZE_REDDIT  = 20ULL * 1024 * 1024;         // 20MB ""
-
+		MAX_SIZE_DEFAULT = 2ULL * 1024 * 1024 * 1024,   
+    		MAX_SIZE_REDDIT  = 20ULL * 1024 * 1024;         
+	
     	const uintmax_t COMBINED_FILE_SIZE = std::filesystem::file_size(data_path) + std::filesystem::file_size(image_path);
 	
     	if (std::filesystem::file_size(data_path) == 0) {
