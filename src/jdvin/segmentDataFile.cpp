@@ -1,12 +1,8 @@
-// If required, split & store users data file into multiple APP2 profile segments. 
-// The first APP2 segment contains the color profile data, followed by the user's data file.
-// Additional segments start with the 18 byte JPG APP2 profile header, followed by the data file.
 bool segmentDataFile(std::vector<uint8_t>&profile_vec, std::vector<uint8_t>&data_file_vec) {
-
 	constexpr uint8_t
 		SEGMENT_HEADER_LENGTH = 18,
 		JPG_HEADER_LENGTH     = 20,
-		APP2_SIG_LENGTH       = 2; // FFE2.
+		APP2_SIG_LENGTH       = 2; 
 
 	const uint32_t COLOR_PROFILE_WITH_DATA_FILE_VEC_SIZE = static_cast<uint32_t>(profile_vec.size());
 
@@ -17,12 +13,12 @@ bool segmentDataFile(std::vector<uint8_t>&profile_vec, std::vector<uint8_t>&data
 	bool shouldDisplayMastodonWarning = false;
 
 	if (segment_data_size + JPG_HEADER_LENGTH + SEGMENT_HEADER_LENGTH >= COLOR_PROFILE_WITH_DATA_FILE_VEC_SIZE) { 
-		// Data file is small enough to fit all within the first/main APP2 segment, appended to the color profile data.
+		
 		constexpr uint8_t
-			SEGMENT_HEADER_SIZE_INDEX = 0x16, // Start index of the two byte JPG APP2 profile header segment size field.
+			SEGMENT_HEADER_SIZE_INDEX = 0x16, 
 			SEGMENT_TOTAL_VALUE_INDEX = 0x25,
-			COLOR_PROFILE_SIZE_INDEX  = 0x28, // Start index of the four byte ICC profile size field index.
-			COLOR_PROFILE_SIZE_DIFF   = 16;	  // Size difference between SEGMENT_SIZE & COLOR_PROFILE_SIZE.
+			COLOR_PROFILE_SIZE_INDEX  = 0x28, 
+			COLOR_PROFILE_SIZE_DIFF   = 16;	  
 		
 		const uint32_t 
 			SEGMENT_SIZE 	   = COLOR_PROFILE_WITH_DATA_FILE_VEC_SIZE - (JPG_HEADER_LENGTH + APP2_SIG_LENGTH),
@@ -30,11 +26,9 @@ bool segmentDataFile(std::vector<uint8_t>&profile_vec, std::vector<uint8_t>&data
 
 		valueUpdater(profile_vec, SEGMENT_HEADER_SIZE_INDEX, SEGMENT_SIZE, value_bit_length);
 		valueUpdater(profile_vec, COLOR_PROFILE_SIZE_INDEX, COLOR_PROFILE_SIZE, value_bit_length);
-		profile_vec[SEGMENT_TOTAL_VALUE_INDEX] = 1; // For X/Twitter compatibility.
+		profile_vec[SEGMENT_TOTAL_VALUE_INDEX] = 1; 
 		data_file_vec = std::move(profile_vec);
 	} else { 
-		// Data file is too large for the first APP2 profile segment. Create additional segments as needed, to store the data file.
-		
 		constexpr uint8_t LIBSODIUM_DISCREPANCY_VALUE = 38;
 
 		const uint32_t NEW_COLOR_PROFILE_WITH_DATA_FILE_VEC_SIZE = COLOR_PROFILE_WITH_DATA_FILE_VEC_SIZE - LIBSODIUM_DISCREPANCY_VALUE;
@@ -48,9 +42,8 @@ bool segmentDataFile(std::vector<uint8_t>&profile_vec, std::vector<uint8_t>&data
 			FIRST_SEGMENT_DATA_SIZE = segment_data_size + JPG_HEADER_LENGTH + SEGMENT_HEADER_LENGTH;
 
 		constexpr uint8_t SEGMENT_REMAINDER_DIFF = 16;
-		constexpr uint16_t SEGMENTS_TOTAL_VAL_INDEX = 0x207;  // Index location within color profile data area, to store total value of APP2 profile segments (-1). For jdvout.
+		constexpr uint16_t SEGMENTS_TOTAL_VAL_INDEX = 0x207;  
 			
-		// Write total number of APP2 profile segments (minus the first one) within the index position of the first profile segment. For jdvout.
 		valueUpdater(profile_vec, SEGMENTS_TOTAL_VAL_INDEX, segments_required_approx_val, value_bit_length);
 
 		segment_data_size = FIRST_SEGMENT_DATA_SIZE;
@@ -94,7 +87,7 @@ bool segmentDataFile(std::vector<uint8_t>&profile_vec, std::vector<uint8_t>&data
 		std::vector<uint8_t>().swap(profile_vec);
 		
 		constexpr uint8_t MASTODON_SEGMENTS_LIMIT = 100;		   
-		constexpr uint32_t MASTODON_IMAGE_UPLOAD_LIMIT = 16 * 1024 * 1024; // 16MB
+		constexpr uint32_t MASTODON_IMAGE_UPLOAD_LIMIT = 16 * 1024 * 1024; 
 					   
 		if (segments_sequence_value > MASTODON_SEGMENTS_LIMIT && MASTODON_IMAGE_UPLOAD_LIMIT > NEW_COLOR_PROFILE_WITH_DATA_FILE_VEC_SIZE) {
 			shouldDisplayMastodonWarning = true;
@@ -104,12 +97,9 @@ bool segmentDataFile(std::vector<uint8_t>&profile_vec, std::vector<uint8_t>&data
 
 	constexpr uint16_t 
 		DEFLATED_DATA_FILE_SIZE_INDEX = 0x203,
-		PROFILE_SIZE = 901; // Includes JPG header, profile/segment header and color profile data.
+		PROFILE_SIZE = 901; 
 	
-	// Write the compressed file size of the data file, which now includes multiple segments with the 18 byte profile/segment headers,
-	// minus profile size, within index position of the profile data section. Value used by jdvout.	
 	valueUpdater(data_file_vec, DEFLATED_DATA_FILE_SIZE_INDEX, static_cast<uint32_t>(data_file_vec.size()) - PROFILE_SIZE, value_bit_length);
 
 	return shouldDisplayMastodonWarning;
 }
-
