@@ -14,14 +14,14 @@
 int main(int argc, char** argv) {
 	try {
 		ProgramArgs args = ProgramArgs::parse(argc, argv);
-		if (!hasValidFilename(args.imageFile) || !hasValidFilename(args.dataFile)) {
+		if (!hasValidFilename(args.image_file) || !hasValidFilename(args.data_file)) {
             		throw std::runtime_error("Invalid Input Error: Unsupported characters in filename arguments.");
         	}
-        	validateFiles(args.imageFile, args.dataFile, args.platform);
-        	std::filesystem::path dataPath(args.dataFile);
+        	validateFiles(args.image_file, args.data_file, args.platform);
+        	std::filesystem::path data_path(args.data_file);
 
-        	bool isCompressed = isCompressedFile(dataPath.extension().string());
-        	jdvIn(args.imageFile, args.dataFile, args.platform, isCompressed);
+        	bool isCompressed = isCompressedFile(data_path.extension().string());
+        	jdvIn(args.image_file, args.data_file, args.platform, isCompressed);
     	}
 	catch (const std::runtime_error& e) {
         	std::cerr << "\n" << e.what() << "\n\n";
