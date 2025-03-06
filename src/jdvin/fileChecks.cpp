@@ -17,7 +17,7 @@ bool isValidImageExtension(const std::string& ext) {
     	return valid_extensions.count(ext) > 0;
 }
 
-void validateFiles(const std::string& image_file, const std::string& data_file, ArgOption platformOption) {
+void validateFiles(const std::string& image_file, const std::string& data_file, ArgOption platform) {
 	std::filesystem::path image_path(image_file), data_path(data_file);
 
     	std::string image_ext = image_path.extension().string();
@@ -50,7 +50,7 @@ void validateFiles(const std::string& image_file, const std::string& data_file, 
 		throw std::runtime_error("Data File Error: File is empty.");
     	}
 
-    	bool hasRedditOption = (platformOption == ArgOption::Reddit);
+    	bool hasRedditOption = (platform == ArgOption::Reddit);
 
    	if ((hasRedditOption && COMBINED_FILE_SIZE > MAX_SIZE_REDDIT) || (!hasRedditOption && COMBINED_FILE_SIZE > MAX_SIZE_DEFAULT)) {
    		throw std::runtime_error("File Size Error: Combined size of image and data file exceeds maximum size limit.");
