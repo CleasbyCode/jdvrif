@@ -107,7 +107,7 @@ int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, ArgOpti
 	}
 
 	std::cout << ((hasRedditOption) 
-		?  "\nReddit option selected: Only share/post this file-embedded JPG image on Reddit.\n\nComplete!\n\n"
+		?  "\nReddit option selected: Only post/share this file-embedded JPG image on Reddit.\n\nComplete!\n\n"
 		:  "\nComplete!\n\n");	
 
 	return 0;
