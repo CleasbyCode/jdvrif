@@ -1,4 +1,4 @@
-int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, ArgOption platformOption, bool isCompressedFile) {
+int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, ArgOption platform, bool isCompressedFile) {
 	std::ifstream
 		image_file_ifs(IMAGE_FILENAME, std::ios::binary),
 		data_file_ifs(data_filename, std::ios::binary);
@@ -84,7 +84,7 @@ int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, ArgOpti
 	
 	image_vec.reserve(IMAGE_FILE_SIZE + data_file_vec.size());	
 
-	bool hasRedditOption = (platformOption == ArgOption::Reddit);
+	bool hasRedditOption = (platform == ArgOption::Reddit);
 
 	if (hasRedditOption) {
 		image_vec.insert(image_vec.begin(), SOI_SIG.begin(), SOI_SIG.end());
