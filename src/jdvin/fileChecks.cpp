@@ -12,7 +12,7 @@ bool hasValidFilename(const std::string& filename) {
         	[](char c) { return std::isalnum(c) || c == '.' || c == '/' || c == '\\' || c == '-' || c == '_' || c == '@' || c == '%'; });
 }
 
-bool isValidImageExtension(const std::string& ext) {
+bool hasValidImageExtension(const std::string& ext) {
 	static const std::set<std::string> valid_extensions = {".jpg", ".jpeg", ".jfif"};
     	return valid_extensions.count(ext) > 0;
 }
@@ -22,7 +22,7 @@ void validateFiles(const std::string& image_file, const std::string& data_file, 
 
     	std::string image_ext = image_path.extension().string();
 
-    	if (!isValidImageExtension(image_ext)) {
+    	if (!hasValidImageExtension(image_ext)) {
         	throw std::runtime_error("File Type Error: Invalid image extension. Only expecting \".jpg\", \".jpeg\", or \".jfif\".");
     	}
 
