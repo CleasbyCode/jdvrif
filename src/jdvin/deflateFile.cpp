@@ -22,13 +22,11 @@
   Jean-loup Gailly        Mark Adler
   jloup@gzip.org          madler@alumni.caltech.edu
 */
-
-void deflateFile(std::vector<uint8_t>& vec, bool isCompressedFile) {
-		
+void deflateFile(std::vector<uint8_t>& vec, bool isCompressedFile) {		
 	constexpr uint32_t
-		BUFSIZE = 2 * 1024 * 1024, 
-		LARGE_FILE_SIZE	  = 500 * 1024 * 1024, 
-		MEDIUM_FILE_SIZE  = 200 * 1024 * 1024,  
+		BUFSIZE = 2 * 1024 * 1024, 	
+		LARGE_FILE_SIZE	  = 500 * 1024 * 1024,  
+		MEDIUM_FILE_SIZE  = 200 * 1024 * 1024,   
 		COMPRESSED_FILE_TYPE_SIZE_LIMIT = 50 * 1024 * 1024; 
 
 	const uint32_t VEC_SIZE = static_cast<uint32_t>(vec.size());

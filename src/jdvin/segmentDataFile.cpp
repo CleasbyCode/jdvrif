@@ -13,7 +13,6 @@ bool segmentDataFile(std::vector<uint8_t>&profile_vec, std::vector<uint8_t>&data
 	bool shouldDisplayMastodonWarning = false;
 
 	if (segment_data_size + JPG_HEADER_LENGTH + SEGMENT_HEADER_LENGTH >= COLOR_PROFILE_WITH_DATA_FILE_VEC_SIZE) { 
-		
 		constexpr uint8_t
 			SEGMENT_HEADER_SIZE_INDEX = 0x16, 
 			SEGMENT_TOTAL_VALUE_INDEX = 0x25,
@@ -28,7 +27,7 @@ bool segmentDataFile(std::vector<uint8_t>&profile_vec, std::vector<uint8_t>&data
 		valueUpdater(profile_vec, COLOR_PROFILE_SIZE_INDEX, COLOR_PROFILE_SIZE, value_bit_length);
 		profile_vec[SEGMENT_TOTAL_VALUE_INDEX] = 1; 
 		data_file_vec = std::move(profile_vec);
-	} else { 
+	} else { 		
 		constexpr uint8_t LIBSODIUM_DISCREPANCY_VALUE = 38;
 
 		const uint32_t NEW_COLOR_PROFILE_WITH_DATA_FILE_VEC_SIZE = COLOR_PROFILE_WITH_DATA_FILE_VEC_SIZE - LIBSODIUM_DISCREPANCY_VALUE;
@@ -68,7 +67,6 @@ bool segmentDataFile(std::vector<uint8_t>&profile_vec, std::vector<uint8_t>&data
 				segment_data_size = SEGMENT_REMAINDER_SIZE;		
 			   	valueUpdater(segment_vec, segment_remainder_size_index, SEGMENT_REMAINDER_SIZE + SEGMENT_REMAINDER_DIFF, value_bit_length); 		
 			}
-
 			std::copy_n(profile_vec.begin() + byte_index, segment_data_size, std::back_inserter(segment_vec));
 			byte_index += segment_data_size;	
 			
@@ -89,9 +87,7 @@ bool segmentDataFile(std::vector<uint8_t>&profile_vec, std::vector<uint8_t>&data
 		constexpr uint8_t MASTODON_SEGMENTS_LIMIT = 100;		   
 		constexpr uint32_t MASTODON_IMAGE_UPLOAD_LIMIT = 16 * 1024 * 1024; 
 					   
-		if (segments_sequence_value > MASTODON_SEGMENTS_LIMIT && MASTODON_IMAGE_UPLOAD_LIMIT > NEW_COLOR_PROFILE_WITH_DATA_FILE_VEC_SIZE) {
-			shouldDisplayMastodonWarning = true;
-		}
+		shouldDisplayMastodonWarning = segments_sequence_value > MASTODON_SEGMENTS_LIMIT && MASTODON_IMAGE_UPLOAD_LIMIT > NEW_COLOR_PROFILE_WITH_DATA_FILE_VEC_SIZE;
 	}
 	value_bit_length = 32; 
 

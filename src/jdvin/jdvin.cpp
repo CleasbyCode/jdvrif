@@ -37,19 +37,19 @@ int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, ArgOpti
 	const uint8_t DATA_FILENAME_LENGTH = static_cast<uint8_t>(data_filename.length());
 
 	if (DATA_FILENAME_LENGTH > DATA_FILENAME_MAX_LENGTH) {
-    		std::cerr << "\nData File Error: Length of data filename is too long.\n\nFor compatibility requirements, length of data filename must not exceed 20 characters.\n\n";
+    		std::cerr << "\nData File Error: For compatibility requirements, length of data filename must not exceed 20 characters.\n\n";
     	 	return 1;
 	}
 
-	constexpr uint16_t DATA_FILENAME_LENGTH_INDEX = 0x1EE;
-	
-	uint8_t 
-		data_file_size_index = 0x90,
-		value_bit_length = 32;
+	bool hasBlueskyOption = (platform == ArgOption::Bluesky);
 
-	profile_vec[DATA_FILENAME_LENGTH_INDEX] = DATA_FILENAME_LENGTH;
+	if (hasBlueskyOption) {
+		profile_vec.swap(bluesky_vec);	
+	}
 
-	valueUpdater(profile_vec, data_file_size_index, static_cast<uint32_t>(DATA_FILE_SIZE), value_bit_length);
+	uint16_t DATA_FILENAME_LENGTH_INDEX = hasBlueskyOption ? 0x160 : 0x1EE;
+
+	profile_vec[DATA_FILENAME_LENGTH_INDEX] = DATA_FILENAME_LENGTH;	
 
 	constexpr uint32_t LARGE_FILE_SIZE = 400 * 1024 * 1024;  
 
@@ -65,8 +65,6 @@ int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, ArgOpti
 
 	std::reverse(data_file_vec.begin(), data_file_vec.end());
 
-	profile_vec[data_file_size_index + 4] = data_filename[0];
-
 	deflateFile(data_file_vec, isCompressedFile);
 	
 	if (data_file_vec.empty()) {
@@ -74,15 +72,62 @@ int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, ArgOpti
 		return 1;
 	}
 	
-	const uint64_t PIN = encryptFile(profile_vec, data_file_vec, data_filename);
+	const uint64_t PIN = encryptFile(profile_vec, data_file_vec, data_filename, hasBlueskyOption);
 
 	std::vector<uint8_t>().swap(data_file_vec);
 
-	bool shouldDisplayMastodonWarning = segmentDataFile(profile_vec, data_file_vec);
+	bool shouldDisplayMastodonWarning = false; 
+
+	if (hasBlueskyOption) {
+		constexpr uint8_t IDENTITY_BYTES_VAL = 4;
+		constexpr uint16_t MAX_SEGMENT_SIZE = 0xFFFF;
+
+		uint32_t segment_size = static_cast<uint32_t>(profile_vec.size() - IDENTITY_BYTES_VAL); 
+		
+		if (segment_size > MAX_SEGMENT_SIZE) {
+			std::cerr << "\nFile Size Error: Data file exceeds segment size limit for the Bluesky platform.\n\n";
+			return 1;
+		}
+
+		uint8_t 
+			segment_size_field_index = 0x04,  
+			value_bit_length = 16;
+
+		valueUpdater(profile_vec, segment_size_field_index, segment_size, value_bit_length);
+
+		uint8_t		
+			exif_segment_xres_offset_field_index = 0x2A,
+			exif_segment_xres_offset_size_diff = 0x36, 
+
+			exif_segment_yres_offset_field_index = 0x36,
+			exif_segment_yres_offset_size_diff = 0x2E, 
+
+			exif_segment_artist_size_field_index = 0x4A,
+			exif_segment_size_diff = 0x90, 
+
+			exif_segment_subifd_offset_index = 0x5A,
+			exif_segment_subifd_offset_size_diff = 0x26; 
+
+		value_bit_length = 32;
+
+		uint32_t exif_xres_offset = segment_size - exif_segment_xres_offset_size_diff;
+		valueUpdater(profile_vec, exif_segment_xres_offset_field_index, exif_xres_offset, value_bit_length);
+
+		uint32_t exif_yres_offset = segment_size - exif_segment_yres_offset_size_diff;
+		valueUpdater(profile_vec, exif_segment_yres_offset_field_index, exif_yres_offset, value_bit_length);
+
+		uint32_t exif_artist_size = (segment_size - exif_segment_size_diff) + IDENTITY_BYTES_VAL; 
+		valueUpdater(profile_vec, exif_segment_artist_size_field_index, exif_artist_size, value_bit_length); 
+
+		uint32_t exif_subifd_offset = segment_size - exif_segment_subifd_offset_size_diff;
+		valueUpdater(profile_vec, exif_segment_subifd_offset_index, exif_subifd_offset, value_bit_length);
+	} else {
+		shouldDisplayMastodonWarning = segmentDataFile(profile_vec, data_file_vec);
+	}
 
 	constexpr uint8_t PROFILE_HEADER_LENGTH = 18;
 	
-	image_vec.reserve(IMAGE_FILE_SIZE + data_file_vec.size());	
+	image_vec.reserve(IMAGE_FILE_SIZE + hasBlueskyOption ? profile_vec.size() : data_file_vec.size());	
 
 	bool hasRedditOption = (platform == ArgOption::Reddit);
 
@@ -90,6 +135,8 @@ int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, ArgOpti
 		image_vec.insert(image_vec.begin(), SOI_SIG.begin(), SOI_SIG.end());
 		image_vec.insert(image_vec.end() - 2, 8000, 0x23);
 		image_vec.insert(image_vec.end() - 2, data_file_vec.begin() + PROFILE_HEADER_LENGTH, data_file_vec.end());
+	} else if (hasBlueskyOption) {
+		image_vec.insert(image_vec.begin(), profile_vec.begin(), profile_vec.end());
 	} else {
 		image_vec.insert(image_vec.begin(), data_file_vec.begin(), data_file_vec.end());
 	}
@@ -105,10 +152,13 @@ int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, ArgOpti
 	if (shouldDisplayMastodonWarning && !hasRedditOption) {
 		std::cout << "\n**Warning**\n\nEmbedded image is not compatible with Mastodon. Image file exceeds platform's segments limit.\n";
 	}
-
-	std::cout << ((hasRedditOption) 
-		?  "\nReddit option selected: Only post/share this file-embedded JPG image on Reddit.\n\nComplete!\n\n"
-		:  "\nComplete!\n\n");	
+	if (hasRedditOption) {
+		std::cout << "\nReddit option selected: Only post/share this file-embedded JPG image on Reddit.\n";	
+	} 
+	if (hasBlueskyOption) {
+		std::cout << "\nBluesky option selected: Only post/share this file-embedded JPG image on Bluesky.\nMake sure to use the Python script \"bsky_post.py\" (found in the repo src folder) to post the image to Bluesky.\n";
+	} 	
+	std::cout << "\nComplete!\n\n";
 
 	return 0;
 }

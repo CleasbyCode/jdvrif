@@ -1,5 +1,6 @@
 enum class ArgOption {
 	Default,
+	Bluesky,
 	Reddit
 };
 
@@ -19,16 +20,20 @@ ProgramArgs ProgramArgs::parse(int argc, char** argv) {
 	}
 
 	if (argc < 3 || argc > 4) {
-        	throw std::runtime_error("Usage: jdvin [-r] <cover_image> <secret_file>\n\t\bjdvin --info");
+        	throw std::runtime_error("Usage: jdvin [-b|-r] <cover_image> <secret_file>\n\t\bjdvin --info");
     	}
 
     	uint8_t arg_index = 1;
 
     	if (argc == 4) {
-		if (std::string(argv[arg_index]) != "-r") {
-            		throw std::runtime_error("Input Error: Invalid arguments. Expecting \"-r\" as the only optional argument.");
+		if (std::string(argv[arg_index]) != "-b" && std::string(argv[arg_index]) != "-r") {
+            		throw std::runtime_error("Input Error: Invalid arguments. Expecting \"-b\" or \"-r\" as the only optional arguments.");
         	}
-        	args.platform = ArgOption::Reddit;
+		if (std::string(argv[arg_index]) == "-b") {
+        		args.platform = ArgOption::Bluesky;
+		} else {
+			args.platform = ArgOption::Reddit;
+		}
         	arg_index = 2;
     	}
 

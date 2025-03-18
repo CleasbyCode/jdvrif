@@ -17,7 +17,7 @@ bool hasValidImageExtension(const std::string& ext) {
     	return valid_extensions.count(ext) > 0;
 }
 
-void validateFiles(const std::string& image_file, const std::string& data_file, ArgOption platform) {
+void validateFiles(const std::string& image_file, const std::string& data_file, ArgOption platformOption) {
 	std::filesystem::path image_path(image_file), data_path(data_file);
 
     	std::string image_ext = image_path.extension().string();
@@ -41,18 +41,30 @@ void validateFiles(const std::string& image_file, const std::string& data_file, 
     	}
 
     	constexpr uintmax_t 
-		MAX_SIZE_DEFAULT = 2ULL * 1024 * 1024 * 1024,   
+		MAX_SIZE_DEFAULT = 2ULL * 1024 * 1024 * 1024,  
+		MAX_SIZE_BLUESKY = 1ULL * 1024 * 1024,
     		MAX_SIZE_REDDIT  = 20ULL * 1024 * 1024;         
-	
+
     	const uintmax_t COMBINED_FILE_SIZE = std::filesystem::file_size(data_path) + std::filesystem::file_size(image_path);
 	
     	if (std::filesystem::file_size(data_path) == 0) {
 		throw std::runtime_error("Data File Error: File is empty.");
     	}
 
-    	bool hasRedditOption = (platform == ArgOption::Reddit);
+    	bool 
+		hasDefaultOption = (platformOption == ArgOption::Default),
+		hasRedditOption = (platformOption == ArgOption::Reddit),
+		hasBlueskyOption = (platformOption == ArgOption::Bluesky);
 
-   	if ((hasRedditOption && COMBINED_FILE_SIZE > MAX_SIZE_REDDIT) || (!hasRedditOption && COMBINED_FILE_SIZE > MAX_SIZE_DEFAULT)) {
-   		throw std::runtime_error("File Size Error: Combined size of image and data file exceeds maximum size limit.");
+	if (hasBlueskyOption && COMBINED_FILE_SIZE > MAX_SIZE_BLUESKY) {
+		throw std::runtime_error("File Size Error: Combined size of image and data file exceeds maximum size limit for the Bluesky platform.");
+	}
+
+   	if (hasRedditOption && COMBINED_FILE_SIZE > MAX_SIZE_REDDIT) {
+   		throw std::runtime_error("File Size Error: Combined size of image and data file exceeds maximum size limit for the Reddit platform.");
    	}
+
+	if (hasDefaultOption && COMBINED_FILE_SIZE > MAX_SIZE_DEFAULT) {
+		throw std::runtime_error("File Size Error: Combined size of image and data file exceeds maximum size limit for this program.");
+	}
 }

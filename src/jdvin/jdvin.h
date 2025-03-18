@@ -14,11 +14,11 @@
 
 // This project uses libsodium (https://libsodium.org/) for cryptographic functions.
 #define SODIUM_STATIC
-#include <sodium.h>
+#include <C:\Users\Nickc\source\repos\jdvin\libsodium\include\sodium.h>
 // Copyright (c) 2013-2025 Frank Denis <github@pureftpd.org>
 
 // https://github.com/madler/zlib
-#include <zlib.h>
+#include <C:\Users\Nickc\source\zlib-1.3.1\zlib.h>
 // Copyright (C) 1995-2024 Jean-loup Gailly and Mark Adler
 
 #include "profilesVec.cpp"
@@ -41,7 +41,7 @@ uint32_t searchFunc(std::vector<uint8_t>&, uint32_t, const uint8_t, const std::a
 template <typename T>
 T getByteValue(const std::vector<uint8_t>&, uint32_t);
 
-uint64_t encryptFile(std::vector<uint8_t>&, std::vector<uint8_t>&, std::string&);
+uint64_t encryptFile(std::vector<uint8_t>&, std::vector<uint8_t>&, std::string&, bool);
 
 bool 
 	isCompressedFile(const std::string&),
