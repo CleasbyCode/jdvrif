@@ -60,16 +60,26 @@ To correctly download images from ***X/Twitter*** or ***Reddit***, click the ima
 https://github.com/user-attachments/assets/b54dd925-2c0b-4fbf-890e-4ea5cc197292
 
 To create "*file-embedded*" ***JPG*** images compatible for posting on ***Reddit***, use the ***-r*** option with ***jdvin***.  
-From the ***Reddit*** site, click "*Create Post*" then select "*Images & Video*" tab, to post your ***JPG*** image.
+From the ***Reddit*** site, click "*Create Post*" then select "*Images & Video*" tab, to post your ***JPG*** image.  
+
+To create "*file-embedded*" ***JPG*** images compatible for posting on ***Bluesky***, use the ***-b*** option with ***jdvin***.
+
+For ***Bluesky***, you are required to use the ***Python*** script "*bsky_post.py*" (found in the repo ***src*** folder), to post the image.
+It will not work if you post images via the ***Bluesky*** browser site or mobile app.
+
+Bluesky Script example:
+
+$ python3 bsky_post.py --handle exampleuser.bsky.social --password pxae-f17r-alp4-xqka --image jrif_11050.jpg --alt-text "text to describe image, here..." "standard text to appear in main post, here..."
+
+You will need to create an app password from your ***Bluesky*** account. (*https://bsky.app/settings/app-passwords*)
 
 To correctly download an image from ***Flickr***, click the download arrow near the bottom right-hand corner of the page and select ***Original*** for the size of image to download.
 
-With ***X/Twitter*** & ***Tumblr***, the small size limits (**~10KB** / **~64KB**) are measured by the ***data file size*** and not the combined image size.
-As the data file is compressed when embedded, you should be able to hide files larger than **10KB** or **64KB**.
-For example, a **50KB** workflow.json file compressed down to **6KB**, making it compatible with sharing on ***X/Twitter.*** 
+With ***X/Twitter,*** ***Bluesky,*** & ***Tumblr***, the small size limits are measured by the ***data file size*** and not the combined image + data file size.
+As the data file is compressed, you should be able to get significantly more than the default limit, especially for text documents and other file types that compress well.
 
-Also with ***Mastodon***, the size limit is measured by the ***data file size*** and not the combined image size.  
-For example, if your cover image is **1MB** you can still embed a data file up to the **~6MB** size limit.
+Also with ***Mastodon***, the size limit is measured by the ***data file size*** and not the combined image + data file size.  
+For example, if your cover image is **1MB** you can still embed a data file up to the **~6MB** ***Mastodon*** size limit.
 
 https://github.com/user-attachments/assets/cbae0361-bbb7-433c-a9a6-851c74940cd9
 
