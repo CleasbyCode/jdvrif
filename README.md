@@ -1,10 +1,10 @@
 # jdvrif
 
-Use CLI tools ***jdvin*** & ***jdvout*** with a JPG image, to hide/extract any file type, up to ***2GB** (cover image + data file).  
+Use CLI tools ***jdvin*** & ***jdvout*** with a JPG image, to hide/extract any file type, up to ***2GB**.  
 
-*Compatible hosting sites, ***listed below***, have their own ***much smaller*** image size limits:
+*Compatible hosting sites, ***listed below***, have their own ***much smaller*** embedded data size limits:  
 * ***Flickr*** (**200MB**), ***ImgPile*** (**100MB**), ***ImgBB*** (**32MB**), ***PostImage*** (**32MB**), ***Reddit*** (**20MB** / ***-r option***),
-* Limit measured by data file size: ***Mastodon*** (**~6MB**), ***Bluesky*** (**~64KB** / ***-b option***), ***Tumblr*** (**~64KB**), ***Twitter*** (**~10KB**).
+* ***Mastodon*** (**~6MB**), ***Bluesky*** (**~64KB** / ***-b option***), ***Tumblr*** (**~64KB**), ***Twitter*** (**~10KB**).
   
 *There are many other image hosting sites on the web that may also be compatible.*  
 
