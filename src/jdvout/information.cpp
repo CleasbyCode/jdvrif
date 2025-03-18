@@ -1,7 +1,7 @@
 void displayInfo() {
 	std::cout << R"(
 
-JPG Data Vehicle (jdvout v3.4). 
+JPG Data Vehicle (jdvout v3.5). 
 Created by Nicholas Cleasby (@CleasbyCode) 24/01/2023.
 
 jdvout is a CLI tool for extracting hidden data from a jdvin "file-embedded" JPG image. 

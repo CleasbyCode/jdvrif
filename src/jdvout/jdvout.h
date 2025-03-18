@@ -14,18 +14,18 @@
 
 // This project uses libsodium (https://libsodium.org/) for cryptographic functions.
 #define SODIUM_STATIC
-#include <sodium.h>
+#include <C:\Users\Nickc\source\repos\jdvout\libsodium\include\sodium.h>
 // Copyright (c) 2013-2025 Frank Denis <github@pureftpd.org>
 
 // https://github.com/madler/zlib
-#include <zlib.h>
+#include <C:\Users\Nickc\source\zlib-1.3.1\zlib.h>
 // Copyright (C) 1995-2024 Jean-loup Gailly and Mark Adler
 
 #ifdef _WIN32
-#include <conio.h>
+	#include <conio.h>
 #else
-#include <termios.h>
-#include <unistd.h>
+	#include <termios.h>
+	#include <unistd.h>
 #endif
 
 #include "getPin.cpp"
@@ -39,7 +39,7 @@
 #include "inflateFile.cpp"
 #include "jdvout.cpp"
 
-const std::string decryptFile(std::vector<uint8_t>&);
+const std::string decryptFile(std::vector<uint8_t>&, bool);
 
 template <typename T, size_t N>
 uint32_t searchFunc(std::vector<uint8_t>&, uint32_t, const uint8_t, const std::array<T, N>&);

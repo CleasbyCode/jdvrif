@@ -1,9 +1,9 @@
 // This project uses libsodium (https://libsodium.org/) for cryptographic functions.
 // Copyright (c) 2013-2025 Frank Denis <github@pureftpd.org>
-const std::string decryptFile(std::vector<uint8_t>& image_vec) {	
-	constexpr uint16_t 
-		SODIUM_KEY_INDEX = 0x31B,
-		NONCE_KEY_INDEX = 0x33B;
+const std::string decryptFile(std::vector<uint8_t>& image_vec, bool hasBlueskyOption) {	
+	const uint16_t 
+		SODIUM_KEY_INDEX = hasBlueskyOption ? 0x18D : 0x31B,
+		NONCE_KEY_INDEX =  hasBlueskyOption ? 0x1AD : 0x33B;
 
 	uint16_t 
 		sodium_key_pos = SODIUM_KEY_INDEX,
@@ -34,15 +34,13 @@ const std::string decryptFile(std::vector<uint8_t>& image_vec) {
 	std::array<uint8_t, crypto_secretbox_NONCEBYTES> nonce;
 
 	std::copy(image_vec.begin() + SODIUM_KEY_INDEX, image_vec.begin() + SODIUM_KEY_INDEX + crypto_secretbox_KEYBYTES, key.data());
-
 	std::copy(image_vec.begin() + NONCE_KEY_INDEX, image_vec.begin() + NONCE_KEY_INDEX + crypto_secretbox_NONCEBYTES, nonce.data());
 
-	// decrypt filename start
 	std::string decrypted_filename;
 
-	constexpr uint16_t ENCRYPTED_FILENAME_INDEX = 0x1C5;
+	const uint16_t ENCRYPTED_FILENAME_INDEX = hasBlueskyOption ? 0x161 : 0x1C5;
 
-	uint16_t filename_xor_key_pos = 0x2CB;
+	uint16_t filename_xor_key_pos = hasBlueskyOption ? 0x175 : 0x2CB;
 	
 	uint8_t
 		encrypted_filename_length = image_vec[ENCRYPTED_FILENAME_INDEX - 1],
@@ -54,10 +52,10 @@ const std::string decryptFile(std::vector<uint8_t>& image_vec) {
 		decrypted_filename += ENCRYPTED_FILENAME[filename_char_pos++] ^ image_vec[filename_xor_key_pos++];
 	}
 
-	constexpr uint16_t 
-		ENCRYPTED_FILE_START_INDEX 	= 0x35B,
-		FILE_SIZE_INDEX 		= 0x1D9,
-		PROFILE_COUNT_VALUE_INDEX 	= 0x1DD;
+	const uint16_t 
+		ENCRYPTED_FILE_START_INDEX 	= hasBlueskyOption ? 0x1D1 : 0x35B,
+		FILE_SIZE_INDEX 		= hasBlueskyOption ? 0x1CD : 0x1D9,
+		PROFILE_COUNT_VALUE_INDEX 	= hasBlueskyOption ? 0x110  : 0x1DD;
 
 	const uint32_t EMBEDDED_FILE_SIZE = getByteValue<uint32_t>(image_vec, FILE_SIZE_INDEX);
 

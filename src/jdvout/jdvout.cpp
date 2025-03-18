@@ -32,15 +32,20 @@ int jdvOut(const std::string& IMAGE_FILENAME) {
 	
 	uint8_t extract_success_byte_val = image_vec[JDV_SIG_INDEX + INDEX_DIFF - 1];
 
-	image_vec.erase(image_vec.begin(), image_vec.begin() + (PROFILE_SIG_INDEX - INDEX_DIFF));
+	bool hasBlueskyOption = true;
 
-	constexpr uint32_t LARGE_FILE_SIZE = 400 * 1024 * 1024;  
+	if (PROFILE_SIG_INDEX != image_vec.size()) {
+		image_vec.erase(image_vec.begin(), image_vec.begin() + (PROFILE_SIG_INDEX - INDEX_DIFF));
+		hasBlueskyOption = false;
+	}
+
+	constexpr uint32_t LARGE_FILE_SIZE = 400 * 1024 * 1024;
 
 	if (IMAGE_FILE_SIZE > LARGE_FILE_SIZE) {
 		std::cout << "\nPlease wait. Larger files will take longer to complete this process.\n";
 	}
 
-	const std::string DECRYPTED_FILENAME = decryptFile(image_vec);	
+	const std::string DECRYPTED_FILENAME = decryptFile(image_vec, hasBlueskyOption);	
 	
 	const uint32_t INFLATED_FILE_SIZE = inflateFile(image_vec);
 
