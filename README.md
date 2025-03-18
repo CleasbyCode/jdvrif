@@ -67,9 +67,9 @@ To create "*file-embedded*" ***JPG*** images compatible for posting on ***Bluesk
 For ***Bluesky***, you are required to use the ***Python*** script "*bsky_post.py*" (found in the repo ***src*** folder), to post the image.
 It will not work if you post images via the ***Bluesky*** browser site or mobile app.
 
-Bluesky Script example:
+Bluesky script example:
 
-$ python3 bsky_post.py --handle exampleuser.bsky.social --password pxae-f17r-alp4-xqka --image jrif_11050.jpg --alt-text "text to describe image, here..." "standard text to appear in main post, here..."
+$ python3 bsky_post.py --handle exampleuser.bsky.social --password pxae-f17r-alp4-xqka --image jrif_11050.jpg --alt-text "*text to describe image, here...*" "*standard text to appear in main post, here...*"
 
 You will need to create an app password from your ***Bluesky*** account. (*https://bsky.app/settings/app-passwords*)
 
