@@ -25,7 +25,7 @@ user1@linuxbox:~/Downloads/jdvrif-main/src/jdvin$ sudo cp jdvin /usr/bin
 
 user1@linuxbox:~/Desktop$ jdvin 
 
-Usage: jdvin [-r] <cover_image> <secret_file>  
+Usage: jdvin [-b|-r] <cover_image> <secret_file>  
        jdvin --info
 
 user1@linuxbox:~/Desktop$ jdvin Cover_Image.jpg Hidden_File.zip
