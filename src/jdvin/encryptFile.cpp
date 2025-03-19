@@ -77,7 +77,7 @@ uint64_t encryptFile(std::vector<uint8_t>& profile_vec, std::vector<uint8_t>& da
     		profile_vec[sodium_key_pos] = profile_vec[sodium_key_pos] ^ profile_vec[sodium_xor_key_pos++];
 		sodium_key_pos++;
     		sodium_xor_key_pos = (sodium_xor_key_pos >= SODIUM_XOR_KEY_LENGTH + SODIUM_KEY_INDEX) 
-                         ? SODIUM_KEY_INDEX // Reset PIN position once we hit PIN length.
+                         ? SODIUM_KEY_INDEX 
                          : sodium_xor_key_pos;
 	}
 	
