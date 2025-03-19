@@ -73,7 +73,7 @@ $ python3 bsky_post.py --handle exampleuser.bsky.social --password pxae-f17r-alp
 
 You will need to create an app password from your ***Bluesky*** account. (*https://bsky.app/settings/app-passwords*)
 
-https://github.com/user-attachments/assets/6ea23dc3-b45c-48a6-a2d3-b4fc38139bbb
+https://github.com/user-attachments/assets/dcc7c31d-4bec-4741-81e5-3b70fd6c29f5
 
 To correctly download an image from ***Flickr***, click the download arrow near the bottom right-hand corner of the page and select ***Original*** for the size of image to download.
 
