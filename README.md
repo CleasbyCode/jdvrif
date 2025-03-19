@@ -75,6 +75,8 @@ You will need to create an app password from your ***Bluesky*** account. (*https
 
 https://github.com/user-attachments/assets/dcc7c31d-4bec-4741-81e5-3b70fd6c29f5
 
+https://github.com/user-attachments/assets/41ee5e7f-7ae0-4f55-93ba-ba2dc9a027ab
+
 To correctly download an image from ***Flickr***, click the download arrow near the bottom right-hand corner of the page and select ***Original*** for the size of image to download.
 
 With ***X/Twitter,*** ***Bluesky,*** & ***Tumblr***, the small size limits are measured by the ***data file size*** and not the combined image + data file size.
