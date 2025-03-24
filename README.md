@@ -77,8 +77,6 @@ https://github.com/user-attachments/assets/dcc7c31d-4bec-4741-81e5-3b70fd6c29f5
 
 https://github.com/user-attachments/assets/41ee5e7f-7ae0-4f55-93ba-ba2dc9a027ab
 
-To correctly download an image from ***Flickr***, click the download arrow near the bottom right-hand corner of the page and select ***Original*** for the size of image to download.
-
 With ***X/Twitter,*** ***Bluesky,*** & ***Tumblr***, the small size limits are measured by the ***data file size*** and not the combined image + data file size.
 As the embedded data file is compressed with ***jdvin*** using ***zlib/deflate*** (*if not already a compressed file type*), you should be able to get significantly more than the default size limit, especially for text documents and other file types that compress well. You may wish to compress the data file yourself (***zip, rar, 7z***, etc) before embedding it with ***jdvin***, so as to know exactly what the compressed file size will be.
 
@@ -87,7 +85,9 @@ For example, if your cover image is **1MB** you can still embed a data file up t
 
 https://github.com/user-attachments/assets/cbae0361-bbb7-433c-a9a6-851c74940cd9
 
-https://github.com/user-attachments/assets/7e243233-ae8d-4220-9dfd-eff6d28b8f2b
+https://github.com/user-attachments/assets/7e243233-ae8d-4220-9dfd-eff6d28b8f2b  
+
+To correctly download an image from ***Flickr***, click the download arrow near the bottom right-hand corner of the page and select ***Original*** for the size of image to download.
 
 https://github.com/user-attachments/assets/e284979c-9c73-487e-bd2a-57504e897257
 
