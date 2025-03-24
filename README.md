@@ -11,7 +11,7 @@ Use CLI tools ***jdvin*** & ***jdvout*** with a JPG image, to hide/extract any f
 ![Demo Image](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/jrif_70001.jpg)  
 ***Image credit:*** [***@unpaidactor1***](https://x.com/unpaidactor1) / ***PIN: 7505403832509957594***
 
-For extra security, your data file is also compressed (*zlib*) and encrypted using the ***libsodium*** crypto library. 
+For increased storage capacity and better security, your embedded data file is compressed with ***zlib/deflate*** (*if not already a compressed file type*) and encrypted using the ***libsodium*** crypto library. 
 
 *You can try the [***jdvrif Web App, here,***](https://cleasbycode.co.uk/jdvrif/index/) if you don't want to download and compile the CLI source code.*
 
@@ -80,7 +80,7 @@ https://github.com/user-attachments/assets/41ee5e7f-7ae0-4f55-93ba-ba2dc9a027ab
 To correctly download an image from ***Flickr***, click the download arrow near the bottom right-hand corner of the page and select ***Original*** for the size of image to download.
 
 With ***X/Twitter,*** ***Bluesky,*** & ***Tumblr***, the small size limits are measured by the ***data file size*** and not the combined image + data file size.
-As the data file is compressed, you should be able to get significantly more than the default limit, especially for text documents and other file types that compress well.
+As the embedded data file is compressed with ***jdvin*** using ***zlib/deflate*** (*if not already a compressed file type*), you should be able to get significantly more than the default size limit, especially for text documents and other file types that compress well. You may wish to compress the data file yourself (***zip, rar, 7z***, etc) before embedding it with ***jdvin***, so as to know exactly what the compressed file size will be.
 
 Also with ***Mastodon***, the size limit is measured by the ***data file size*** and not the combined image + data file size.  
 For example, if your cover image is **1MB** you can still embed a data file up to the **~6MB** ***Mastodon*** size limit.
