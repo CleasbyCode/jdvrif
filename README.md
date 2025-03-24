@@ -6,7 +6,7 @@ Use CLI tools ***jdvin*** & ***jdvout*** with a JPG image, to hide/extract any f
 * ***Flickr*** (**200MB**), ***ImgPile*** (**100MB**), ***ImgBB*** (**32MB**), ***PostImage*** (**32MB**), ***Reddit*** (**20MB** / ***-r option***),
 * ***Mastodon*** (**~6MB**), ***Bluesky*** (**~64KB** / ***-b option***), ***Tumblr*** (**~64KB**), ***Twitter*** (**~10KB**).
   
-***jdvrif*** partly derives from the ***[technique demonstrated](https://www.vice.com/en/article/bj4wxm/tiny-picture-twitter-complete-works-of-shakespeare-steganography)*** by security researcher ***[David Buchanan](https://www.da.vidbuchanan.co.uk/).*** 
+***jdvrif*** partly derives from the ***[technique implemented](https://www.vice.com/en/article/bj4wxm/tiny-picture-twitter-complete-works-of-shakespeare-steganography)*** by security researcher ***[David Buchanan](https://www.da.vidbuchanan.co.uk/).*** 
 
 ![Demo Image](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/jrif_70001.jpg)  
 ***Image credit:*** [***@unpaidactor1***](https://x.com/unpaidactor1) / ***PIN: 7505403832509957594***
