@@ -12,7 +12,7 @@ Use CLI tools ***jdvin*** & ***jdvout*** with a JPG cover image to hide or extra
 
 **Other:*  
 ● ***Bluesky*** (***Image:*** **800KB** | ***Compressed data file:*** **~106KB** | ***-b option***).  
-*Use the ***bsky_post.py*** script, found within the ***src folder*** of this repo, to upload & post images to ***Bluesky***.*
+*Use the "***bsky_post.py***" script, found within the ***src folder*** of this repo, to upload & post images to ***Bluesky***.*
   
 ***jdvrif*** partly derives from the ***[technique implemented](https://www.vice.com/en/article/bj4wxm/tiny-picture-twitter-complete-works-of-shakespeare-steganography)*** by security researcher ***[David Buchanan](https://www.da.vidbuchanan.co.uk/).*** 
 
