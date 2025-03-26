@@ -2,7 +2,7 @@
 
 Use CLI tools ***jdvin*** & ***jdvout*** with a JPG cover image to hide/extract any file type, up to ***2GB**.  
 
-*Compatible hosting sites, ***listed below***, have their own ***much smaller*** image + data size ***limits*** and *other requirements.  
+*Compatible hosting sites, ***listed below***, have their own ***much smaller*** size ***limits*** and *other requirements.  
 
 *Limit measured by the combined size of the cover image + compressed data file:*  
 ***__Flickr*** (**200MB**), ***ImgPile*** (**100MB**), ***ImgBB*** (**32MB**), ***PostImage*** (**32MB**), ***Reddit*** (**20MB** | ***-r option***).  
