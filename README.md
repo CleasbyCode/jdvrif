@@ -1,6 +1,6 @@
 # jdvrif
 
-Use CLI tools ***jdvin*** & ***jdvout*** with a JPG cover image to hide/extract any file type, up to ***2GB**.  
+Use CLI tools ***jdvin*** & ***jdvout*** with a JPG cover image to hide or extract any file type, up to ***2GB**.  
 
 *Compatible hosting sites, ***listed below***, have their own ***much smaller*** size ***limits*** and *other requirements.  
 
