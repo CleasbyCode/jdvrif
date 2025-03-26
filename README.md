@@ -8,9 +8,11 @@ Use CLI tools ***jdvin*** & ***jdvout*** with a JPG image, to hide/extract any f
 ***__Flickr*** (**200MB**), ***ImgPile*** (**100MB**), ***ImgBB*** (**32MB**), ***PostImage*** (**32MB**), ***Reddit*** (**20MB** | ***-r option***).  
 
 *Limit measured by just the compressed data file size:*  
-***__Mastodon*** (**~6MB**), ***Tumblr*** (**~64KB**), ***Twitter*** (**~10KB**)  
+***__Mastodon*** (**~6MB**), ***Tumblr*** (**~64KB**), ***Twitter*** (**~10KB**).  
+
 *Other:*  
-***__Bluesky*** (***Image:*** **800KB** | ***Compressed data file:*** **~106KB** | ***-b option***). ***Use the *bsky_post.py* script (found within the src folder of this repo) to upload & post image to Bluesky.***
+***__Bluesky*** (***Image:*** **800KB** | ***Compressed data file:*** **~106KB** | ***-b option***).  
+*Use the ***bsky_post.py*** script (found within the ***src folder*** of this repo) to upload & post image to ***Bluesky***.*
   
 ***jdvrif*** partly derives from the ***[technique implemented](https://www.vice.com/en/article/bj4wxm/tiny-picture-twitter-complete-works-of-shakespeare-steganography)*** by security researcher ***[David Buchanan](https://www.da.vidbuchanan.co.uk/).*** 
 
