@@ -6,6 +6,7 @@ Use CLI tools ***jdvin*** & ***jdvout*** with a JPG image, to hide/extract any f
 
 *Limit measured by the combined size of the cover image + compressed data file:*  
 ***__Flickr*** (**200MB**), ***ImgPile*** (**100MB**), ***ImgBB*** (**32MB**), ***PostImage*** (**32MB**), ***Reddit*** (**20MB** | ***-r option***).  
+
 *Limit measured by just the compressed data file size:*  
 ***__Mastodon*** (**~6MB**), ***Tumblr*** (**~64KB**), ***Twitter*** (**~10KB**)  
 *Other:*  
