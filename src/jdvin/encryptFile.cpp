@@ -52,7 +52,6 @@ uint64_t encryptFile(std::vector<uint8_t>& segment_vec, std::vector<uint8_t>& da
 		constexpr uint16_t EXIF_DATA_SIZE_LIMIT = 0xFE03; // + With EXIF overhead segment data (0x1FF) - 4 bytes we don't count (FFD8 FFE1) = Max. segment size 0xFFFE.
 								  // Can't have 0xFFFF as Bluesky will strip the EXIF segment.
 		uint32_t 
-			index_pos = 0,
 			encrypted_vec_size = static_cast<uint32_t>(encrypted_vec.size()),
 			compressed_file_size_index = 0x1CD;
 
