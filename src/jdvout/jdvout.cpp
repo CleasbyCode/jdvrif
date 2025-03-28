@@ -44,20 +44,18 @@ int jdvOut(const std::string& IMAGE_FILENAME) {
 
 		if (XMP_SIG_INDEX != image_vec.size()) { // Found XMP segment...
 			constexpr std::array<uint8_t, 6> XMP_CREATOR_SIG { 0x72, 0x64, 0x66, 0x3A, 0x6C, 0x69 };
-			const uint32_t XMP_CREATOR_SIG_INDEX = searchFunc(image_vec, XMP_SIG_INDEX, 0, XMP_CREATOR_SIG);
+			const uint32_t 
+				XMP_CREATOR_SIG_INDEX = searchFunc(image_vec, XMP_SIG_INDEX, 0, XMP_CREATOR_SIG),
+				BEGIN_BASE64_DATA_INDEX = XMP_CREATOR_SIG_INDEX + 7;
+			
+			constexpr std::array<uint8_t, 1> END_BASE64_DATA_SIG { 0x3C };
+			const uint32_t 
+				END_BASE64_DATA_SIG_INDEX = searchFunc(image_vec, BEGIN_BASE64_DATA_INDEX, 0, END_BASE64_DATA_SIG),
+				BASE64_DATA_SIZE = END_BASE64_DATA_SIG_INDEX - BEGIN_BASE64_DATA_INDEX;
 
-			uint32_t xmp_creator_data_index = XMP_CREATOR_SIG_INDEX + 7;
+			std::vector<uint8_t> base64_data_vec(BASE64_DATA_SIZE);
+			std::copy_n(image_vec.begin() + BEGIN_BASE64_DATA_INDEX, BASE64_DATA_SIZE, base64_data_vec.begin());
 
-			constexpr uint8_t END_OF_BASE64_DATA_ID = 0x3C;
-
-			std::vector<uint8_t> base64_data_vec;
-			base64_data_vec.reserve(XMP_SIG_INDEX);		
-
-			// Read in and store the Base64 data found within the xmp_creator tag segment.
-			while (image_vec[xmp_creator_data_index] != END_OF_BASE64_DATA_ID) {
-				base64_data_vec.emplace_back(image_vec[xmp_creator_data_index++]);
-			}
-		
 			// Convert back to binary...
 			convertFromBase64(base64_data_vec);
 
