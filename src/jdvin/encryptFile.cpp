@@ -79,7 +79,6 @@ uint64_t encryptFile(std::vector<uint8_t>& segment_vec, std::vector<uint8_t>& da
 
 			// Store the remaining part of the file (as Base64) within the XMP segment.
 			bluesky_xmp_vec.insert(bluesky_xmp_vec.begin() + XMP_DATA_INSERT_INDEX, tmp_xmp_vec.begin(), tmp_xmp_vec.end());	
-
 		} else { // Data file was small enough to fit within the EXIF segment, XMP segment not required.
 			segment_vec.insert(segment_vec.begin() + EXIF_DATA_INSERT_INDEX, encrypted_vec.begin(), encrypted_vec.end());
 		}
