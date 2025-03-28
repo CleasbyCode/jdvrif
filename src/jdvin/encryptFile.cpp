@@ -60,32 +60,24 @@ uint64_t encryptFile(std::vector<uint8_t>& segment_vec, std::vector<uint8_t>& da
 		valueUpdater(segment_vec, compressed_file_size_index, encrypted_vec.size(), value_bit_length);
 
 		// Split the data file if it exceeds the max compressed EXIF capacity of ~64KB. 
-		// We can then use the second segment (XMP) for the excess data.
+		// We can then use the second segment (XMP) for the remaining data.
 
 		if (encrypted_vec_size > EXIF_DATA_SIZE_LIMIT) {
-			std::vector<uint8_t> tmp_exif_vec;
-			tmp_exif_vec.reserve(encrypted_vec_size);
+			// Insert the maximum data limit within the EXIF segment.
+			segment_vec.insert(segment_vec.begin() + EXIF_DATA_INSERT_INDEX, encrypted_vec.begin(), encrypted_vec.begin() + EXIF_DATA_SIZE_LIMIT);
 
-			std::vector<uint8_t> tmp_xmp_vec;
-			tmp_xmp_vec.reserve(encrypted_vec_size);	
-	
-			while (encrypted_vec_size > index_pos) {
-				if (EXIF_DATA_SIZE_LIMIT > index_pos) {
-					tmp_exif_vec.emplace_back(encrypted_vec[index_pos++]);
-				} else {
-					tmp_xmp_vec.emplace_back(encrypted_vec[index_pos++]);
-				}
-			}
-		
-			// Store the first part of the file (as binary) within the EXIF segment 
-			segment_vec.insert(segment_vec.begin() + EXIF_DATA_INSERT_INDEX, tmp_exif_vec.begin(), tmp_exif_vec.end());
+			size_t remaining_size = encrypted_vec.size() - EXIF_DATA_SIZE_LIMIT;
+			
+			std::vector<uint8_t> tmp_xmp_vec(remaining_size);
+			
+			std::copy_n(encrypted_vec.begin() + EXIF_DATA_SIZE_LIMIT, remaining_size, tmp_xmp_vec.begin());
 			
 			// We can only store Base64 encoded data in the XMP segment, so convert the binary data here.
 			convertToBase64(tmp_xmp_vec);
 			
 			constexpr uint16_t XMP_DATA_INSERT_INDEX = 0x139;
 
-			// Store the second part of the file (as Base64) within the XMP segment.
+			// Store the remaining part of the file (as Base64) within the XMP segment.
 			bluesky_xmp_vec.insert(bluesky_xmp_vec.begin() + XMP_DATA_INSERT_INDEX, tmp_xmp_vec.begin(), tmp_xmp_vec.end());	
 
 		} else { // Data file was small enough to fit within the EXIF segment, XMP segment not required.
