@@ -78,45 +78,33 @@ int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, ArgOpti
 
 	bool shouldDisplayMastodonWarning = false; 
 
-	if (hasBlueskyOption) {
-		
+	if (hasBlueskyOption) {	
 		// We can store binary data within the first (EXIF) segment, with a max compressed storage capacity close to ~64KB. See encryptFile.cpp
-
 		constexpr uint8_t IDENTITY_BYTES_VAL = 4; // FFD8, FFE1
-		uint32_t segment_size = static_cast<uint32_t>(segment_vec.size() - IDENTITY_BYTES_VAL); 
+		uint32_t exif_segment_size = static_cast<uint32_t>(segment_vec.size() - IDENTITY_BYTES_VAL); 
 
-		uint8_t 
-			segment_size_field_index = 0x04,  
-			value_bit_length = 16;
-
-		valueUpdater(segment_vec, segment_size_field_index, segment_size, value_bit_length);
-
-		uint8_t		
+		uint8_t	
+			value_bit_length = 16,
+			exif_segment_size_field_index = 0x04,  
 			exif_segment_xres_offset_field_index = 0x2A,
-			exif_segment_xres_offset_size_diff = 0x36, 
-
-			exif_segment_yres_offset_field_index = 0x36,
-			exif_segment_yres_offset_size_diff = 0x2E, 
-
+			exif_segment_yres_offset_field_index = 0x36, 
 			exif_segment_artist_size_field_index = 0x4A,
-			exif_segment_size_diff = 0x90, 
+			exif_segment_subifd_offset_field_index = 0x5A;
+		
+		uint16_t 
+			exif_xres_offset = exif_segment_size - 0x36,
+			exif_yres_offset = exif_segment_size - 0x2E,
+			exif_subifd_offset = exif_segment_size - 0x26,
+			exif_artist_size = (exif_segment_size - 0x90) + IDENTITY_BYTES_VAL;
 
-			exif_segment_subifd_offset_index = 0x5A,
-			exif_segment_subifd_offset_size_diff = 0x26; 
-
+		valueUpdater(segment_vec, exif_segment_size_field_index, exif_segment_size, value_bit_length);
+		
 		value_bit_length = 32;
 
-		uint32_t exif_xres_offset = segment_size - exif_segment_xres_offset_size_diff;
 		valueUpdater(segment_vec, exif_segment_xres_offset_field_index, exif_xres_offset, value_bit_length);
-
-		uint32_t exif_yres_offset = segment_size - exif_segment_yres_offset_size_diff;
 		valueUpdater(segment_vec, exif_segment_yres_offset_field_index, exif_yres_offset, value_bit_length);
-
-		uint32_t exif_artist_size = (segment_size - exif_segment_size_diff) + IDENTITY_BYTES_VAL; 
 		valueUpdater(segment_vec, exif_segment_artist_size_field_index, exif_artist_size, value_bit_length); 
-
-		uint32_t exif_subifd_offset = segment_size - exif_segment_subifd_offset_size_diff;
-		valueUpdater(segment_vec, exif_segment_subifd_offset_index, exif_subifd_offset, value_bit_length);
+		valueUpdater(segment_vec, exif_segment_subifd_offset_field_index, exif_subifd_offset, value_bit_length);
 
 		constexpr uint16_t BLUESKY_XMP_VEC_DEFAULT_SIZE = 0x195;  // XMP segment size without user data.
 	
@@ -131,12 +119,11 @@ int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, ArgOpti
 			}
 			constexpr uint8_t segment_sig_bytes = 2; // FFE1
 
-			segment_size_field_index = 0x02,
+			exif_segment_size_field_index = 0x02,
 			value_bit_length = 16;
-			valueUpdater(bluesky_xmp_vec, segment_size_field_index, bluesky_xmp_vec.size() - segment_sig_bytes, value_bit_length);
+			valueUpdater(bluesky_xmp_vec, exif_segment_size_field_index, bluesky_xmp_vec.size() - segment_sig_bytes, value_bit_length);
 			segment_vec.insert(segment_vec.end(), bluesky_xmp_vec.begin(), bluesky_xmp_vec.end());
 		}
-
 	} else {
 		shouldDisplayMastodonWarning = splitDataFile(segment_vec, data_file_vec); // For the default color profile segment, we may need to split data file in to multiple segments.
 	}
