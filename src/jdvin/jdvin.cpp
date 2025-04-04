@@ -119,8 +119,6 @@ int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, ArgOpti
 	} else {
 		splitDataFile(segment_vec, data_file_vec, shouldDisplayMastodonWarning); // Default segment_vec uses color profile segment (FFE2). Use multiple segments for larger files.
 	}
-
-	constexpr uint8_t PROFILE_HEADER_LENGTH = 18;
 	
 	image_vec.reserve(IMAGE_FILE_SIZE + hasBlueskyOption ? segment_vec.size() : data_file_vec.size());	
 
