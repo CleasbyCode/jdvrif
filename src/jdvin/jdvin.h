@@ -14,11 +14,11 @@
 
 // This project uses libsodium (https://libsodium.org/) for cryptographic functions.
 #define SODIUM_STATIC
-#include <sodium.h>
+#include <C:\Users\Nickc\source\repos\jdvin\libsodium\include\sodium.h>
 // Copyright (c) 2013-2025 Frank Denis <github@pureftpd.org>
 
 // https://github.com/madler/zlib
-#include <zlib.h>
+#include <C:\Users\Nickc\source\zlib-1.3.1\zlib.h>
 // Copyright (C) 1995-2024 Jean-loup Gailly and Mark Adler
 
 #include "segmentsVec.cpp"
@@ -47,8 +47,7 @@ uint64_t encryptFile(std::vector<uint8_t>&, std::vector<uint8_t>&, std::string&,
 bool 
 	isCompressedFile(const std::string&),
 	hasValidFilename(const std::string&),
-	writeFile(std::vector<uint8_t>&),
-	splitDataFile(std::vector<uint8_t>&, std::vector<uint8_t>&);
+	writeFile(std::vector<uint8_t>&);
 
 void
 	validateFiles(const std::string&, const std::string&, ArgOption),
@@ -56,6 +55,7 @@ void
 	eraseSegments(std::vector<uint8_t>&),
 	deflateFile(std::vector<uint8_t>&, bool),
 	valueUpdater(std::vector<uint8_t>&, uint32_t, const uint64_t, uint8_t),
+	splitDataFile(std::vector<uint8_t>&, std::vector<uint8_t>&, bool&),
 	displayInfo();
 
 int jdvIn(const std::string&, std::string&, ArgOption, bool);

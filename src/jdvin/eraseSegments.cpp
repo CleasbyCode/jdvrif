@@ -1,8 +1,8 @@
 // Remove pre-existing EXIF and/or Color Profile segments from user's cover image.
 void eraseSegments(std::vector<uint8_t>&vec) {
 	constexpr std::array<uint8_t, 2>
-		APP1_SIG { 0xFF, 0xE1 },
-		APP2_SIG { 0xFF, 0xE2 };
+		APP1_SIG { 0xFF, 0xE1 }, // EXIF SEGMENT MARKER.
+		APP2_SIG { 0xFF, 0xE2 }; // ICC COLOR PROFILE SEGMENT MARKER.
 
 	constexpr std::array<uint8_t, 4>
 		DQT1_SIG { 0xFF, 0xDB, 0x00, 0x43 },

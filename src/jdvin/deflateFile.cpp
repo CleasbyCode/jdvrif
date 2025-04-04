@@ -23,10 +23,13 @@
   jloup@gzip.org          madler@alumni.caltech.edu
 */
 void deflateFile(std::vector<uint8_t>& vec, bool isCompressedFile) {		
-	constexpr uint32_t
-		BUFSIZE = 2 * 1024 * 1024, 	
-		LARGE_FILE_SIZE	  = 500 * 1024 * 1024,  
-		MEDIUM_FILE_SIZE  = 200 * 1024 * 1024; 
+	constexpr uint32_t 	
+		FIFTH_SIZE_OPTION 	= 800 * 1024 * 1024,
+		FOURTH_SIZE_OPTION	= 450 * 1024 * 1024,  
+		THIRD_SIZE_OPTION	= 200 * 1024 * 1024,
+		SECOND_SIZE_OPTION   	= 100 * 1024 * 1024,
+		FIRST_SIZE_OPTION	= 5 * 1024 * 1024,
+		BUFSIZE 	  	= 2 * 1024 * 1024;
 
 	const uint32_t VEC_SIZE = static_cast<uint32_t>(vec.size());
 
@@ -45,14 +48,18 @@ void deflateFile(std::vector<uint8_t>& vec, bool isCompressedFile) {
 
 	int8_t compression_level = Z_DEFAULT_COMPRESSION;
 
-	if (isCompressedFile) {
-	    compression_level = Z_NO_COMPRESSION;
-	} else if (VEC_SIZE > LARGE_FILE_SIZE) {
-	    compression_level = Z_BEST_SPEED;
-	} else if (VEC_SIZE > MEDIUM_FILE_SIZE) {
-	    compression_level = Z_DEFAULT_COMPRESSION;
+	if (FIRST_SIZE_OPTION > VEC_SIZE && isCompressedFile) {
+		compression_level = Z_NO_COMPRESSION;
+	} else if (SECOND_SIZE_OPTION > VEC_SIZE && isCompressedFile) {
+		compression_level = Z_BEST_SPEED;
+	} else if (isCompressedFile || VEC_SIZE > FIFTH_SIZE_OPTION ) {
+		compression_level = Z_NO_COMPRESSION;
+	} else if (VEC_SIZE > FOURTH_SIZE_OPTION) {
+	    	compression_level = Z_BEST_SPEED;
+	} else if (VEC_SIZE > THIRD_SIZE_OPTION) {
+	    	compression_level = Z_DEFAULT_COMPRESSION;
 	} else {
-	    compression_level = Z_BEST_COMPRESSION;
+	    	compression_level = Z_BEST_COMPRESSION;
 	}
 
 	deflateInit(&strm, compression_level);

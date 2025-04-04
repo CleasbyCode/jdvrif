@@ -1,7 +1,7 @@
 bool isCompressedFile(const std::string& extension) {
 	static const std::set<std::string> compressed_extensions = {
 		".zip", ".jar", ".rar", ".7z", ".bz2", ".gz", ".xz", ".tar",
-        	".lz", ".lz4", ".cab", ".rpm", ".deb", ".mp4", ".mp3",
+        	".lz", ".lz4", ".cab", ".rpm", ".deb", ".mp4", ".mp3", ".exe",
         	".jpg", ".jpeg", ".jfif", ".png", ".webp", ".bmp", ".gif", ".ogg", ".flac"
 	};
 	return compressed_extensions.count(extension) > 0;

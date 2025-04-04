@@ -5,14 +5,14 @@ uint64_t encryptFile(std::vector<uint8_t>& segment_vec, std::vector<uint8_t>& da
  	std::mt19937 gen(rd());
 	std::uniform_int_distribution<unsigned short> dis(1, 255); 
 		
-	uint16_t DATA_FILENAME_XOR_KEY_INDEX = hasBlueskyOption ? 0x175 : 0x2F5;
+	uint16_t DATA_FILENAME_XOR_KEY_INDEX = hasBlueskyOption ? 0x175 : 0x2FB;
 		
 	uint16_t 
-		data_filename_index = hasBlueskyOption ? 0x161: 0x1EF,  	
+		data_filename_index = hasBlueskyOption ? 0x161: 0x2E7,  	
 		data_filename_xor_key_pos = DATA_FILENAME_XOR_KEY_INDEX;	
 
 	uint8_t 
-		data_filename_xor_key_length = hasBlueskyOption ? 24 : 80,
+		data_filename_xor_key_length = 24,
 		data_filename_length = segment_vec[data_filename_index - 1],
 		data_filename_char_pos = 0;
 
@@ -37,9 +37,9 @@ uint64_t encryptFile(std::vector<uint8_t>& segment_vec, std::vector<uint8_t>& da
    	randombytes_buf(nonce.data(), nonce.size());
 
 	const uint16_t
-		EXIF_DATA_INSERT_INDEX = 0x1D1,
-		SODIUM_KEY_INDEX = hasBlueskyOption ? 0x18D : 0x345,     
-		NONCE_KEY_INDEX  = hasBlueskyOption ? 0x1AD : 0x365;  
+		EXIF_SEGMENT_DATA_INSERT_INDEX = 0x1D1,
+		SODIUM_KEY_INDEX = hasBlueskyOption ? 0x18D : 0x313,     
+		NONCE_KEY_INDEX  = hasBlueskyOption ? 0x1AD : 0x333;  
 	
 	std::copy(key.begin(), key.end(), segment_vec.begin() + SODIUM_KEY_INDEX); 	
 	std::copy(nonce.begin(), nonce.end(), segment_vec.begin() + NONCE_KEY_INDEX);
@@ -49,8 +49,8 @@ uint64_t encryptFile(std::vector<uint8_t>& segment_vec, std::vector<uint8_t>& da
     	crypto_secretbox_easy(encrypted_vec.data(), data_file_vec.data(), data_file_vec_size, nonce.data(), key.data());
 
 	if (hasBlueskyOption) { // User has selected the -b argument option for the Bluesky platform.
-		constexpr uint16_t EXIF_DATA_SIZE_LIMIT = 0xFE03; // + With EXIF overhead segment data (0x1FF) - 4 bytes we don't count (FFD8 FFE1) = Max. segment size 0xFFFE.
-								  // Can't have 0xFFFF as Bluesky will strip the EXIF segment.
+		constexpr uint16_t EXIF_SEGMENT_DATA_SIZE_LIMIT = 65027; // + With EXIF overhead segment data (511) - four bytes we don't count (FFD8 FFE1) = Max. segment size 65534.
+								 	 // Can't have 65535 (0xFFFF) as Bluesky will strip the EXIF segment.
 		uint32_t 
 			encrypted_vec_size = static_cast<uint32_t>(encrypted_vec.size()),
 			compressed_file_size_index = 0x1CD;
@@ -59,27 +59,27 @@ uint64_t encryptFile(std::vector<uint8_t>& segment_vec, std::vector<uint8_t>& da
 		valueUpdater(segment_vec, compressed_file_size_index, encrypted_vec.size(), value_bit_length);
 
 		// Split the data file if it exceeds the max compressed EXIF capacity of ~64KB. 
-		// We can then use the second segment (XMP) for the remaining data.
+		// We can then use the second segment (XMP) for the excess data.
 
-		if (encrypted_vec_size > EXIF_DATA_SIZE_LIMIT) {
-			// Insert the maximum data limit within the EXIF segment.
-			segment_vec.insert(segment_vec.begin() + EXIF_DATA_INSERT_INDEX, encrypted_vec.begin(), encrypted_vec.begin() + EXIF_DATA_SIZE_LIMIT);
+		if (encrypted_vec_size > EXIF_SEGMENT_DATA_SIZE_LIMIT) {
+			segment_vec.insert(segment_vec.begin() + EXIF_SEGMENT_DATA_INSERT_INDEX, encrypted_vec.begin(), encrypted_vec.begin() + EXIF_SEGMENT_DATA_SIZE_LIMIT);
 
-			size_t remaining_size = encrypted_vec.size() - EXIF_DATA_SIZE_LIMIT;
+			size_t remaining_size = encrypted_vec.size() - EXIF_SEGMENT_DATA_SIZE_LIMIT;
 			
 			std::vector<uint8_t> tmp_xmp_vec(remaining_size);
 			
-			std::copy_n(encrypted_vec.begin() + EXIF_DATA_SIZE_LIMIT, remaining_size, tmp_xmp_vec.begin());
+			std::copy_n(encrypted_vec.begin() + EXIF_SEGMENT_DATA_SIZE_LIMIT, remaining_size, tmp_xmp_vec.begin());
 			
 			// We can only store Base64 encoded data in the XMP segment, so convert the binary data here.
 			convertToBase64(tmp_xmp_vec);
 			
-			constexpr uint16_t XMP_DATA_INSERT_INDEX = 0x139;
+			constexpr uint16_t XMP_SEGMENT_DATA_INSERT_INDEX = 0x139;
 
-			// Store the remaining part of the file (as Base64) within the XMP segment.
-			bluesky_xmp_vec.insert(bluesky_xmp_vec.begin() + XMP_DATA_INSERT_INDEX, tmp_xmp_vec.begin(), tmp_xmp_vec.end());	
+			// Store the second part of the file (as Base64) within the XMP segment.
+			bluesky_xmp_vec.insert(bluesky_xmp_vec.begin() + XMP_SEGMENT_DATA_INSERT_INDEX, tmp_xmp_vec.begin(), tmp_xmp_vec.end());	
+
 		} else { // Data file was small enough to fit within the EXIF segment, XMP segment not required.
-			segment_vec.insert(segment_vec.begin() + EXIF_DATA_INSERT_INDEX, encrypted_vec.begin(), encrypted_vec.end());
+			segment_vec.insert(segment_vec.begin() + EXIF_SEGMENT_DATA_INSERT_INDEX, encrypted_vec.begin(), encrypted_vec.end());
 		}
 
 	} else { // Used the default color profile segment for data storage.
