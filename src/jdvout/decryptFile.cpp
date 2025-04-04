@@ -2,8 +2,8 @@
 // Copyright (c) 2013-2025 Frank Denis <github@pureftpd.org>
 const std::string decryptFile(std::vector<uint8_t>& image_vec, bool hasBlueskyOption) {	
 	const uint16_t 
-		SODIUM_KEY_INDEX = hasBlueskyOption ? 0x18D : 0x31B,
-		NONCE_KEY_INDEX =  hasBlueskyOption ? 0x1AD : 0x33B;
+		SODIUM_KEY_INDEX = hasBlueskyOption ? 0x18D : 0x2FB,
+		NONCE_KEY_INDEX =  hasBlueskyOption ? 0x1AD : 0x31B;
 
 	uint16_t 
 		sodium_key_pos = SODIUM_KEY_INDEX,
@@ -38,9 +38,9 @@ const std::string decryptFile(std::vector<uint8_t>& image_vec, bool hasBlueskyOp
 
 	std::string decrypted_filename;
 
-	const uint16_t ENCRYPTED_FILENAME_INDEX = hasBlueskyOption ? 0x161 : 0x1C5;
+	const uint16_t ENCRYPTED_FILENAME_INDEX = hasBlueskyOption ? 0x161 : 0x2CF;
 
-	uint16_t filename_xor_key_pos = hasBlueskyOption ? 0x175 : 0x2CB;
+	uint16_t filename_xor_key_pos = hasBlueskyOption ? 0x175 : 0x2E3;
 	
 	uint8_t
 		encrypted_filename_length = image_vec[ENCRYPTED_FILENAME_INDEX - 1],
@@ -51,59 +51,44 @@ const std::string decryptFile(std::vector<uint8_t>& image_vec, bool hasBlueskyOp
 	while (encrypted_filename_length--) {
 		decrypted_filename += ENCRYPTED_FILENAME[filename_char_pos++] ^ image_vec[filename_xor_key_pos++];
 	}
-
+	
 	const uint16_t 
-		ENCRYPTED_FILE_START_INDEX 		= hasBlueskyOption ? 0x1D1 : 0x35B,
-		FILE_SIZE_INDEX 			= hasBlueskyOption ? 0x1CD : 0x1D9,
-		PROFILE_HEADERS_TOTAL_VALUE_INDEX 	= hasBlueskyOption ? 0x110 : 0x1DD;  
+		ENCRYPTED_FILE_START_INDEX 		= hasBlueskyOption ? 0x1D1 : 0x33B,
+		FILE_SIZE_INDEX 			= hasBlueskyOption ? 0x1CD : 0x2CA,
+		TOTAL_PROFILE_HEADER_SEGMENTS_INDEX 	= hasBlueskyOption ? 0x110 : 0x2C8;  
 
-	const uint32_t EMBEDDED_FILE_SIZE = getByteValue<uint32_t>(image_vec, FILE_SIZE_INDEX);
+	const uint32_t 
+		EMBEDDED_FILE_SIZE = getByteValue<uint32_t>(image_vec, FILE_SIZE_INDEX),
+		COMMON_DIFF_VAL = 65537; // Size difference between each segment profile header.
 
-	const uint16_t PROFILE_HEADERS_TOTAL_VALUE = (static_cast<uint16_t>(image_vec[PROFILE_HEADERS_TOTAL_VALUE_INDEX]) << 8) 
-							| static_cast<uint16_t>(image_vec[PROFILE_HEADERS_TOTAL_VALUE_INDEX + 1]);
-
-	std::vector<uint32_t> profile_headers_indexes_vec;
+	const uint16_t TOTAL_PROFILE_HEADER_SEGMENTS = (static_cast<uint16_t>(image_vec[TOTAL_PROFILE_HEADER_SEGMENTS_INDEX]) << 8) 
+								| static_cast<uint16_t>(image_vec[TOTAL_PROFILE_HEADER_SEGMENTS_INDEX + 1]);
 
 	constexpr uint8_t PROFILE_HEADER_LENGTH	= 18;
-	
+
 	std::vector<uint8_t> temp_vec(image_vec.begin() + ENCRYPTED_FILE_START_INDEX, image_vec.begin() + ENCRYPTED_FILE_START_INDEX + EMBEDDED_FILE_SIZE);
 	image_vec = std::move(temp_vec);
 
-	if (PROFILE_HEADERS_TOTAL_VALUE) {	
-		constexpr std::array<uint8_t, 11> PROFILE_HEADER_SIG { 0x49, 0x43, 0x43, 0x5F, 0x50, 0x52, 0x4F, 0x46, 0x49, 0x4C, 0x45 };
-
-		constexpr uint8_t
-			INC_NEXT_SEARCH_INDEX 	= 5,
-			INDEX_DIFF 		= 4;
-
-		uint32_t header_index = 0;
-
-		profile_headers_indexes_vec.reserve(PROFILE_HEADERS_TOTAL_VALUE * PROFILE_HEADER_LENGTH);
-
-		for (int i = 0; PROFILE_HEADERS_TOTAL_VALUE > i; ++i) {
-			header_index = searchFunc(image_vec, header_index, INC_NEXT_SEARCH_INDEX, PROFILE_HEADER_SIG) - INDEX_DIFF;
-			profile_headers_indexes_vec.emplace_back(header_index);
-		}
-	}
-
 	uint32_t 
 		encrypted_file_size = static_cast<uint32_t>(image_vec.size()),
-		next_header_index = 0,
+		header_index = 0xFCB0,	// First split segment profile header location, this is after the main header/color profile, which has already been removed.
 		index_pos = 0;
 	
 	std::vector<uint8_t>sanitize_vec; 
 	sanitize_vec.reserve(encrypted_file_size);
 
+	// We need to avoid including the segment profile headers within the decrypted output file.
+	// Because we know the total number of profile headers and their location (common difference val), 
+	// we can just skip the header bytes when copying the data to the sanitize vector.
+        // This is much faster than having to search for and then using something like vec.erase to remove the headers from the vector.
 	while (encrypted_file_size > index_pos) {
 		sanitize_vec.emplace_back(image_vec[index_pos++]);
-		if (PROFILE_HEADERS_TOTAL_VALUE && index_pos == profile_headers_indexes_vec[next_header_index]) {
+		if (TOTAL_PROFILE_HEADER_SEGMENTS && index_pos == header_index) {
 			index_pos += PROFILE_HEADER_LENGTH; 
-			++next_header_index;
+			header_index += COMMON_DIFF_VAL;
 		}	
 	}
 	
-	// clear.
-	std::vector<uint32_t>().swap(profile_headers_indexes_vec);
 	std::vector<uint8_t>().swap(image_vec);
 
 	std::vector<uint8_t>decrypted_file_vec(sanitize_vec.size() - crypto_secretbox_MACBYTES);
@@ -114,5 +99,6 @@ const std::string decryptFile(std::vector<uint8_t>& image_vec, bool hasBlueskyOp
 	
 	std::vector<uint8_t>().swap(sanitize_vec);
 	image_vec.swap(decrypted_file_vec);
+	
 	return decrypted_filename;
 }

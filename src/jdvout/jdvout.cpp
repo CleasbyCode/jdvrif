@@ -14,11 +14,13 @@ int jdvOut(const std::string& IMAGE_FILENAME) {
 	image_file_ifs.read(reinterpret_cast<char*>(image_vec.data()), IMAGE_FILE_SIZE);
 	image_file_ifs.close();
 	
-	constexpr std::array<uint8_t, 7>
+	constexpr uint8_t 
+		SIG_LENGTH = 7,
+		INDEX_DIFF = 8;
+
+	constexpr std::array<uint8_t, SIG_LENGTH>
 		JDVRIF_SIG		{ 0xB4, 0x6A, 0x3E, 0xEA, 0x5E, 0x9D, 0xF9 },
 		COLOR_PROFILE_SIG	{ 0x6D, 0x6E, 0x74, 0x72, 0x52, 0x47, 0x42 };
-
-	const uint8_t INDEX_DIFF = 8;
 				
 	const uint32_t 
 		JDVRIF_SIG_INDEX	= searchFunc(image_vec, 0, 0, JDVRIF_SIG),
@@ -39,20 +41,21 @@ int jdvOut(const std::string& IMAGE_FILENAME) {
 	}
 
 	if (hasBlueskyOption) { // EXIF segment (FFE1) is being used. Check for the second (XMP) segment.
-		constexpr std::array<uint8_t, 7> XMP_SIG { 0x68, 0x74, 0x74, 0x70, 0x3A, 0x2F, 0x2F };
+		constexpr std::array<uint8_t, SIG_LENGTH> XMP_SIG { 0x68, 0x74, 0x74, 0x70, 0x3A, 0x2F, 0x2F };
 		const uint32_t XMP_SIG_INDEX = searchFunc(image_vec, 0, 0, XMP_SIG);
 
 		if (XMP_SIG_INDEX != image_vec.size()) { // Found XMP segment...
-			constexpr std::array<uint8_t, 6> XMP_CREATOR_SIG { 0x72, 0x64, 0x66, 0x3A, 0x6C, 0x69 };
+			constexpr std::array<uint8_t, SIG_LENGTH> XMP_CREATOR_SIG { 0x3C, 0x72, 0x64, 0x66, 0x3A, 0x6C, 0x69 };
 			const uint32_t 
 				XMP_CREATOR_SIG_INDEX = searchFunc(image_vec, XMP_SIG_INDEX, 0, XMP_CREATOR_SIG),
-				BEGIN_BASE64_DATA_INDEX = XMP_CREATOR_SIG_INDEX + 7;
+				BEGIN_BASE64_DATA_INDEX = XMP_CREATOR_SIG_INDEX + SIG_LENGTH + 1;
 			
-			constexpr std::array<uint8_t, 1> END_BASE64_DATA_SIG { 0x3C };
+			constexpr uint8_t END_BASE64_DATA_SIG = 0x3C;
 			const uint32_t 
-				END_BASE64_DATA_SIG_INDEX = searchFunc(image_vec, BEGIN_BASE64_DATA_INDEX, 0, END_BASE64_DATA_SIG),
+				END_BASE64_DATA_SIG_INDEX = static_cast<uint32_t>(std::find(image_vec.begin() + BEGIN_BASE64_DATA_INDEX,
+											 image_vec.end(), END_BASE64_DATA_SIG) - image_vec.begin()),
 				BASE64_DATA_SIZE = END_BASE64_DATA_SIG_INDEX - BEGIN_BASE64_DATA_INDEX;
-
+	
 			std::vector<uint8_t> base64_data_vec(BASE64_DATA_SIZE);
 			std::copy_n(image_vec.begin() + BEGIN_BASE64_DATA_INDEX, BASE64_DATA_SIZE, base64_data_vec.begin());
 
@@ -66,7 +69,7 @@ int jdvOut(const std::string& IMAGE_FILENAME) {
 		}
 	}
 
-	constexpr uint32_t LARGE_FILE_SIZE = 400 * 1024 * 1024;
+	constexpr uint32_t LARGE_FILE_SIZE = 300 * 1024 * 1024;
 
 	if (IMAGE_FILE_SIZE > LARGE_FILE_SIZE) {
 		std::cout << "\nPlease wait. Larger files will take longer to complete this process.\n";
@@ -118,8 +121,6 @@ int jdvOut(const std::string& IMAGE_FILENAME) {
 
 		file.close();
 	}
-
-	std::reverse(image_vec.begin(), image_vec.end());
 
 	std::ofstream file_ofs(DECRYPTED_FILENAME, std::ios::binary);
 
