@@ -21,7 +21,7 @@ Use CLI tools ***jdvin*** & ***jdvout*** with a JPG cover image to hide or extra
 
 For increased storage capacity and better security, your embedded data file is compressed with ***zlib/deflate*** (*if not already a compressed file type*) and encrypted using the ***libsodium*** crypto library. 
 
-*You can try the [***jdvrif Web App, here,***](https://cleasbycod.co.uk/jdvrif/index/) if you don't want to download and compile the CLI source code.* Web file uploads are limited to 20MB. 
+*You can try the [***jdvrif Web App, here,***](https://cleasbycode.co.uk/jdvrif/index/) if you don't want to download and compile the CLI source code.* Web file uploads are limited to 20MB. 
 
 ## Usage (Linux - jdvin / jdvout)
 
