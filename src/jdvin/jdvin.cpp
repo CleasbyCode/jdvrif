@@ -1,4 +1,4 @@
-int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, ArgOption platform, bool isCompressedFile) {
+uint8_t jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, ArgOption platform, bool isCompressedFile) {
 	std::ifstream
 		image_file_ifs(IMAGE_FILENAME, std::ios::binary),
 		data_file_ifs(data_filename, std::ios::binary);
@@ -8,7 +8,9 @@ int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, ArgOpti
 		return 1;
 	}
 
-	const uintmax_t IMAGE_FILE_SIZE = std::filesystem::file_size(IMAGE_FILENAME);
+	const uintmax_t 
+		IMAGE_FILE_SIZE = std::filesystem::file_size(IMAGE_FILENAME),
+		DATA_FILE_SIZE = std::filesystem::file_size(data_filename);
 
 	std::vector<uint8_t> image_vec;
 	image_vec.resize(IMAGE_FILE_SIZE); 
@@ -26,8 +28,6 @@ int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, ArgOpti
 	}
 	
 	eraseSegments(image_vec);
-
-	const uintmax_t DATA_FILE_SIZE = std::filesystem::file_size(data_filename);
 	
 	std::filesystem::path file_path(data_filename);
     	data_filename = file_path.filename().string();
@@ -73,7 +73,7 @@ int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, ArgOpti
 
 	if (hasBlueskyOption) {	 // We can store binary data within the first (EXIF) segment, with a max compressed storage capacity close to ~64KB. See encryptFile.cpp
 		constexpr uint8_t MARKER_BYTES_VAL = 4; // FFD8, FFE1
-		uint32_t exif_segment_size = static_cast<uint32_t>(segment_vec.size() - MARKER_BYTES_VAL); 
+		uint16_t exif_segment_size = static_cast<uint32_t>(segment_vec.size() - MARKER_BYTES_VAL); 
 
 		uint8_t	
 			value_bit_length = 16,
@@ -99,56 +99,56 @@ int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, ArgOpti
 		valueUpdater(segment_vec, exif_segment_subifd_offset_field_index, exif_subifd_offset, value_bit_length);
 
 		constexpr uint16_t BLUESKY_XMP_VEC_DEFAULT_SIZE = 405;  // XMP segment size without user data.
-	
+		
+		const uint32_t BLUESKY_XMP_VEC_SIZE = static_cast<uint32_t>(bluesky_xmp_vec.size());
+
 		// Are we using the second (XMP) segment?
-		if (bluesky_xmp_vec.size() > BLUESKY_XMP_VEC_DEFAULT_SIZE) {
- 			constexpr uint16_t XMP_SEGMENT_SIZE_LIMIT = 60033;  // Size includes segment SIG two bytes (don't count). Bluesky will strip XMP data segment greater than 60031.
-									    // With the overhead of the XMP default segment data (405) and the Base64 encoding overhead (~33%),
-									    // The max compressed data storage in this segment is probably around ~40KB. 
-			if (bluesky_xmp_vec.size() > XMP_SEGMENT_SIZE_LIMIT) {
+		if (BLUESKY_XMP_VEC_SIZE > BLUESKY_XMP_VEC_DEFAULT_SIZE) {
+
+			// Size includes segment SIG two bytes (don't count). Bluesky will strip XMP data segment greater than 60031.
+			// With the overhead of the XMP default segment data (405) and the Base64 encoding overhead (~33%),
+			// The max compressed data storage in this segment is probably around ~40KB. 
+
+ 			constexpr uint16_t XMP_SEGMENT_SIZE_LIMIT = 60033;  
+
+			if (BLUESKY_XMP_VEC_SIZE > XMP_SEGMENT_SIZE_LIMIT) {
 				std::cerr << "\nFile Size Error: Data file exceeds segment size limit.\n\n";
 				return 1;
 			}
+
 			constexpr uint8_t segment_sig_bytes = 2; // FFE1
 
 			exif_segment_size_field_index = 0x02,
 			value_bit_length = 16;
-			valueUpdater(bluesky_xmp_vec, exif_segment_size_field_index, bluesky_xmp_vec.size() - segment_sig_bytes, value_bit_length);
+			valueUpdater(bluesky_xmp_vec, exif_segment_size_field_index, BLUESKY_XMP_VEC_SIZE - segment_sig_bytes, value_bit_length);
 			segment_vec.insert(segment_vec.end(), bluesky_xmp_vec.begin(), bluesky_xmp_vec.end());
+
+			image_vec.insert(image_vec.begin(), segment_vec.begin(), segment_vec.end());
+			std::cout << "\nBluesky option selected: Only post this \"file-embedded\" JPG image on Bluesky.\n\n"
+			  		<< "Make sure to use the Python script \"bsky_post.py\" (found in the repo src folder)\nto post the image to Bluesky.\n";
 		}
 	} else {
 		splitDataFile(segment_vec, data_file_vec, shouldDisplayMastodonWarning); // Default segment_vec uses color profile segment (FFE2). Use multiple segments for larger files.
-	}
-	
-	image_vec.reserve(IMAGE_FILE_SIZE + hasBlueskyOption ? segment_vec.size() : data_file_vec.size());	
-
-	bool hasRedditOption = (platform == ArgOption::Reddit);
-
-	if (hasRedditOption) {
-		image_vec.insert(image_vec.begin(), IMAGE_START_SIG.begin(), IMAGE_START_SIG.end());
-		image_vec.insert(image_vec.end() - 2, 8000, 0x23);
-		image_vec.insert(image_vec.end() - 2, data_file_vec.begin() + 2, data_file_vec.end());
-		std::cout << "\nReddit option selected: Only post/share this file-embedded JPG image on Reddit.\n";	
-	} else if (hasBlueskyOption) {
-		image_vec.insert(image_vec.begin(), segment_vec.begin(), segment_vec.end());
-		std::cout << "\nBluesky option selected: Only post/share this \"file-embedded\" JPG image on Bluesky.\n\n"
-			  << "Make sure to use the Python script \"bsky_post.py\" (found in the repo src folder)\nto post the image to Bluesky.\n";
-	} else {
-		image_vec.insert(image_vec.begin(), data_file_vec.begin(), data_file_vec.end());
-	}
-
-	std::vector<uint8_t>().swap(data_file_vec);
+		image_vec.reserve(IMAGE_FILE_SIZE + data_file_vec.size());	
+		if (platform == ArgOption::Reddit) {
+			image_vec.insert(image_vec.begin(), IMAGE_START_SIG.begin(), IMAGE_START_SIG.end());
+			image_vec.insert(image_vec.end() - 2, 8000, 0x23);
+			image_vec.insert(image_vec.end() - 2, data_file_vec.begin() + 2, data_file_vec.end());
+			std::cout << "\nReddit option selected: Only post this file-embedded JPG image on Reddit.\n";
+		} else {
+			image_vec.insert(image_vec.begin(), data_file_vec.begin(), data_file_vec.end());
+			if (shouldDisplayMastodonWarning) {
+				std::cout << "\n**Warning**\n\nEmbedded image is not compatible with Mastodon. Image file exceeds platform's segments limit.\n";
+			}
+		}
+		std::vector<uint8_t>().swap(data_file_vec);
+	}	
 
 	if (!writeFile(image_vec)) {
 		std::cerr << "\nWrite File Error: Unable to write to file.\n\n";
 		return 1;
 	}
 
-	if (shouldDisplayMastodonWarning && !hasRedditOption) {
-		std::cout << "\n**Warning**\n\nEmbedded image is not compatible with Mastodon. Image file exceeds platform's segments limit.\n";
-	}	
-
 	std::cout << "\nRecovery PIN: [***" << RECOVERY_PIN << "***]\n\nImportant: Keep your PIN safe, so that you can extract the hidden file.\n\nComplete!\n\n";
-
 	return 0;
 }
