@@ -16,7 +16,7 @@ Use CLI tools ***jdvin*** & ***jdvout*** with a JPG cover image to hide or extra
   
 ***jdvrif*** partly derives from the ***[technique implemented](https://www.vice.com/en/article/bj4wxm/tiny-picture-twitter-complete-works-of-shakespeare-steganography)*** by security researcher ***[David Buchanan](https://www.da.vidbuchanan.co.uk/).*** 
 
-![Demo Image](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/jrif_18438.jpg)  
+![Demo Image](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/jrif_93434.jpg)  
 ***Image credit:*** [***@lemon_rand6334***](https://x.com/lemon_rand6334) / ***PIN: 10658258811807804135***
 
 For increased storage capacity and better security, your embedded data file is compressed with ***zlib/deflate*** (*if not already a compressed file type*) and encrypted using the ***libsodium*** crypto library. 
