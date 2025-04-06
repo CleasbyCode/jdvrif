@@ -58,4 +58,4 @@ void
 	splitDataFile(std::vector<uint8_t>&, std::vector<uint8_t>&, bool&),
 	displayInfo();
 
-int jdvIn(const std::string&, std::string&, ArgOption, bool);
+uint8_t jdvIn(const std::string&, std::string&, ArgOption, bool);
