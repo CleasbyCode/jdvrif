@@ -67,7 +67,6 @@ void splitDataFile(std::vector<uint8_t>&segment_vec, std::vector<uint8_t>&data_f
 	} else {  // Data file is small enough to fit within a single color profile segment...
 		constexpr uint8_t
 			SEGMENT_HEADER_SIZE_INDEX = 0x04, 
-			SEGMENT_TOTAL_VAL_INDEX   = 0x13,
 			COLOR_PROFILE_SIZE_INDEX  = 0x16, 
 			COLOR_PROFILE_SIZE_DIFF   = 16,
 			JPG_SIG_LENGTH		  = 2;
@@ -79,7 +78,6 @@ void splitDataFile(std::vector<uint8_t>&segment_vec, std::vector<uint8_t>&data_f
 		valueUpdater(segment_vec, SEGMENT_HEADER_SIZE_INDEX, SEGMENT_SIZE, val_bit_length);
 		valueUpdater(segment_vec, COLOR_PROFILE_SIZE_INDEX, COLOR_PROFILE_SIZE, val_bit_length);
 
-		segment_vec[SEGMENT_TOTAL_VAL_INDEX] = 1; 
 		data_file_vec = std::move(segment_vec);
 	}
 		
