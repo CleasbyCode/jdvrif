@@ -66,7 +66,7 @@ const std::string decryptFile(std::vector<uint8_t>& image_vec, bool hasBlueskyOp
 	
 	// Check for embedded file corruption, such as missing data segments.
 	if (TOTAL_PROFILE_HEADER_SEGMENTS) {
-		if (last_segment_index > image_vec.size() || image_vec[last_segment_index] != 0xFF || image_vec[last_segment_index + 1] != 0xE2) {
+		if (last_segment_index > static_cast<int32_t>(image_vec.size()) || image_vec[last_segment_index] != 0xFF || image_vec[last_segment_index + 1] != 0xE2) {
 			std::cerr << "\nFile Extraction Error: Missing segments detected. Embedded data file is corrupt!\n\n";
 			std::exit(0);
 		}
