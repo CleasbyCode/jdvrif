@@ -3,7 +3,8 @@
 //	Compile program (Linux):
 
 //	$ sudo apt-get install libsodium-dev
-//	$ g++ main.cpp -O2 -lz -lsodium -s -o jdvin
+//	$ sudo apt-get install libturbojpeg-dev
+//	$ g++ main.cpp -O2 -lz -lsodium -lturbojpeg -s -o jdvin
 //	$ sudo cp jdvin /usr/bin
 
 // 	Run it:
