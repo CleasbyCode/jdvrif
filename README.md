@@ -1,6 +1,6 @@
 # jdvrif
 
-***jdvrif*** is a *steganography-like* utility for ***Linux*** and ***Windows***. It consists of two CLI tools ***jdvin***, *used for embedding a data file within a ***JPG*** cover image*, and ***jdvout***, *used for extracting the hidden file from the cover image.*  
+***jdvrif*** is a *steganography-like* utility for ***Linux*** and ***Windows***. It consists of two CLI tools, ***jdvin***, *used for embedding a data file within a ***JPG*** cover image*, and ***jdvout***, *used for extracting the hidden file from the cover image.*  
 
 Unlike traditional steganography tools, where data is concealed within the pixels of a cover image (e.g. ***LSB***), ***jdvrif*** hides files within ***application segments*** of a ***JPG*** image. You can embed any file type up to ***2GB***, although compatible hosting sites (listed below) have their own ***much smaller*** size limits and *other requirements.  
 
