@@ -103,7 +103,7 @@ https://github.com/user-attachments/assets/e284979c-9c73-487e-bd2a-57504e897257
 
 This project makes use of the following third-party libraries:
 
-- [**libsodium**](https://libsodium.org/) for cryptographic functions.
+- **libsodium**: For cryptographic functions.
   - [**LICENSE**](https://github.com/jedisct1/libsodium/blob/master/LICENSE)
   - Copyright (C) 2013-2025 Frank Denis (github@pureftpd.org)
 - libjpeg-turbo (see [***LICENSE***](https://github.com/libjpeg-turbo/libjpeg-turbo/blob/main/LICENSE.md) file)  
