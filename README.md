@@ -1,8 +1,6 @@
 # jdvrif
 
-Use CLI tools ***jdvin*** & ***jdvout*** with a JPG cover image to hide or extract any file type, up to ***2GB**.  
-
-*Compatible hosting sites, ***listed below***, have their own ***much smaller*** size ***limits*** and *other requirements.  
+***jdvrif*** is a *steganography-like* utility for ***Linux*** and ***Windows***. It consists of two CLI tools ***jdvin***, *used for embedding a data file within a ***JPG*** cover image*, and ***jdvout***, *used for extracting the hidden file from the cover image.* Unlike traditional steganography tools, where data is concealed within the pixels of a cover image (e.g. ***LSB***), ***jdvrif*** hides files within ***application segments*** of a ***JPG*** image. You can embed any file type up to ***2GB***, although compatible hosting sites (listed below) have their own ***much smaller*** size limits and *other requirements. For increased storage capacity and better security, your embedded data file is compressed with ***zlib/deflate*** (*if not already a compressed file type*) and encrypted using the ***libsodium*** crypto library. ***jdvrif*** partly derives from the ***[technique implemented](https://www.vice.com/en/article/bj4wxm/tiny-picture-twitter-complete-works-of-shakespeare-steganography)*** by security researcher ***[David Buchanan](https://www.da.vidbuchanan.co.uk/).*** 
 
 *Limit measured by the combined size of the cover image + compressed data file:*  
 ● ***Flickr*** (**200MB**), ***ImgPile*** (**100MB**), ***ImgBB*** (**32MB**), ***PostImage*** (**32MB**), ***Reddit*** (**20MB** | ***-r option***).  
@@ -14,12 +12,10 @@ Use CLI tools ***jdvin*** & ***jdvout*** with a JPG cover image to hide or extra
 ● ***Bluesky*** (***Image:*** **800KB** | ***Compressed data file:*** **~106KB** | ***-b option***).  
 *Use the "***bsky_post.py***" script, found within the ***src folder*** of this repo, to post images on ***Bluesky***.*
   
-***jdvrif*** partly derives from the ***[technique implemented](https://www.vice.com/en/article/bj4wxm/tiny-picture-twitter-complete-works-of-shakespeare-steganography)*** by security researcher ***[David Buchanan](https://www.da.vidbuchanan.co.uk/).*** 
+
 
 ![Demo Image](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/jrif_42139.jpg)  
 ***Image credit:*** [***@carochan_me***](https://x.com/carochan_me) / ***PIN: 15981008481739377139***
-
-For increased storage capacity and better security, your embedded data file is compressed with ***zlib/deflate*** (*if not already a compressed file type*) and encrypted using the ***libsodium*** crypto library. 
 
 *You can try the [***jdvrif Web App, here,***](https://cleasbycode.co.uk/jdvrif/index/) if you don't want to download and compile the CLI source code.* Web file uploads are limited to 20MB. 
 
