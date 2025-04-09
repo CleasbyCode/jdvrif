@@ -14,11 +14,17 @@
 
 // This project uses libsodium (https://libsodium.org/) for cryptographic functions.
 #define SODIUM_STATIC
-#include <sodium.h>
-// Copyright (c) 2013-2025 Frank Denis <github@pureftpd.org>
+#include <C:\Users\Nickc\source\repos\jdvin\libsodium\include\sodium.h>
+// Copyright (C) 2013-2025 Frank Denis <github@pureftpd.org>
+
+// This software is based in part on the work of the Independent JPEG Group.
+#include "libjpeg-turbo/turbojpeg.h"
+// https://github.com/libjpeg-turbo/libjpeg-turbo
+// Copyright (C) 2009-2024 D. R. Commander. All Rights Reserved.
+// Copyright (C) 2015 Viktor Szathmáry. All Rights Reserved.
 
 // https://github.com/madler/zlib
-#include <zlib.h>
+#include <C:\Users\Nickc\source\zlib-1.3.1\zlib.h>
 // Copyright (C) 1995-2024 Jean-loup Gailly and Mark Adler
 
 #include "segmentsVec.cpp"
@@ -28,6 +34,7 @@
 #include "fileChecks.cpp"
 #include "writeFile.cpp"
 #include "searchFunc.cpp"
+#include "transcodeImage.cpp"
 #include "eraseSegments.cpp"
 #include "valueUpdater.cpp"
 #include "getByteValue.cpp"
@@ -52,6 +59,7 @@ bool
 void
 	validateFiles(const std::string&, const std::string&, ArgOption),
 	convertToBase64(std::vector<uint8_t>&),
+	transcodeImage(std::vector<uint8_t>&, uint8_t),
 	eraseSegments(std::vector<uint8_t>&),
 	deflateFile(std::vector<uint8_t>&, bool),
 	valueUpdater(std::vector<uint8_t>&, uint32_t, const uint64_t, uint8_t),
