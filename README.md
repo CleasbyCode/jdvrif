@@ -28,7 +28,8 @@ For increased storage capacity and better security, your embedded data file is c
 ```console
 
 user1@linuxbox:~/Downloads/jdvrif-main/src/jdvin$ sudo apt-get install libsodium-dev
-user1@linuxbox:~/Downloads/jdvrif-main/src/jdvin$ g++ main.cpp -O2 -lz -lsodium -s -o jdvin
+user1@linuxbox:~/Downloads/jdvrif-main/src/jdvin$ sudo apt-get install libturbojpeg-dev
+user1@linuxbox:~/Downloads/jdvrif-main/src/jdvin$ g++ main.cpp -O2 -lz -lsodium -lturbojpeg -s -o jdvin
 user1@linuxbox:~/Downloads/jdvrif-main/src/jdvin$ sudo cp jdvin /usr/bin
 
 user1@linuxbox:~/Desktop$ jdvin 
