@@ -106,6 +106,8 @@ This project makes use of the following third-party libraries:
 - [**libsodium**](https://libsodium.org/) for cryptographic functions.
   - [**LICENSE**](https://github.com/jedisct1/libsodium/blob/master/LICENSE)
   - Copyright (c) 2013-2025 Frank Denis (github@pureftpd.org)
+- libjpeg-turbo (see [***LICENSE***](https://github.com/libjpeg-turbo/libjpeg-turbo/blob/main/LICENSE.md) file)  
+  - {This software is based in part on the work of the Independent JPEG Group.}  
 - **zlib**: General-purpose compression library
   - License: zlib/libpng license (see [***LICENSE***](https://github.com/madler/zlib/blob/develop/LICENSE) file)
   - Copyright (C) 1995-2024 Jean-loup Gailly and Mark Adler
