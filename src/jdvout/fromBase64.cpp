@@ -18,26 +18,25 @@ void convertFromBase64(std::vector<uint8_t>& data_vec) {
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
     };
 
-    size_t input_size = data_vec.size();
+    uint32_t input_size = static_cast<uint32_t>(data_vec.size());
     if (input_size == 0 || input_size % 4 != 0) {
         throw std::invalid_argument("Base64 input size must be a multiple of 4 and non-empty");
     }
 
-    // Check for invalid '=' placements
-    size_t padding_count = 0;
+    uint32_t padding_count = 0;
     if (data_vec[input_size - 1] == '=') padding_count++;
     if (data_vec[input_size - 2] == '=') padding_count++;
-    for (size_t i = 0; i < input_size - padding_count; i++) {
+    for (uint32_t i = 0; i < input_size - padding_count; i++) {
         if (data_vec[i] == '=') {
             throw std::invalid_argument("Invalid '=' character in Base64 input");
         }
     }
 
-    size_t output_size = (input_size / 4) * 3 - padding_count;
+    uint32_t output_size = (input_size / 4) * 3 - padding_count;
     std::vector<uint8_t> temp_vec;
     temp_vec.reserve(output_size);
 
-    for (size_t i = 0; i < input_size; i += 4) {
+    for (uint32_t i = 0; i < input_size; i += 4) {
         int sextet_a = base64_decode_table[data_vec[i]];
         int sextet_b = base64_decode_table[data_vec[i + 1]];
         int sextet_c = base64_decode_table[data_vec[i + 2]];
@@ -56,4 +55,5 @@ void convertFromBase64(std::vector<uint8_t>& data_vec) {
         if (data_vec[i + 3] != '=') temp_vec.emplace_back(triple & 0xFF);
     }
     data_vec.swap(temp_vec);
+    std::vector<uint8_t>().swap(temp_vec);
 }

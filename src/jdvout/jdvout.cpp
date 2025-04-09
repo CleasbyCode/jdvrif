@@ -1,4 +1,4 @@
-int jdvOut(const std::string& IMAGE_FILENAME) {
+uint8_t jdvOut(const std::string& IMAGE_FILENAME) {
 	const uintmax_t IMAGE_FILE_SIZE = std::filesystem::file_size(IMAGE_FILENAME);
 	
 	std::ifstream image_file_ifs(IMAGE_FILENAME, std::ios::binary);
@@ -53,7 +53,7 @@ int jdvOut(const std::string& IMAGE_FILENAME) {
 			constexpr uint8_t END_BASE64_DATA_SIG = 0x3C;
 			const uint32_t 
 				END_BASE64_DATA_SIG_INDEX = static_cast<uint32_t>(std::find(image_vec.begin() + BEGIN_BASE64_DATA_INDEX,
-											 image_vec.end(), END_BASE64_DATA_SIG) - image_vec.begin()),
+										image_vec.end(), END_BASE64_DATA_SIG) - image_vec.begin()),
 				BASE64_DATA_SIZE = END_BASE64_DATA_SIG_INDEX - BEGIN_BASE64_DATA_INDEX;
 	
 			std::vector<uint8_t> base64_data_vec(BASE64_DATA_SIZE);

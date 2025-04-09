@@ -55,27 +55,35 @@ const std::string decryptFile(std::vector<uint8_t>& image_vec, bool hasBlueskyOp
 	const uint16_t 
 		ENCRYPTED_FILE_START_INDEX 		= hasBlueskyOption ? 0x1D1 : 0x33B,
 		FILE_SIZE_INDEX 			= hasBlueskyOption ? 0x1CD : 0x2CA,
-		TOTAL_PROFILE_HEADER_SEGMENTS_INDEX 	= hasBlueskyOption ? 0x110 : 0x2C8;  
-
+		TOTAL_PROFILE_HEADER_SEGMENTS_INDEX 	= hasBlueskyOption ? 0x110 : 0x2C8,
+		TOTAL_PROFILE_HEADER_SEGMENTS = (static_cast<uint16_t>(image_vec[TOTAL_PROFILE_HEADER_SEGMENTS_INDEX]) << 8) 
+							| static_cast<uint16_t>(image_vec[TOTAL_PROFILE_HEADER_SEGMENTS_INDEX + 1]);
 	const uint32_t 
 		EMBEDDED_FILE_SIZE = getByteValue<uint32_t>(image_vec, FILE_SIZE_INDEX),
 		COMMON_DIFF_VAL = 65537; // Size difference between each segment profile header.
 
-	const uint16_t TOTAL_PROFILE_HEADER_SEGMENTS = (static_cast<uint16_t>(image_vec[TOTAL_PROFILE_HEADER_SEGMENTS_INDEX]) << 8) 
-								| static_cast<uint16_t>(image_vec[TOTAL_PROFILE_HEADER_SEGMENTS_INDEX + 1]);
-
-	constexpr uint8_t PROFILE_HEADER_LENGTH	= 18;
-
+	int32_t last_segment_index = (TOTAL_PROFILE_HEADER_SEGMENTS - 1) * COMMON_DIFF_VAL - 0x16;
+	
+	// Check for embedded file corruption, such as missing data segments.
+	if (TOTAL_PROFILE_HEADER_SEGMENTS) {
+		if (last_segment_index > image_vec.size() || image_vec[last_segment_index] != 0xFF || image_vec[last_segment_index + 1] != 0xE2) {
+			std::cerr << "\nFile Extraction Error: Missing segments detected. Embedded data file is corrupt!\n\n";
+			std::exit(0);
+		}
+	}
+	
 	std::vector<uint8_t> temp_vec(image_vec.begin() + ENCRYPTED_FILE_START_INDEX, image_vec.begin() + ENCRYPTED_FILE_START_INDEX + EMBEDDED_FILE_SIZE);
 	image_vec = std::move(temp_vec);
 
 	uint32_t 
 		encrypted_file_size = static_cast<uint32_t>(image_vec.size()),
-		header_index = 0xFCB0,	// First split segment profile header location, this is after the main header/color profile, which has already been removed.
+		header_index = 0xFCB0, // First split segment profile header location, this is after the main header/color profile, which has already been removed.
 		index_pos = 0;
 	
 	std::vector<uint8_t>sanitize_vec; 
 	sanitize_vec.reserve(encrypted_file_size);
+
+	constexpr uint8_t PROFILE_HEADER_LENGTH	= 18;
 
 	// We need to avoid including the segment profile headers within the decrypted output file.
 	// Because we know the total number of profile headers and their location (common difference val), 

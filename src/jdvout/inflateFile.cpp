@@ -42,7 +42,6 @@ const uint32_t inflateFile(std::vector<uint8_t>& vec) {
 
 	while (strm.avail_in) {
 		inflate(&strm, Z_NO_FLUSH);
-
 		if (!strm.avail_out) {
 			inflate_vec.insert(inflate_vec.end(), buffer, buffer + BUFSIZE);
 			strm.next_out = buffer;
