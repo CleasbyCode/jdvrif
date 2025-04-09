@@ -14,17 +14,17 @@
 
 // This project uses libsodium (https://libsodium.org/) for cryptographic functions.
 #define SODIUM_STATIC
-#include <C:\Users\Nickc\source\repos\jdvin\libsodium\include\sodium.h>
+#include <sodium.h>
 // Copyright (C) 2013-2025 Frank Denis <github@pureftpd.org>
 
 // This software is based in part on the work of the Independent JPEG Group.
-#include "libjpeg-turbo/turbojpeg.h"
+#include <turbojpeg.h>
 // https://github.com/libjpeg-turbo/libjpeg-turbo
 // Copyright (C) 2009-2024 D. R. Commander. All Rights Reserved.
 // Copyright (C) 2015 Viktor Szathmáry. All Rights Reserved.
 
 // https://github.com/madler/zlib
-#include <C:\Users\Nickc\source\zlib-1.3.1\zlib.h>
+#include <zlib.h>
 // Copyright (C) 1995-2024 Jean-loup Gailly and Mark Adler
 
 #include "segmentsVec.cpp"
