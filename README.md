@@ -81,9 +81,9 @@ For ***Bluesky***, you are required to use the ***Python*** script "*bsky_post.p
 It will not work if you post images via the ***Bluesky*** browser site or mobile app.
 
 Bluesky script example:
-
+```console
 $ python3 bsky_post.py --handle exampleuser.bsky.social --password pxae-f17r-alp4-xqka --image jrif_11050.jpg --alt-text "*text to describe image, here...*" "*standard text to appear in main post, here...*"
-
+```
 You will need to create an app password from your ***Bluesky*** account. (*https://bsky.app/settings/app-passwords*)
 
 https://github.com/user-attachments/assets/dcc7c31d-4bec-4741-81e5-3b70fd6c29f5
