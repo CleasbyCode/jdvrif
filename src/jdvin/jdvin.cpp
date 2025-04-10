@@ -128,11 +128,10 @@ uint8_t jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, Arg
 			value_bit_length = 16;
 			valueUpdater(bluesky_xmp_vec, exif_segment_size_field_index, BLUESKY_XMP_VEC_SIZE - segment_sig_bytes, value_bit_length);
 			segment_vec.insert(segment_vec.end(), bluesky_xmp_vec.begin(), bluesky_xmp_vec.end());
-
-			image_vec.insert(image_vec.begin(), segment_vec.begin(), segment_vec.end());
-			std::cout << "\nBluesky option selected: Only post this \"file-embedded\" JPG image on Bluesky.\n\n"
-			  		<< "Make sure to use the Python script \"bsky_post.py\" (found in the repo src folder)\nto post the image to Bluesky.\n";
 		}
+		image_vec.insert(image_vec.begin(), segment_vec.begin(), segment_vec.end());
+		std::cout << "\nBluesky option selected: Only post this \"file-embedded\" JPG image on Bluesky.\n\n"
+			  	<< "Make sure to use the Python script \"bsky_post.py\" (found in the repo src folder)\nto post the image to Bluesky.\n";
 	} else {
 		splitDataFile(segment_vec, data_file_vec, shouldDisplayMastodonWarning); // Default segment_vec uses color profile segment (FFE2). Use multiple segments for larger files.
 		image_vec.reserve(IMAGE_FILE_SIZE + data_file_vec.size());	
