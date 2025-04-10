@@ -98,7 +98,7 @@ For example, if your cover image is **1MB** you can still embed a data file up t
 
 https://github.com/user-attachments/assets/ba338a2b-5c38-4cb7-808b-83a642fc618c
 
-https://github.com/user-attachments/assets/7e243233-ae8d-4220-9dfd-eff6d28b8f2b  
+https://github.com/user-attachments/assets/5a9fb804-3354-44ce-ab09-064d446bde42
 
 To correctly download an image from ***Flickr***, click the download arrow near the bottom right-hand corner of the page and select ***Original*** for the size of image to download.
 
