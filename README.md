@@ -73,6 +73,8 @@ https://github.com/user-attachments/assets/7b6485f2-969d-47d4-86a7-c9b22920ee0a
 To create "*file-embedded*" ***JPG*** images compatible for posting on ***Reddit***, use the ***-r*** option with ***jdvin***.  
 From the ***Reddit*** site, click "*Create Post*" then select "*Images & Video*" tab, to post your ***JPG*** image.  
 
+https://github.com/user-attachments/assets/28553eaa-4162-43c5-b596-f6ab676c1b61
+
 To create "*file-embedded*" ***JPG*** images compatible for posting on ***Bluesky***, use the ***-b*** option with ***jdvin***.
 
 For ***Bluesky***, you are required to use the ***Python*** script "*bsky_post.py*" (found in the repo ***src*** folder), to post the image.
