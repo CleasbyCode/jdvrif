@@ -102,7 +102,7 @@ https://github.com/user-attachments/assets/5a9fb804-3354-44ce-ab09-064d446bde42
 
 To correctly download an image from ***Flickr***, click the download arrow near the bottom right-hand corner of the page and select ***Original*** for the size of image to download.
 
-https://github.com/user-attachments/assets/e284979c-9c73-487e-bd2a-57504e897257
+https://github.com/user-attachments/assets/3f393e2c-145f-49ab-a952-d2b120bad9f9
 
 ## Third-Party Libraries
 
