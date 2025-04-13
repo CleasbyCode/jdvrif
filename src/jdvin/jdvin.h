@@ -59,7 +59,7 @@ bool
 void
 	validateFiles(const std::string&, const std::string&, ArgOption),
 	convertToBase64(std::vector<uint8_t>&),
-	transcodeImage(std::vector<uint8_t>&, uint8_t),
+	transcodeImage(std::vector<uint8_t>&, const uint8_t),
 	eraseSegments(std::vector<uint8_t>&),
 	deflateFile(std::vector<uint8_t>&, bool),
 	valueUpdater(std::vector<uint8_t>&, uint32_t, const uint64_t, uint8_t),
