@@ -27,10 +27,10 @@ uint8_t jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, Arg
 		return 1;
 	}
 	
-	uint8_t quality_val = 97;
+	constexpr uint8_t JPG_QUALITY_VAL = 97;
 	
 	// For better compatibility, re-encode image to JPG progressive format with a quality value set at 97 with no chroma subsampling.
-	transcodeImage(image_vec, quality_val);
+	transcodeImage(image_vec, JPG_QUALITY_VAL);
 
 	// Remove superfluous segments from cover image. (EXIF, ICC color profile, etc.)
 	eraseSegments(image_vec);
