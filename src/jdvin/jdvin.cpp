@@ -26,11 +26,12 @@ uint8_t jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, Arg
         	std::cerr << "\nImage File Error: This is not a valid JPG image.\n\n";
 		return 1;
 	}
+
+	bool hasBlueskyOption = (platform == ArgOption::Bluesky);
 	
-	constexpr uint8_t JPG_QUALITY_VAL = 97;
-	
-	// For better compatibility, re-encode image to JPG progressive format with a quality value set at 97 with no chroma subsampling.
-	transcodeImage(image_vec, JPG_QUALITY_VAL);
+	// For better compatibility, default re-encode image to JPG Progressive format with a quality value set at 97 with no chroma subsampling.
+	// If Bluesky option, re-encode to standard Baseline format with a quality value set at 85.
+	transcodeImage(image_vec, hasBlueskyOption);
 
 	// Remove superfluous segments from cover image. (EXIF, ICC color profile, etc.)
 	eraseSegments(image_vec);
@@ -46,8 +47,6 @@ uint8_t jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, Arg
     		std::cerr << "\nData File Error: For compatibility requirements, length of data filename must not exceed 20 characters.\n\n";
     	 	return 1;
 	}
-
-	bool hasBlueskyOption = (platform == ArgOption::Bluesky);
 
 	if (hasBlueskyOption) {
 		segment_vec.swap(bluesky_exif_vec);	// Use the EXIF segment instead of the default color profile segment to store user data.
