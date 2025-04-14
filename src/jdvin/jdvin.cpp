@@ -78,8 +78,7 @@ uint8_t jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, Arg
 
 	if (hasBlueskyOption) {	 // We can store binary data within the first (EXIF) segment, with a max compressed storage capacity close to ~64KB. See encryptFile.cpp
 		constexpr uint8_t MARKER_BYTES_VAL = 4; // FFD8, FFE1
-		uint16_t exif_segment_size = static_cast<uint32_t>(segment_vec.size() - MARKER_BYTES_VAL); 
-
+		
 		uint8_t	
 			value_bit_length = 16,
 			exif_segment_size_field_index = 0x04,  
@@ -89,10 +88,11 @@ uint8_t jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, Arg
 			exif_segment_subifd_offset_field_index = 0x5A;
 
 		uint16_t 
+			exif_segment_size = static_cast<uint32_t>(segment_vec.size() - MARKER_BYTES_VAL),
 			exif_xres_offset = exif_segment_size - 0x36,
 			exif_yres_offset = exif_segment_size - 0x2E,
 			exif_subifd_offset = exif_segment_size - 0x26,
-			exif_artist_size = (exif_segment_size - 0x90) + MARKER_BYTES_VAL;
+			exif_artist_size = exif_segment_size - 0x8C;
 
 		valueUpdater(segment_vec, exif_segment_size_field_index, exif_segment_size, value_bit_length);
 		
