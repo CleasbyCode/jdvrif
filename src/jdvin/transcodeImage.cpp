@@ -1,7 +1,7 @@
 // This software is based in part on the work of the Independent JPEG Group.
 // https://github.com/libjpeg-turbo/libjpeg-turbo
 
-void transcodeImage(std::vector<uint8_t>& image_vec, const uint8_t JPG_QUALITY_VAL) {
+void transcodeImage(std::vector<uint8_t>& image_vec, bool hasBlueskyOption) {
     tjhandle decompressor = tjInitDecompress();
     if (!decompressor) {
         throw std::runtime_error("tjInitDecompress() failed.");
@@ -26,10 +26,14 @@ void transcodeImage(std::vector<uint8_t>& image_vec, const uint8_t JPG_QUALITY_V
     if (!compressor) {
         throw std::runtime_error("tjInitCompress() failed.");
     }
-
+    
+    const uint8_t JPG_QUALITY_VAL = hasBlueskyOption ? 85 : 97;
+    
     unsigned char* jpegBuf = nullptr;
     unsigned long jpegSize = 0;
-    int flags = TJFLAG_PROGRESSIVE;
+    
+    int flags = hasBlueskyOption ? TJFLAG_ACCURATEDCT : TJFLAG_PROGRESSIVE | TJFLAG_ACCURATEDCT;
+    
     if (tjCompress2(compressor, decoded_image_vec.data(), width, 0, height, TJPF_RGB, 
                     &jpegBuf, &jpegSize, TJSAMP_444, JPG_QUALITY_VAL, flags) != 0) {
         tjDestroy(compressor);
