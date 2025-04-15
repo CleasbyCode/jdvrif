@@ -41,7 +41,7 @@ uint8_t jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, Arg
 
 	constexpr uint8_t DATA_FILENAME_MAX_LENGTH = 20;
 
-	const uint8_t DATA_FILENAME_LENGTH = static_cast<uint8_t>(data_filename.length());
+	const uint8_t DATA_FILENAME_LENGTH = static_cast<uint8_t>(data_filename.size());
 
 	if (DATA_FILENAME_LENGTH > DATA_FILENAME_MAX_LENGTH) {
     		std::cerr << "\nData File Error: For compatibility requirements, length of data filename must not exceed 20 characters.\n\n";
