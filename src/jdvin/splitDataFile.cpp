@@ -62,7 +62,11 @@ void splitDataFile(std::vector<uint8_t>&segment_vec, std::vector<uint8_t>&data_f
 		
 		constexpr uint8_t MASTODON_SEGMENTS_LIMIT = 100;		   
 		constexpr uint32_t MASTODON_IMAGE_UPLOAD_LIMIT = 16 * 1024 * 1024; 
-					   
+
+		// The warning is important because Mastodon will allow you to post an image that is greater than its 100 segments limit, as long as you do not exceed
+		// the image size limit, which is 16MB. This seems fine until someone downloads/saves the image. Data segments over the limit will be truncated, so parts 
+		// of the data file will be missing when an attempt is made to extract the (now corrupted) file from the image.
+
 		shouldDisplayMastodonWarning = segments_sequence_val > MASTODON_SEGMENTS_LIMIT && MASTODON_IMAGE_UPLOAD_LIMIT > color_profile_with_data_file_vec_size;
 	} else {  // Data file is small enough to fit within a single color profile segment...
 		constexpr uint8_t
