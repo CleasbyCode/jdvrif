@@ -142,6 +142,10 @@ uint8_t jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, Arg
 		} else {
 			image_vec.insert(image_vec.begin(), data_file_vec.begin(), data_file_vec.end());
 			if (shouldDisplayMastodonWarning) {
+				// The warning is important because Mastodon will allow you to post an image that is greater than its 100 segments limit, 
+				// as long as you do not exceed the image size limit, which is 16MB. This seems fine until someone downloads/saves the image.
+				// Data segments over the limit will be truncated, so parts of the data file will be missing when an attempt is made 
+				// to extract the (now corrupted) file from the image.
 				std::cout << "\n**Warning**\n\nEmbedded image is not compatible with Mastodon. Image file exceeds platform's segments limit.\n";
 			}
 		}
