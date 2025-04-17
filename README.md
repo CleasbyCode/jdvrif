@@ -118,6 +118,5 @@ This project makes use of the following third-party libraries:
   - License: zlib/libpng license (see [***LICENSE***](https://github.com/madler/zlib/blob/develop/LICENSE) file)
   - Copyright (C) 1995-2024 Jean-loup Gailly and Mark Adler
     
-
 ##
 
