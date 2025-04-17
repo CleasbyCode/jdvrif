@@ -21,11 +21,6 @@ For increased storage capacity and better security, your embedded data file is c
 ● ***Bluesky*** (***Image:*** **800KB** | ***Compressed data file:*** **~106KB** | ***-b option***).  
 *Use the "***bsky_post.py***" script, found within the ***src folder*** of this repo, to post images on ***Bluesky***.*
   
-
-
-![Demo Image](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/jrif_42139.jpg)  
-***Image credit:*** [***@carochan_me***](https://x.com/carochan_me) / ***PIN: 15981008481739377139***
-
 ## Usage (Linux - jdvin / jdvout)
 
 ```console
