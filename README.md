@@ -5,6 +5,9 @@
 There is also a [***jdvrif Web App,***](https://cleasbycode.co.uk/jdvrif/index/) available to use, if you don't want to download and compile the CLI source code.  
 *Web file uploads are limited to 20MB.*    
 
+![Demo Image](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/jrif_42139.jpg)  
+***Image credit:*** [***@carochan_me***](https://x.com/carochan_me) / ***PIN: 15981008481739377139***
+
 Unlike the common steganography method of concealing data within the pixels of a cover image ([***LSB***](https://ctf101.org/forensics/what-is-stegonagraphy/)), ***jdvrif*** hides files within ***application segments*** of a ***JPG*** image. You can embed any file type up to ***2GB***, although compatible hosting sites (listed below) have their own ***much smaller*** size limits and *other requirements.  
 
 For increased storage capacity and better security, your embedded data file is compressed with ***zlib/deflate*** (*if not already a compressed file type*) and encrypted using the ***libsodium*** cryptographic library.  
