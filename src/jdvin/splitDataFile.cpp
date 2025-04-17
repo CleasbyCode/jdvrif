@@ -1,86 +1,89 @@
 void splitDataFile(std::vector<uint8_t>&segment_vec, std::vector<uint8_t>&data_file_vec, bool& shouldDisplayMastodonWarning) {
 	constexpr uint8_t
-		PROFILE_HEADER_SEGMENT_LENGTH 	= 18,
-		APP2_SIG_LENGTH       		= 2; 
-
-	constexpr uint32_t MAX_FIRST_SEGMENT_SIZE = 65539;
+		IMAGE_START_SIG_LENGTH 	  = 2,
+		ICC_PROFILE_SIG_LENGTH	  = 2,
+		ICC_PROFILE_HEADER_LENGTH = 16;
+			
+	constexpr uint32_t MAX_FIRST_SEGMENT_SIZE = 65539; // Size includes the data (65519), plus icc profile header and signature bytes (20);
 
 	uint32_t 
-		color_profile_with_data_file_vec_size = static_cast<uint32_t>(segment_vec.size()),
-		segment_data_size = 65519;
+		icc_profile_with_data_file_vec_size = static_cast<uint32_t>(segment_vec.size()),
+		icc_segment_data_size = 65519;  // Max. data for each segment (Not including header and signature bytes).
 
 	uint8_t val_bit_length = 16;
 
-	if (color_profile_with_data_file_vec_size > MAX_FIRST_SEGMENT_SIZE) { // Data file is too large for a single segment, so split data file in to multiple segments.
+	if (icc_profile_with_data_file_vec_size > MAX_FIRST_SEGMENT_SIZE) { // Data file is too large for a single segment, so split data file in to multiple segments.
 		constexpr uint8_t LIBSODIUM_DISCREPANCY_VAL = 20;
 
-		color_profile_with_data_file_vec_size -= LIBSODIUM_DISCREPANCY_VAL;
+		icc_profile_with_data_file_vec_size -= LIBSODIUM_DISCREPANCY_VAL;
 
 		uint16_t 
-			segments_required_val	= (color_profile_with_data_file_vec_size / segment_data_size) + 1,
-			segment_remainder_size 	= color_profile_with_data_file_vec_size % segment_data_size,
-			segments_sequence_val = 1;
+			icc_segments_required_val   = (icc_profile_with_data_file_vec_size / icc_segment_data_size) + 1, // There will almost always be a remainder segment, so plus 1 here.
+			icc_segment_remainder_size  = icc_profile_with_data_file_vec_size % icc_segment_data_size,
+			icc_segments_sequence_val   = 1;
 			
-		constexpr uint16_t SEGMENTS_TOTAL_VAL_INDEX = 0x2E0;  
-		valueUpdater(segment_vec, SEGMENTS_TOTAL_VAL_INDEX, !segment_remainder_size ? --segments_required_val : segments_required_val, val_bit_length);
-
-		segment_data_size = MAX_FIRST_SEGMENT_SIZE;
+		constexpr uint16_t ICC_SEGMENTS_TOTAL_VAL_INDEX = 0x2E0;  // The value stored here is used by jdvout when extracting the data file.
+		valueUpdater(segment_vec, ICC_SEGMENTS_TOTAL_VAL_INDEX, !icc_segment_remainder_size ? --icc_segments_required_val : icc_segments_required_val, val_bit_length);
 
 		uint8_t 
-			segments_sequence_val_index = 0x0F,
-			segment_remainder_size_index = 0x02,
-			temp_header_length = PROFILE_HEADER_SEGMENT_LENGTH;
+			icc_segments_sequence_val_index = 0x0F,
+			icc_segment_remainder_size_index = 0x02;
 
 		std::vector<uint8_t> split_vec { 0xFF, 0xE2, 0xFF, 0xFF, 0x49, 0x43, 0x43, 0x5F, 0x50, 0x52, 0x4F, 0x46, 0x49, 0x4C, 0x45, 0x00, 0x00, 0xFF };
 		split_vec.reserve(MAX_FIRST_SEGMENT_SIZE);
 
-		data_file_vec.reserve(segment_data_size * segments_required_val);
+		// Erase the first 20 bytes of segment_vec because they will be replaced when splitting the data file.
+    		segment_vec.erase(segment_vec.begin(), segment_vec.begin() + (IMAGE_START_SIG_LENGTH + ICC_PROFILE_SIG_LENGTH + ICC_PROFILE_HEADER_LENGTH));
+
+		data_file_vec.reserve(icc_segment_data_size * icc_segments_required_val);
 		
 		uint32_t byte_index = 0;
 	
-		while (segments_required_val--) {	
-			if (!segments_required_val && segment_remainder_size) {
-				segment_data_size = segment_remainder_size;	
-				segment_remainder_size += PROFILE_HEADER_SEGMENT_LENGTH - APP2_SIG_LENGTH;
-			   	valueUpdater(split_vec, segment_remainder_size_index, segment_remainder_size, val_bit_length); 		
+		while (icc_segments_required_val--) {	
+			if (!icc_segments_required_val) {
+				if (!icc_segment_remainder_size) {
+					break;
+				}
+				icc_segment_data_size = icc_segment_remainder_size;	
+				icc_segment_remainder_size += ICC_PROFILE_HEADER_LENGTH;
+			   	valueUpdater(split_vec, icc_segment_remainder_size_index, icc_segment_remainder_size, val_bit_length); 		
 			}
-			std::copy_n(segment_vec.begin() + byte_index, segment_data_size, std::back_inserter(split_vec));
-			byte_index += segment_data_size;	
+			std::copy_n(segment_vec.begin() + byte_index, icc_segment_data_size, std::back_inserter(split_vec));
+			byte_index += icc_segment_data_size;	
 			
-			data_file_vec.insert(data_file_vec.end(), split_vec.begin() + temp_header_length, split_vec.end()); 
-    		
-			temp_header_length = 0;
+			data_file_vec.insert(data_file_vec.end(), split_vec.begin(), split_vec.end()); 
 
-    			split_vec.resize(PROFILE_HEADER_SEGMENT_LENGTH); // Keep the segment profile header, delete all other content. 
-			segment_data_size = 65519;
+    			split_vec.resize(ICC_PROFILE_SIG_LENGTH + ICC_PROFILE_HEADER_LENGTH); // Keep the segment profile header, delete all other content. 
 			
-			valueUpdater(split_vec, segments_sequence_val_index, ++segments_sequence_val, val_bit_length);
+			valueUpdater(split_vec, icc_segments_sequence_val_index, ++icc_segments_sequence_val, val_bit_length);
 		}
 
 		std::vector<uint8_t>().swap(segment_vec);
 		std::vector<uint8_t>().swap(split_vec);
 		
+		// Insert the start of image sig bytes that were removed.
+		constexpr std::array<uint8_t, 2> IMAGE_START_SIG { 0xFF, 0xD8 };
+		data_file_vec.insert(data_file_vec.begin(), IMAGE_START_SIG.begin(), IMAGE_START_SIG.end());
+
 		constexpr uint8_t MASTODON_SEGMENTS_LIMIT = 100;		   
 		constexpr uint32_t MASTODON_IMAGE_UPLOAD_LIMIT = 16 * 1024 * 1024; 
-
+					   
 		// The warning is important because Mastodon will allow you to post an image that is greater than its 100 segments limit, as long as you do not exceed
 		// the image size limit, which is 16MB. This seems fine until someone downloads/saves the image. Data segments over the limit will be truncated, so parts 
 		// of the data file will be missing when an attempt is made to extract the (now corrupted) file from the image.
-
-		shouldDisplayMastodonWarning = segments_sequence_val > MASTODON_SEGMENTS_LIMIT && MASTODON_IMAGE_UPLOAD_LIMIT > color_profile_with_data_file_vec_size;
-	} else {  // Data file is small enough to fit within a single color profile segment...
+		shouldDisplayMastodonWarning = icc_segments_sequence_val > MASTODON_SEGMENTS_LIMIT && MASTODON_IMAGE_UPLOAD_LIMIT > icc_profile_with_data_file_vec_size;
+	} else {  // Data file is small enough to fit within a single icc profile segment.
 		constexpr uint8_t
-			SEGMENT_HEADER_SIZE_INDEX = 0x04, 
-			COLOR_PROFILE_SIZE_INDEX  = 0x16, 
-			COLOR_PROFILE_SIZE_DIFF   = 16,
-			JPG_SIG_LENGTH		  = 2;
+			ICC_SEGMENT_HEADER_SIZE_INDEX 	= 0x04, 
+			ICC_PROFILE_SIZE_INDEX  	= 0x16, 
+			ICC_PROFILE_SIZE_DIFF   	= 16;
 			
 		const uint16_t 
-			SEGMENT_SIZE 	   = color_profile_with_data_file_vec_size - (JPG_SIG_LENGTH + APP2_SIG_LENGTH),
-			COLOR_PROFILE_SIZE = SEGMENT_SIZE - COLOR_PROFILE_SIZE_DIFF;
+			SEGMENT_SIZE 	 = icc_profile_with_data_file_vec_size - (IMAGE_START_SIG_LENGTH + ICC_PROFILE_SIG_LENGTH),
+			ICC_PROFILE_SIZE = SEGMENT_SIZE - ICC_PROFILE_SIZE_DIFF;
 
-		valueUpdater(segment_vec, SEGMENT_HEADER_SIZE_INDEX, SEGMENT_SIZE, val_bit_length);
-		valueUpdater(segment_vec, COLOR_PROFILE_SIZE_INDEX, COLOR_PROFILE_SIZE, val_bit_length);
+		valueUpdater(segment_vec, ICC_SEGMENT_HEADER_SIZE_INDEX, SEGMENT_SIZE, val_bit_length);
+		valueUpdater(segment_vec, ICC_PROFILE_SIZE_INDEX, ICC_PROFILE_SIZE, val_bit_length);
 
 		data_file_vec = std::move(segment_vec);
 	}
@@ -88,8 +91,8 @@ void splitDataFile(std::vector<uint8_t>&segment_vec, std::vector<uint8_t>&data_f
 	val_bit_length = 32; 
 
 	constexpr uint16_t 
-		DEFLATED_DATA_FILE_SIZE_INDEX = 0x2E2,
-		PROFILE_SIZE = 851; 
+		DEFLATED_DATA_FILE_SIZE_INDEX = 0x2E2,	// The size value stored here is used by jdvout when extracting the data file.
+		ICC_PROFILE_SIZE = 851; 
 	
-	valueUpdater(data_file_vec, DEFLATED_DATA_FILE_SIZE_INDEX, static_cast<uint32_t>(data_file_vec.size()) - PROFILE_SIZE, val_bit_length);
+	valueUpdater(data_file_vec, DEFLATED_DATA_FILE_SIZE_INDEX, static_cast<uint32_t>(data_file_vec.size()) - ICC_PROFILE_SIZE, val_bit_length);
 }
