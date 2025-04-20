@@ -14,11 +14,11 @@
 
 // This project uses libsodium (https://libsodium.org/) for cryptographic functions.
 #define SODIUM_STATIC
-#include <C:\Users\Nickc\source\repos\jdvin\libsodium\include\sodium.h>
+#include <sodium.h>
 // Copyright (c) 2013-2025 Frank Denis <github@pureftpd.org>
 
 // https://github.com/madler/zlib
-#include <C:\Users\Nickc\source\zlib-1.3.1\zlib.h>
+#include <zlib.h>
 // Copyright (C) 1995-2024 Jean-loup Gailly and Mark Adler
 
 #ifdef _WIN32
