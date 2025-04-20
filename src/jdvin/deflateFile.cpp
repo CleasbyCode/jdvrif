@@ -61,7 +61,6 @@ void deflateFile(std::vector<uint8_t>& vec, bool isCompressedFile) {
 	} else {
 	    	compression_level = Z_BEST_COMPRESSION;
 	}
-
 	deflateInit(&strm, compression_level);
 
 	while (strm.avail_in)
@@ -69,16 +68,15 @@ void deflateFile(std::vector<uint8_t>& vec, bool isCompressedFile) {
 		deflate(&strm, Z_NO_FLUSH);
 		
 		if (!strm.avail_out) {
-			deflate_vec.insert(deflate_vec.end(), buffer, buffer + BUFSIZE);
+			std::copy_n(buffer, BUFSIZE, std::back_inserter(deflate_vec));
 			strm.next_out = buffer;
 			strm.avail_out = BUFSIZE;
 		} else {
 			break;
 		}
 	}
-	
 	deflate(&strm, Z_FINISH);
-	deflate_vec.insert(deflate_vec.end(), buffer, buffer + BUFSIZE - strm.avail_out);
+	std::copy_n(buffer, BUFSIZE - strm.avail_out, std::back_inserter(deflate_vec));
 	deflateEnd(&strm);
 
 	delete[] buffer;
