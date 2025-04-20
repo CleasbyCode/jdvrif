@@ -126,7 +126,7 @@ uint8_t jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, Arg
 			exif_segment_size_field_index = 0x02,
 			value_bit_length = 16;
 			valueUpdater(bluesky_xmp_vec, exif_segment_size_field_index, BLUESKY_XMP_VEC_SIZE - segment_sig_bytes, value_bit_length);
-			segment_vec.insert(segment_vec.end(), bluesky_xmp_vec.begin(), bluesky_xmp_vec.end());
+			std::copy_n(bluesky_xmp_vec.begin(), bluesky_xmp_vec.size(), std::back_inserter(segment_vec));
 		}
 		image_vec.insert(image_vec.begin(), segment_vec.begin(), segment_vec.end());
 		std::cout << "\nBluesky option selected: Only post this \"file-embedded\" JPG image on Bluesky.\n\n"
