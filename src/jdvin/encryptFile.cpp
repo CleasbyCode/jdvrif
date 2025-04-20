@@ -79,7 +79,7 @@ uint64_t encryptFile(std::vector<uint8_t>& segment_vec, std::vector<uint8_t>& da
 		}
 
 	} else { // Used the default color profile segment for data storage.
-		segment_vec.insert(segment_vec.end(), encrypted_vec.begin(), encrypted_vec.end()); 
+		std::copy_n(encrypted_vec.begin(), encrypted_vec.size(), std::back_inserter(segment_vec));
 	}	
 	
 	std::vector<uint8_t>().swap(encrypted_vec);
