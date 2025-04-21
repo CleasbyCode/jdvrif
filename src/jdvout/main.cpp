@@ -1,4 +1,4 @@
-// JPG Data Vehicle(jdvout v4.0) Created by Nicholas Cleasby(@CleasbyCode) 10 / 04 / 2023
+// JPG Data Vehicle(jdvout v4.1) Created by Nicholas Cleasby(@CleasbyCode) 10 / 04 / 2023
 //
 //	Compile program (Linux):
 
@@ -12,6 +12,7 @@
 #include "jdvout.h"
 
 int main(int argc, char** argv) {
+    std::ios::sync_with_stdio(false);
     try {
         ProgramArgs args = ProgramArgs::parse(argc, argv);
         if (!hasValidFilename(args.image_file)) {
