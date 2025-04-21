@@ -46,11 +46,9 @@ uint64_t encryptFile(std::vector<uint8_t>& segment_vec, std::vector<uint8_t>& da
 	if (hasBlueskyOption) { // User has selected the -b argument option for the Bluesky platform.
 		constexpr uint16_t EXIF_SEGMENT_DATA_SIZE_LIMIT = 65027; // + With EXIF overhead segment data (511) - four bytes we don't count (FFD8 FFE1) = Max. segment size 65534.
 								         // Can't have 65535 (0xFFFF) as Bluesky will strip the EXIF segment.
-		const uint32_t ENCRYPTED_VEC_SIZE = static_cast<uint32_t>(encrypted_vec.size());
-		
+		const uint32_t ENCRYPTED_VEC_SIZE = static_cast<uint32_t>(encrypted_vec.size());	
 		uint16_t compressed_file_size_index = 0x1CD;
 		uint8_t value_bit_length = 32;					 	 
-		
 		valueUpdater(segment_vec, compressed_file_size_index, ENCRYPTED_VEC_SIZE, value_bit_length);
 
 		// Split the data file if it exceeds the max compressed EXIF capacity of ~64KB. 
@@ -58,21 +56,14 @@ uint64_t encryptFile(std::vector<uint8_t>& segment_vec, std::vector<uint8_t>& da
 
 		if (ENCRYPTED_VEC_SIZE > EXIF_SEGMENT_DATA_SIZE_LIMIT) {
 			segment_vec.insert(segment_vec.begin() + EXIF_SEGMENT_DATA_INSERT_INDEX, encrypted_vec.begin(), encrypted_vec.begin() + EXIF_SEGMENT_DATA_SIZE_LIMIT);
-
 			uint32_t remaining_size = ENCRYPTED_VEC_SIZE - EXIF_SEGMENT_DATA_SIZE_LIMIT;
-			
 			std::vector<uint8_t> tmp_xmp_vec(remaining_size);
-			
 			std::copy_n(encrypted_vec.begin() + EXIF_SEGMENT_DATA_SIZE_LIMIT, remaining_size, tmp_xmp_vec.begin());
-			
 			// We can only store Base64 encoded data in the XMP segment, so convert the binary data here.
 			convertToBase64(tmp_xmp_vec);
-			
 			constexpr uint16_t XMP_SEGMENT_DATA_INSERT_INDEX = 0x139;
-
 			// Store the second part of the file (as Base64) within the XMP segment.
 			bluesky_xmp_vec.insert(bluesky_xmp_vec.begin() + XMP_SEGMENT_DATA_INSERT_INDEX, tmp_xmp_vec.begin(), tmp_xmp_vec.end());
-
 			std::vector<uint8_t>().swap(tmp_xmp_vec);
 		} else { // Data file was small enough to fit within the EXIF segment, XMP segment not required.
 			segment_vec.insert(segment_vec.begin() + EXIF_SEGMENT_DATA_INSERT_INDEX, encrypted_vec.begin(), encrypted_vec.end());
@@ -114,6 +105,5 @@ uint64_t encryptFile(std::vector<uint8_t>& segment_vec, std::vector<uint8_t>& da
     	uint64_t random_val = dis64(gen64); 
 
 	valueUpdater(segment_vec, sodium_key_pos, random_val, value_bit_length);
-
 	return PIN;
 }
