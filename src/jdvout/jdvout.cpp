@@ -8,8 +8,10 @@ uint8_t jdvOut(const std::string& IMAGE_FILENAME) {
 		return 1;
     	} 
 
-	std::vector<uint8_t> image_vec;
-	image_vec.resize(IMAGE_FILE_SIZE);
+	std::vector<uint8_t> image_vec(IMAGE_FILE_SIZE);
+
+	std::vector<char> buffer(2097152);
+	image_file_ifs.rdbuf()->pubsetbuf(buffer.data(), buffer.size());
 
 	image_file_ifs.read(reinterpret_cast<char*>(image_vec.data()), IMAGE_FILE_SIZE);
 	image_file_ifs.close();
@@ -65,7 +67,7 @@ uint8_t jdvOut(const std::string& IMAGE_FILENAME) {
 			const uint32_t END_OF_EXIF_DATA_INDEX = XMP_SIG_INDEX - 0x32;
 
 			// Now append the XMP binary data to the EXIF binary segment data, so that we have the complete data file.
-			image_vec.insert(image_vec.begin() + END_OF_EXIF_DATA_INDEX, base64_data_vec.begin(), base64_data_vec.end());
+			std::copy_n(base64_data_vec.begin(), base64_data_vec.size(), image_vec.begin() + END_OF_EXIF_DATA_INDEX);
 		}
 	}
 
@@ -74,7 +76,7 @@ uint8_t jdvOut(const std::string& IMAGE_FILENAME) {
 	if (IMAGE_FILE_SIZE > LARGE_FILE_SIZE) {
 		std::cout << "\nPlease wait. Larger files will take longer to complete this process.\n";
 	}
-
+	
 	const std::string DECRYPTED_FILENAME = decryptFile(image_vec, hasBlueskyOption);	
 	
 	const uint32_t INFLATED_FILE_SIZE = inflateFile(image_vec);

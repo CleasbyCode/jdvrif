@@ -55,7 +55,7 @@ const std::string decryptFile(std::vector<uint8_t>& image_vec, bool hasBlueskyOp
 	const uint16_t 
 		ENCRYPTED_FILE_START_INDEX 		= hasBlueskyOption ? 0x1D1 : 0x33B,
 		FILE_SIZE_INDEX 			= hasBlueskyOption ? 0x1CD : 0x2CA,
-		TOTAL_PROFILE_HEADER_SEGMENTS_INDEX 	= hasBlueskyOption ? 0x110 : 0x2C8,
+		TOTAL_PROFILE_HEADER_SEGMENTS_INDEX 	= 0x2C8,
 		TOTAL_PROFILE_HEADER_SEGMENTS = (static_cast<uint16_t>(image_vec[TOTAL_PROFILE_HEADER_SEGMENTS_INDEX]) << 8) 
 							| static_cast<uint16_t>(image_vec[TOTAL_PROFILE_HEADER_SEGMENTS_INDEX + 1]);
 	const uint32_t 
@@ -65,7 +65,7 @@ const std::string decryptFile(std::vector<uint8_t>& image_vec, bool hasBlueskyOp
 	int32_t last_segment_index = (TOTAL_PROFILE_HEADER_SEGMENTS - 1) * COMMON_DIFF_VAL - 0x16;
 	
 	// Check for embedded file corruption, such as missing data segments.
-	if (TOTAL_PROFILE_HEADER_SEGMENTS) {
+	if (TOTAL_PROFILE_HEADER_SEGMENTS && !hasBlueskyOption) {
 		if (last_segment_index > static_cast<int32_t>(image_vec.size()) || image_vec[last_segment_index] != 0xFF || image_vec[last_segment_index + 1] != 0xE2) {
 			std::cerr << "\nFile Extraction Error: Missing segments detected. Embedded data file is corrupt!\n\n";
 			std::exit(0);
@@ -75,38 +75,42 @@ const std::string decryptFile(std::vector<uint8_t>& image_vec, bool hasBlueskyOp
 	std::vector<uint8_t> temp_vec(image_vec.begin() + ENCRYPTED_FILE_START_INDEX, image_vec.begin() + ENCRYPTED_FILE_START_INDEX + EMBEDDED_FILE_SIZE);
 	image_vec = std::move(temp_vec);
 
-	uint32_t 
-		encrypted_file_size = static_cast<uint32_t>(image_vec.size()),
-		header_index = 0xFCB0, // First split segment profile header location, this is after the main header/color profile, which has already been removed.
-		index_pos = 0;
+	std::vector<uint8_t>decrypted_file_vec;
+
+	if (hasBlueskyOption || !TOTAL_PROFILE_HEADER_SEGMENTS) {
+		decrypted_file_vec.resize(image_vec.size() - crypto_secretbox_MACBYTES);
+		if (crypto_secretbox_open_easy(decrypted_file_vec.data(), image_vec.data(), image_vec.size(), nonce.data(), key.data()) !=0 ) {
+			std::cerr << "\nDecryption failed!" << std::endl;
+		}
+	} else {
+		uint32_t 
+			encrypted_file_size = static_cast<uint32_t>(image_vec.size()),
+			header_index = 0xFCB0, // First split segment profile header location, this is after the main header/color profile, which has already been removed.
+			index_pos = 0;
 	
-	std::vector<uint8_t>sanitize_vec; 
-	sanitize_vec.reserve(encrypted_file_size);
+			std::vector<uint8_t>sanitize_vec; 
+			sanitize_vec.reserve(encrypted_file_size);
 
-	constexpr uint8_t PROFILE_HEADER_LENGTH	= 18;
+			constexpr uint8_t PROFILE_HEADER_LENGTH	= 18;
 
-	// We need to avoid including the segment profile headers within the decrypted output file.
-	// Because we know the total number of profile headers and their location (common difference val), 
-	// we can just skip the header bytes when copying the data to the sanitize vector.
-        // This is much faster than having to search for and then using something like vec.erase to remove the headers from the vector.
-	while (encrypted_file_size > index_pos) {
-		sanitize_vec.emplace_back(image_vec[index_pos++]);
-		if (TOTAL_PROFILE_HEADER_SEGMENTS && index_pos == header_index) {
-			index_pos += PROFILE_HEADER_LENGTH; 
-			header_index += COMMON_DIFF_VAL;
-		}	
+			// We need to avoid including the icc segment profile headers within the decrypted output file.
+			// Because we know the total number of profile headers and their location (common difference val), 
+			// we can just skip the header bytes when copying the data to the sanitize vector.
+        		// This is much faster than having to search for and then using something like vec.erase to remove the headers from the vector.
+			while (encrypted_file_size > index_pos) {
+				sanitize_vec.emplace_back(image_vec[index_pos++]);
+				if (index_pos == header_index) {
+					index_pos += PROFILE_HEADER_LENGTH; 
+					header_index += COMMON_DIFF_VAL;
+				}	
+			}
+		std::vector<uint8_t>().swap(image_vec);
+		decrypted_file_vec.resize(sanitize_vec.size() - crypto_secretbox_MACBYTES);
+		if (crypto_secretbox_open_easy(decrypted_file_vec.data(), sanitize_vec.data(), sanitize_vec.size(), nonce.data(), key.data()) !=0 ) {
+			std::cerr << "\nDecryption failed!" << std::endl;
+		}
+		std::vector<uint8_t>().swap(sanitize_vec);
 	}
-	
-	std::vector<uint8_t>().swap(image_vec);
-
-	std::vector<uint8_t>decrypted_file_vec(sanitize_vec.size() - crypto_secretbox_MACBYTES);
-
-	if (crypto_secretbox_open_easy(decrypted_file_vec.data(), sanitize_vec.data(), sanitize_vec.size(), nonce.data(), key.data()) !=0 ) {
-		std::cerr << "\nDecryption failed!" << std::endl;
-	}
-	
-	std::vector<uint8_t>().swap(sanitize_vec);
 	image_vec.swap(decrypted_file_vec);
-	
 	return decrypted_filename;
 }

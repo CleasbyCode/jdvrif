@@ -43,7 +43,7 @@ const uint32_t inflateFile(std::vector<uint8_t>& vec) {
 	while (strm.avail_in) {
 		inflate(&strm, Z_NO_FLUSH);
 		if (!strm.avail_out) {
-			inflate_vec.insert(inflate_vec.end(), buffer, buffer + BUFSIZE);
+			std::copy_n(buffer, BUFSIZE, std::back_inserter(inflate_vec));
 			strm.next_out = buffer;
 			strm.avail_out = BUFSIZE;
 		} else {
@@ -52,7 +52,7 @@ const uint32_t inflateFile(std::vector<uint8_t>& vec) {
 	}
 
 	inflate(&strm, Z_FINISH);
-	inflate_vec.insert(inflate_vec.end(), buffer, buffer + BUFSIZE - strm.avail_out);
+	std::copy_n(buffer, BUFSIZE - strm.avail_out, std::back_inserter(inflate_vec));
 	inflateEnd(&strm);
 	
 	delete[] buffer;
