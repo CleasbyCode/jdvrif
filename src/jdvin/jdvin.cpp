@@ -12,8 +12,7 @@ uint8_t jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, Arg
 		IMAGE_FILE_SIZE = std::filesystem::file_size(IMAGE_FILENAME),
 		DATA_FILE_SIZE = std::filesystem::file_size(data_filename);
 
-	std::vector<uint8_t> image_vec;
-	image_vec.resize(IMAGE_FILE_SIZE); 
+	std::vector<uint8_t> image_vec(IMAGE_FILE_SIZE); 
 	
 	image_file_ifs.read(reinterpret_cast<char*>(image_vec.data()), IMAGE_FILE_SIZE);
 	image_file_ifs.close();
@@ -26,7 +25,7 @@ uint8_t jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, Arg
         	std::cerr << "\nImage File Error: This is not a valid JPG image.\n\n";
 		return 1;
 	}
-
+	
 	bool hasBlueskyOption = (platform == ArgOption::Bluesky);
 	
 	// For better compatibility, default re-encode image to JPG Progressive format with a quality value set at 97 with no chroma subsampling.
@@ -62,8 +61,10 @@ uint8_t jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, Arg
 		std::cout << "\nPlease wait. Larger files will take longer to complete this process.\n";
 	}
 
-	std::vector<uint8_t> data_file_vec;
-	data_file_vec.resize(DATA_FILE_SIZE); 
+	std::vector<char> buffer(2097152);
+	data_file_ifs.rdbuf()->pubsetbuf(buffer.data(), buffer.size());
+
+	std::vector<uint8_t> data_file_vec(DATA_FILE_SIZE); 
 
 	data_file_ifs.read(reinterpret_cast<char*>(data_file_vec.data()), DATA_FILE_SIZE);
 	data_file_ifs.close();
@@ -78,7 +79,7 @@ uint8_t jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, Arg
 
 	if (hasBlueskyOption) {	 // We can store binary data within the first (EXIF) segment, with a max compressed storage capacity close to ~64KB. See encryptFile.cpp
 		constexpr uint8_t MARKER_BYTES_VAL = 4; // FFD8, FFE1
-		
+	
 		uint8_t	
 			value_bit_length = 16,
 			exif_segment_size_field_index = 0x04,  
@@ -142,10 +143,11 @@ uint8_t jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, Arg
 		} else {
 			image_vec.insert(image_vec.begin(), data_file_vec.begin(), data_file_vec.end());
 			if (shouldDisplayMastodonWarning) {
-				// The warning is important because Mastodon will allow you to post an image that is greater than its 100 segments limit, 
-				// as long as you do not exceed the image size limit, which is 16MB. This seems fine until someone downloads/saves the image.
-				// Data segments over the limit will be truncated, so parts of the data file will be missing when an attempt is made 
-				// to extract the (now corrupted) file from the image.
+				
+				// The warning is important because Mastodon will allow you to post an image that is greater than its 100 segments limit, as long as you do not exceed
+				// the image size limit, which is 16MB. This seems fine until someone downloads/saves the image. Data segments over the limit will be truncated, so parts 
+				// of the data file will be missing when an attempt is made to extract the (now corrupted) file from the image.
+
 				std::cout << "\n**Warning**\n\nEmbedded image is not compatible with Mastodon. Image file exceeds platform's segments limit.\n";
 			}
 		}
