@@ -13,13 +13,14 @@ void splitDataFile(std::vector<uint8_t>&segment_vec, std::vector<uint8_t>&data_f
 	uint8_t val_bit_length = 16;
 
 	if (icc_profile_with_data_file_vec_size > max_first_segment_size) { // Data file is too large for a single segment, so split data file in to multiple segments.
-		constexpr uint8_t LIBSODIUM_DISCREPANCY_VAL = 20;
-
-		icc_profile_with_data_file_vec_size -= LIBSODIUM_DISCREPANCY_VAL;
+		constexpr uint8_t LIBSODIUM_MACBYTES = 16;
+		// 16 byte authentication tag used by libsodium. Don't count these bytes as part of the data file, as they will be removed during the decryption process.
+	
+		icc_profile_with_data_file_vec_size -= LIBSODIUM_MACBYTES;
 
 		uint16_t 
-			icc_segments_required        = (icc_profile_with_data_file_vec_size / icc_segment_data_size) + 1, // There will almost always be a remainder segment, so plus 1 here.
-			icc_segment_remainder_size  = icc_profile_with_data_file_vec_size % icc_segment_data_size,
+			icc_segments_required       = (icc_profile_with_data_file_vec_size / icc_segment_data_size) + 1, // There will almost always be a remainder segment, so plus 1 here.
+			icc_segment_remainder_size  = (icc_profile_with_data_file_vec_size % icc_segment_data_size) - (IMAGE_START_SIG_LENGTH + ICC_PROFILE_SIG_LENGTH),
 			icc_segments_sequence_val   = 1;
 			
 		constexpr uint16_t ICC_SEGMENTS_TOTAL_VAL_INDEX = 0x2E0;  // The value stored here is used by jdvout when extracting the data file.
