@@ -59,14 +59,20 @@ uint64_t encryptFile(std::vector<uint8_t>& segment_vec, std::vector<uint8_t>& da
 
 		if (ENCRYPTED_VEC_SIZE > EXIF_SEGMENT_DATA_SIZE_LIMIT) {
 			segment_vec.insert(segment_vec.begin() + EXIF_SEGMENT_DATA_INSERT_INDEX, encrypted_vec.begin(), encrypted_vec.begin() + EXIF_SEGMENT_DATA_SIZE_LIMIT);
+			
 			const uint32_t REMAINING_DATA_SIZE = ENCRYPTED_VEC_SIZE - EXIF_SEGMENT_DATA_SIZE_LIMIT;
+			
 			std::vector<uint8_t> tmp_xmp_vec(REMAINING_DATA_SIZE);
 			std::copy_n(encrypted_vec.begin() + EXIF_SEGMENT_DATA_SIZE_LIMIT, REMAINING_DATA_SIZE, tmp_xmp_vec.begin());
+			
 			// We can only store Base64 encoded data in the XMP segment, so convert the binary data here.
 			convertToBase64(tmp_xmp_vec);
+			
 			constexpr uint16_t XMP_SEGMENT_DATA_INSERT_INDEX = 0x139;
+			
 			// Store the second part of the file (as Base64) within the XMP segment.
 			bluesky_xmp_vec.insert(bluesky_xmp_vec.begin() + XMP_SEGMENT_DATA_INSERT_INDEX, tmp_xmp_vec.begin(), tmp_xmp_vec.end());
+			
 			std::vector<uint8_t>().swap(tmp_xmp_vec);
 		} else { // Data file was small enough to fit within the EXIF segment, XMP segment not required.
 			segment_vec.insert(segment_vec.begin() + EXIF_SEGMENT_DATA_INSERT_INDEX, encrypted_vec.begin(), encrypted_vec.end());
