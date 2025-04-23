@@ -10,7 +10,9 @@ uint8_t jdvOut(const std::string& IMAGE_FILENAME) {
 
 	std::vector<uint8_t> image_vec(IMAGE_FILE_SIZE);
 
-	std::vector<char> buffer(2097152);
+	constexpr uint32_t BUFFER_SIZE = 2 * 1024 * 1024;
+
+	std::vector<char> buffer(BUFFER_SIZE);
 	image_file_ifs.rdbuf()->pubsetbuf(buffer.data(), buffer.size());
 
 	image_file_ifs.read(reinterpret_cast<char*>(image_vec.data()), IMAGE_FILE_SIZE);
@@ -22,32 +24,34 @@ uint8_t jdvOut(const std::string& IMAGE_FILENAME) {
 
 	constexpr std::array<uint8_t, SIG_LENGTH>
 		JDVRIF_SIG		{ 0xB4, 0x6A, 0x3E, 0xEA, 0x5E, 0x9D, 0xF9 },
-		COLOR_PROFILE_SIG	{ 0x6D, 0x6E, 0x74, 0x72, 0x52, 0x47, 0x42 };
+		ICC_PROFILE_SIG		{ 0x6D, 0x6E, 0x74, 0x72, 0x52, 0x47, 0x42 };
 				
 	const uint32_t 
 		JDVRIF_SIG_INDEX	= searchFunc(image_vec, 0, 0, JDVRIF_SIG),
-		COLOR_PROFILE_SIG_INDEX = searchFunc(image_vec, 0, 0, COLOR_PROFILE_SIG);
+		ICC_PROFILE_SIG_INDEX 	= searchFunc(image_vec, 0, 0, ICC_PROFILE_SIG);
 
 	if (JDVRIF_SIG_INDEX == image_vec.size()) {
 		std::cerr << "\nImage File Error: Signature check failure. This is not a valid jdvrif \"file-embedded\" image.\n\n";
 		return 1;
 	}
 	
-	uint8_t extract_success_byte_val = image_vec[JDVRIF_SIG_INDEX + INDEX_DIFF - 1];
+	uint8_t pin_attempts_val = image_vec[JDVRIF_SIG_INDEX + INDEX_DIFF - 1];
 
 	bool hasBlueskyOption = true;
 		
-	if (COLOR_PROFILE_SIG_INDEX != image_vec.size()) {
-		image_vec.erase(image_vec.begin(), image_vec.begin() + (COLOR_PROFILE_SIG_INDEX - INDEX_DIFF));
+	if (ICC_PROFILE_SIG_INDEX != image_vec.size()) {
+		image_vec.erase(image_vec.begin(), image_vec.begin() + (ICC_PROFILE_SIG_INDEX - INDEX_DIFF));
 		hasBlueskyOption = false;
 	}
 
-	if (hasBlueskyOption) { // EXIF segment (FFE1) is being used. Check for the second (XMP) segment.
-		constexpr std::array<uint8_t, SIG_LENGTH> XMP_SIG { 0x68, 0x74, 0x74, 0x70, 0x3A, 0x2F, 0x2F };
+	if (hasBlueskyOption) { // EXIF segment (FFE1) is being used. Check for XMP segment.
+		constexpr std::array<uint8_t, SIG_LENGTH> 
+			XMP_SIG 	{ 0x68, 0x74, 0x74, 0x70, 0x3A, 0x2F, 0x2F },
+			XMP_CREATOR_SIG { 0x3C, 0x72, 0x64, 0x66, 0x3A, 0x6C, 0x69 };
+
 		const uint32_t XMP_SIG_INDEX = searchFunc(image_vec, 0, 0, XMP_SIG);
 
-		if (XMP_SIG_INDEX != image_vec.size()) { // Found XMP segment...
-			constexpr std::array<uint8_t, SIG_LENGTH> XMP_CREATOR_SIG { 0x3C, 0x72, 0x64, 0x66, 0x3A, 0x6C, 0x69 };
+		if (XMP_SIG_INDEX != image_vec.size()) { // Found XMP segment.
 			const uint32_t 
 				XMP_CREATOR_SIG_INDEX = searchFunc(image_vec, XMP_SIG_INDEX, 0, XMP_CREATOR_SIG),
 				BEGIN_BASE64_DATA_INDEX = XMP_CREATOR_SIG_INDEX + SIG_LENGTH + 1;
@@ -55,22 +59,21 @@ uint8_t jdvOut(const std::string& IMAGE_FILENAME) {
 			constexpr uint8_t END_BASE64_DATA_SIG = 0x3C;
 			const uint32_t 
 				END_BASE64_DATA_SIG_INDEX = static_cast<uint32_t>(std::find(image_vec.begin() + BEGIN_BASE64_DATA_INDEX,
-										image_vec.end(), END_BASE64_DATA_SIG) - image_vec.begin()),
+											image_vec.end(), END_BASE64_DATA_SIG) - image_vec.begin()),
 				BASE64_DATA_SIZE = END_BASE64_DATA_SIG_INDEX - BEGIN_BASE64_DATA_INDEX;
 	
 			std::vector<uint8_t> base64_data_vec(BASE64_DATA_SIZE);
 			std::copy_n(image_vec.begin() + BEGIN_BASE64_DATA_INDEX, BASE64_DATA_SIZE, base64_data_vec.begin());
 
-			// Convert back to binary...
+			// Convert back to binary.
 			convertFromBase64(base64_data_vec);
 
 			const uint32_t END_OF_EXIF_DATA_INDEX = XMP_SIG_INDEX - 0x32;
 
-			// Now append the XMP binary data to the EXIF binary segment data, so that we have the complete data file.
+			// Now append the XMP binary data to the EXIF binary segment data, so that we have the complete, single data file.
 			std::copy_n(base64_data_vec.begin(), base64_data_vec.size(), image_vec.begin() + END_OF_EXIF_DATA_INDEX);
 		}
 	}
-
 	constexpr uint32_t LARGE_FILE_SIZE = 300 * 1024 * 1024;
 
 	if (IMAGE_FILE_SIZE > LARGE_FILE_SIZE) {
@@ -82,28 +85,24 @@ uint8_t jdvOut(const std::string& IMAGE_FILENAME) {
 	const uint32_t INFLATED_FILE_SIZE = inflateFile(image_vec);
 
 	bool hasInflateFailed = !INFLATED_FILE_SIZE;
-				 
+	
+	std::streampos pin_attempts_index = JDVRIF_SIG_INDEX + INDEX_DIFF - 1;
+			 
 	if (hasInflateFailed) {	
 		std::fstream file(IMAGE_FILENAME, std::ios::in | std::ios::out | std::ios::binary);
-		std::streampos failure_index = JDVRIF_SIG_INDEX + INDEX_DIFF - 1;
-
-		file.seekg(failure_index);
-
-		uint8_t byte;
-		file.read(reinterpret_cast<char*>(&byte), sizeof(byte));
-
-		if (byte == 0x90) {
-			byte = 0;
-		} else {
-    			byte++;
-		}
 		
-		if (byte > 2) {
+		if (pin_attempts_val == 0x90) {
+			pin_attempts_val = 0;
+		} else {
+    			pin_attempts_val++;
+		}
+
+		if (pin_attempts_val > 2) {
 			file.close();
 			std::ofstream file(IMAGE_FILENAME, std::ios::out | std::ios::trunc | std::ios::binary);
 		} else {
-			file.seekp(failure_index);
-			file.write(reinterpret_cast<char*>(&byte), sizeof(byte));
+			file.seekp(pin_attempts_index);
+			file.write(reinterpret_cast<char*>(&pin_attempts_val), sizeof(pin_attempts_val));
 		}
 
 		file.close();
@@ -112,14 +111,13 @@ uint8_t jdvOut(const std::string& IMAGE_FILENAME) {
 		return 1;
 	}
 
-	if (extract_success_byte_val != 0x90) {
+	if (pin_attempts_val != 0x90) {
 		std::fstream file(IMAGE_FILENAME, std::ios::in | std::ios::out | std::ios::binary);
-		std::streampos success_index = JDVRIF_SIG_INDEX + INDEX_DIFF - 1;
-	
-		uint8_t byte = 0x90;
+		
+		uint8_t reset_pin_attempts_val = 0x90;
 
-		file.seekp(success_index);
-		file.write(reinterpret_cast<char*>(&byte), sizeof(byte));
+		file.seekp(pin_attempts_index);
+		file.write(reinterpret_cast<char*>(&reset_pin_attempts_val), sizeof(reset_pin_attempts_val));
 
 		file.close();
 	}

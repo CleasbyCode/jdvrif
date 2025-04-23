@@ -52,16 +52,18 @@ const std::string decryptFile(std::vector<uint8_t>& image_vec, bool hasBlueskyOp
 		decrypted_filename += ENCRYPTED_FILENAME[filename_char_pos++] ^ image_vec[filename_xor_key_pos++];
 	}
 	
-	const uint16_t 
-		ENCRYPTED_FILE_START_INDEX 		= hasBlueskyOption ? 0x1D1 : 0x33B,
-		FILE_SIZE_INDEX 			= hasBlueskyOption ? 0x1CD : 0x2CA,
-		TOTAL_PROFILE_HEADER_SEGMENTS_INDEX 	= 0x2C8,
-		TOTAL_PROFILE_HEADER_SEGMENTS = (static_cast<uint16_t>(image_vec[TOTAL_PROFILE_HEADER_SEGMENTS_INDEX]) << 8) 
-							| static_cast<uint16_t>(image_vec[TOTAL_PROFILE_HEADER_SEGMENTS_INDEX + 1]);
-	const uint32_t 
-		EMBEDDED_FILE_SIZE = getByteValue<uint32_t>(image_vec, FILE_SIZE_INDEX),
-		COMMON_DIFF_VAL = 65537; // Size difference between each segment profile header.
+	constexpr uint16_t TOTAL_PROFILE_HEADER_SEGMENTS_INDEX 	= 0x2C8;
 
+	const uint16_t 
+		ENCRYPTED_FILE_START_INDEX	= hasBlueskyOption ? 0x1D1 : 0x33B,
+		FILE_SIZE_INDEX 		= hasBlueskyOption ? 0x1CD : 0x2CA,
+		TOTAL_PROFILE_HEADER_SEGMENTS 	= (static_cast<uint16_t>(image_vec[TOTAL_PROFILE_HEADER_SEGMENTS_INDEX]) << 8) 
+							| static_cast<uint16_t>(image_vec[TOTAL_PROFILE_HEADER_SEGMENTS_INDEX + 1]);
+
+	constexpr uint32_t COMMON_DIFF_VAL = 65537; // Size difference between each icc segment profile header.
+
+	const uint32_t EMBEDDED_FILE_SIZE = getByteValue<uint32_t>(image_vec, FILE_SIZE_INDEX);
+		
 	int32_t last_segment_index = (TOTAL_PROFILE_HEADER_SEGMENTS - 1) * COMMON_DIFF_VAL - 0x16;
 	
 	// Check for embedded file corruption, such as missing data segments.
@@ -82,28 +84,31 @@ const std::string decryptFile(std::vector<uint8_t>& image_vec, bool hasBlueskyOp
 		if (crypto_secretbox_open_easy(decrypted_file_vec.data(), image_vec.data(), image_vec.size(), nonce.data(), key.data()) !=0 ) {
 			std::cerr << "\nDecryption failed!" << std::endl;
 		}
-	} else {
+	} else {		
+		const uint32_t ENCRYPTED_FILE_SIZE = static_cast<uint32_t>(image_vec.size());
+
 		uint32_t 
-			encrypted_file_size = static_cast<uint32_t>(image_vec.size()),
-			header_index = 0xFCB0, // First split segment profile header location, this is after the main header/color profile, which has already been removed.
+			header_index = 0xFCB0, // First split segment profile header location, this is after the 1st main header/icc profile, which has already been removed.
 			index_pos = 0;
 	
 			std::vector<uint8_t>sanitize_vec; 
-			sanitize_vec.reserve(encrypted_file_size);
+			sanitize_vec.reserve(ENCRYPTED_FILE_SIZE);
 
 			constexpr uint8_t PROFILE_HEADER_LENGTH	= 18;
 
 			// We need to avoid including the icc segment profile headers within the decrypted output file.
 			// Because we know the total number of profile headers and their location (common difference val), 
 			// we can just skip the header bytes when copying the data to the sanitize vector.
-        		// This is much faster than having to search for and then using something like vec.erase to remove the headers from the vector.
-			while (encrypted_file_size > index_pos) {
+        		// This is much faster than having to search for and then using something like vec.erase to remove the header string from the vector.
+
+			while (ENCRYPTED_FILE_SIZE > index_pos) {
 				sanitize_vec.emplace_back(image_vec[index_pos++]);
 				if (index_pos == header_index) {
-					index_pos += PROFILE_HEADER_LENGTH; 
+					index_pos += PROFILE_HEADER_LENGTH; // Skip the header bytes.
 					header_index += COMMON_DIFF_VAL;
 				}	
 			}
+
 		std::vector<uint8_t>().swap(image_vec);
 		decrypted_file_vec.resize(sanitize_vec.size() - crypto_secretbox_MACBYTES);
 		if (crypto_secretbox_open_easy(decrypted_file_vec.data(), sanitize_vec.data(), sanitize_vec.size(), nonce.data(), key.data()) !=0 ) {
