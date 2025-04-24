@@ -87,7 +87,7 @@ You will need to create an app password from your ***Bluesky*** account. (*https
 
 https://github.com/user-attachments/assets/dcc7c31d-4bec-4741-81e5-3b70fd6c29f5
 
-https://github.com/user-attachments/assets/d470483f-e6e0-474a-8933-d50c083b8e11
+https://github.com/user-attachments/assets/b4dee070-2325-4fbc-bcc2-62eea24b2a69
 
 With ***X/Twitter,*** ***Bluesky,*** & ***Tumblr***, the small size limits are measured by the ***data file size*** and not the combined image + data file size.
 As the embedded data file is compressed with ***jdvin*** using ***zlib/deflate*** (*if not already a compressed file type*), you should be able to get significantly more than the default size limit, especially for text documents and other file types that compress well. You may wish to compress the data file yourself (***zip, rar, 7z***, etc) before embedding it with ***jdvin***, so as to know exactly what the compressed file size will be.
