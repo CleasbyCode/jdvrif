@@ -9,12 +9,7 @@ uint8_t jdvOut(const std::string& IMAGE_FILENAME) {
     	} 
 
 	std::vector<uint8_t> image_vec(IMAGE_FILE_SIZE);
-
-	constexpr uint32_t BUFFER_SIZE = 2 * 1024 * 1024;
-
-	std::vector<char> buffer(BUFFER_SIZE);
-	image_file_ifs.rdbuf()->pubsetbuf(buffer.data(), buffer.size());
-
+	
 	image_file_ifs.read(reinterpret_cast<char*>(image_vec.data()), IMAGE_FILE_SIZE);
 	image_file_ifs.close();
 	
