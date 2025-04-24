@@ -63,8 +63,6 @@ uint8_t jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, Arg
 		std::cout << "\nPlease wait. Larger files will take longer to complete this process.\n";
 	}
 	
-	constexpr uint32_t BUFFER_SIZE = 2 * 1024 * 1024;
-
 	std::vector<uint8_t> data_file_vec(DATA_FILE_SIZE); 
 
 	data_file_ifs.read(reinterpret_cast<char*>(data_file_vec.data()), DATA_FILE_SIZE);
