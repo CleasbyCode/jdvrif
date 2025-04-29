@@ -5,6 +5,8 @@ Script demonstrating how to create posts using the Bluesky API, covering most of
 
 https://gist.github.com/bnewbold/ebc172c927b6a64d536bdf46bd5c2925
 
+Updated by Grok to support hashtags in posts. 
+
 To run this Python script, you need the 'requests' and 'bs4' (BeautifulSoup) packages installed.
 """
 
@@ -101,20 +103,35 @@ def test_parse_urls():
         {"start": 5, "end": 21, "url": "https://bsky.app"}
     ]
 
+def test_parse_hashtags():
+    assert parse_hashtags("prefix #example #test123 suffix") == [
+        {"start": 7, "end": 15, "tag": "example"},
+        {"start": 16, "end": 24, "tag": "test123"},
+    ]
+    assert parse_hashtags("#example") == [
+        {"start": 0, "end": 8, "tag": "example"}
+    ]
+    assert parse_hashtags("nohashtag") == []
+    assert parse_hashtags("💩💩💩 #emoji") == [
+        {"start": 13, "end": 20, "tag": "emoji"}
+    ]
+    assert parse_hashtags("#123 #abc-def") == [
+        {"start": 0, "end": 4, "tag": "123"},
+        {"start": 5, "end": 13, "tag": "abc-def"},
+    ]
 
 def parse_facets(pds_url: str, text: str) -> List[Dict]:
     """
-    parses post text and returns a list of app.bsky.richtext.facet objects for any mentions (@handle.example.com) or URLs (https://example.com)
-
-    indexing must work with UTF-8 encoded bytestring offsets, not regular unicode string offsets, to match Bluesky API expectations
+    Parses post text and returns a list of app.bsky.richtext.facet objects for mentions, URLs, and hashtags.
+    Indexing uses UTF-8 encoded bytestring offsets to match Bluesky API expectations.
     """
     facets = []
+    # Parse mentions
     for m in parse_mentions(text):
         resp = requests.get(
             pds_url + "/xrpc/com.atproto.identity.resolveHandle",
             params={"handle": m["handle"]},
         )
-        # if handle couldn't be resolved, just skip it! will be text in the post
         if resp.status_code == 400:
             continue
         did = resp.json()["did"]
@@ -127,6 +144,7 @@ def parse_facets(pds_url: str, text: str) -> List[Dict]:
                 "features": [{"$type": "app.bsky.richtext.facet#mention", "did": did}],
             }
         )
+    # Parse URLs
     for u in parse_urls(text):
         facets.append(
             {
@@ -137,14 +155,28 @@ def parse_facets(pds_url: str, text: str) -> List[Dict]:
                 "features": [
                     {
                         "$type": "app.bsky.richtext.facet#link",
-                        # NOTE: URI ("I") not URL ("L")
                         "uri": u["url"],
                     }
                 ],
             }
         )
+    # Parse hashtags
+    for h in parse_hashtags(text):
+        facets.append(
+            {
+                "index": {
+                    "byteStart": h["start"],
+                    "byteEnd": h["end"],
+                },
+                "features": [
+                    {
+                        "$type": "app.bsky.richtext.facet#tag",
+                        "tag": h["tag"],
+                    }
+                ],
+            }
+        )
     return facets
-
 
 def parse_uri(uri: str) -> Dict:
     if uri.startswith("at://"):
@@ -162,6 +194,20 @@ def parse_uri(uri: str) -> Dict:
     else:
         raise Exception("unhandled URI format: " + uri)
 
+def parse_hashtags(text: str) -> List[Dict]:
+    spans = []
+    # Regex for hashtags: # followed by letters, numbers, or certain symbols
+    hashtag_regex = rb"[$|\W](#[\w\-]+)"
+    text_bytes = text.encode("UTF-8")
+    for m in re.finditer(hashtag_regex, text_bytes):
+        spans.append(
+            {
+                "start": m.start(1),
+                "end": m.end(1),
+                "tag": m.group(1)[1:].decode("UTF-8"),  # Remove # prefix
+            }
+        )
+    return spans
 
 def get_reply_refs(pds_url: str, parent_uri: str) -> Dict:
     uri_parts = parse_uri(parent_uri)
