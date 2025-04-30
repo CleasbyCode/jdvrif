@@ -3,9 +3,13 @@
 """
 Script demonstrating how to create posts using the Bluesky API, covering most of the features and embed options.
 
-https://gist.github.com/bnewbold/ebc172c927b6a64d536bdf46bd5c2925
+Script credit: 
+    This Python script is the work of Bryan Newbold:
+        https://gist.github.com/bnewbold
+        https://gist.github.com/bnewbold/ebc172c927b6a64d536bdf46bd5c2925
+        https://bsky.app/profile/bnewbold.net
 
-Updated by Grok to support hashtags in posts. 
+Note: Updated by Grok to support hashtags in posts. 
 
 To run this Python script, you need the 'requests' and 'bs4' (BeautifulSoup) packages installed.
 """
