@@ -1,4 +1,13 @@
 // Default color profile segment (FFE2)
+// Notes: 	Total segments value index = 0x2E0 (2 bytes)
+//		Compressed data file size index = 0x2E2	(4 bytes)
+//		Data filename length index = 0x2E6 (1 byte)
+//		Data filename index = 0x2E7 (20 bytes)
+//		XOR key index = 0x2FB (24 bytes)
+//		Sodium key index = 0x313 (32 bytes)
+//		Nonce key index = 0x333 (24 bytes)
+//		jdvrif sig index = 0x34B (7 bytes)
+//		Data file start index = 0x353 (see index 0x2E2 (4 bytes) for compressed data file size).
 std::vector<uint8_t>segment_vec {
 	0xFF, 0xD8, 0xFF, 0xE2, 0xFF, 0xFF, 0x49, 0x43, 0x43, 0x5F, 0x50, 0x52,
 	0x4F, 0x46, 0x49, 0x4C, 0x45, 0x00, 0x01, 0x01, 0x00, 0x00, 0xFF, 0xEF,
