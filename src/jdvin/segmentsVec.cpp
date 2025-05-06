@@ -1,9 +1,9 @@
-// Default color profile segment (FFE2)
+// ICC color profile segment (FFE2). Default method for storing data file (in multiple segments, if required).
 // Notes: 	Total segments value index = 0x2E0 (2 bytes)
 //		Compressed data file size index = 0x2E2	(4 bytes)
 //		Data filename length index = 0x2E6 (1 byte)
 //		Data filename index = 0x2E7 (20 bytes)
-//		XOR key index = 0x2FB (24 bytes)
+//		Data filename XOR key index = 0x2FB (24 bytes)
 //		Sodium key index = 0x313 (32 bytes)
 //		Nonce key index = 0x333 (24 bytes)
 //		jdvrif sig index = 0x34B (7 bytes)
@@ -82,9 +82,16 @@ std::vector<uint8_t>segment_vec {
 	0xFD, 0xD5, 0x82, 0xB4, 0x6A, 0x3E, 0xEA, 0x5E, 0x9D, 0xF9, 0x90	
 };
 
-
-
-// EXIF (FFE1) segment.
+// EXIF (FFE1) segment. This is the way we store the data file when user selects the -b option switch for Bluesky platform. 
+// Notes: 	Total segments value index = N/A
+//		Compressed data file size index = 0x1CD	(4 bytes)
+//		Data filename length index = 0x160 (1 byte)
+//		Data filename index = 0x161 (20 bytes)
+//		Data filename XOR key index = 0x175 (24 bytes)
+//		Sodium key index = 0x18D (32 bytes)
+//		Nonce key index = 0x1AD (24 bytes)
+//		jdvrif sig index = 0x1C5 (7 bytes)
+//		Data file start index = 0x1D1 (see index 0x1CD (4 bytes) for compressed data file size).
 std::vector<uint8_t>bluesky_exif_vec {
 	0xFF, 0xD8, 0xFF, 0xE1, 0x00, 0x00, 0x45, 0x78, 0x69, 0x66, 0x00, 0x00, 0x4D, 0x4D, 0x00, 0x2A, 0x00, 0x00, 0x00, 0x08, 0x00, 0x06, 0x01, 0x12,
 	0x00, 0x03, 0x00, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00, 0x01, 0x1A, 0x00, 0x05, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x01, 0x1B,
@@ -111,6 +118,7 @@ std::vector<uint8_t>bluesky_exif_vec {
 };
 
 // XMP (FFE1) segment.
+// Notes: 	Data file index = 0x139 (remainder part of data file that is stored in the EXIF segment above. Data file content stored here as BASE64).
 std::vector<uint8_t>bluesky_xmp_vec {
 	0xFF, 0xE1, 0x01, 0x93, 0x68, 0x74, 0x74, 0x70, 0x3A, 0x2F, 0x2F, 0x6E,
 	0x73, 0x2E, 0x61, 0x64, 0x6F, 0x62, 0x65, 0x2E, 0x63, 0x6F, 0x6D, 0x2F,
