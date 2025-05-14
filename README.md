@@ -17,7 +17,7 @@ For increased storage capacity and better security, your embedded data file is c
 ● ***Flickr*** (**200MB**), ***ImgPile*** (**100MB**), ***ImgBB*** (**32MB**), ***PostImage*** (**32MB**), ***Reddit*** (**20MB** | ***-r option***).  
 
 *Limit measured by just the compressed data file size:*  
-● ***Mastodon*** (**~6MB**), ***Tumblr*** (**~64KB**), ***Twitter*** (**~10KB**).  
+● ***Mastodon*** (**~6MB**), ***Tumblr*** (**~64KB**), ***X/Twitter*** (**~10KB**).  
 
 **Other:*  
 ● ***Bluesky*** (***Image:*** **800KB** | ***Compressed data file:*** **~106KB** | ***-b option***).  
