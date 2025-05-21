@@ -29,7 +29,9 @@ For increased storage capacity and better security, your embedded data file is c
 
 user1@linuxbox:~/Downloads/jdvrif-main/src/jdvin$ sudo apt-get install libsodium-dev
 user1@linuxbox:~/Downloads/jdvrif-main/src/jdvin$ sudo apt-get install libturbojpeg-dev
-user1@linuxbox:~/Downloads/jdvrif-main/src/jdvin$ g++ main.cpp -O2 -lz -lsodium -lturbojpeg -s -o jdvin
+user1@linuxbox:~/Downloads/jdvrif-main/src/jdvin$ chmod +x compile_jdvin.sh
+user1@linuxbox:~/Downloads/jdvrif-main/src/jdvin$ ./compile_jdvin.sh
+user1@linuxbox:~/Downloads/jdvrif-main/src/jdvin$ Compilation successful. Executable 'jdvin' created.
 user1@linuxbox:~/Downloads/jdvrif-main/src/jdvin$ sudo cp jdvin /usr/bin
 
 user1@linuxbox:~/Desktop$ jdvin 
@@ -47,7 +49,9 @@ Important: Keep your PIN safe, so that you can extract the hidden file.
 
 Complete!
 
-user1@linuxbox:~/Downloads/jdvrif-main/src/jdvout$ g++ main.cpp -O2 -lz -lsodium -s -o jdvout
+user1@linuxbox:~/Downloads/jdvrif-main/src/jdvout$ chmod +x compile_jdvout.sh
+user1@linuxbox:~/Downloads/jdvrif-main/src/jdvout$ ./compile_jdvout.sh
+user1@linuxbox:~/Downloads/jdvrif-main/src/jdvout$ Compilation successful. Executable 'jdvout' created.
 user1@linuxbox:~/Downloads/jdvrif-main/src/jdvout$ sudo cp jdvout /usr/bin
 
 user1@linuxbox:~/Desktop$ jdvout
