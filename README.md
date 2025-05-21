@@ -27,19 +27,19 @@ For increased storage capacity and better security, your embedded data file is c
 
 ```console
 
-user1@linuxbox:~/Downloads/jdvrif-main/src/jdvin$ sudo apt-get install libsodium-dev
-user1@linuxbox:~/Downloads/jdvrif-main/src/jdvin$ sudo apt-get install libturbojpeg-dev
-user1@linuxbox:~/Downloads/jdvrif-main/src/jdvin$ chmod +x compile_jdvin.sh
-user1@linuxbox:~/Downloads/jdvrif-main/src/jdvin$ ./compile_jdvin.sh
-user1@linuxbox:~/Downloads/jdvrif-main/src/jdvin$ Compilation successful. Executable 'jdvin' created.
-user1@linuxbox:~/Downloads/jdvrif-main/src/jdvin$ sudo cp jdvin /usr/bin
+user1@mx:~/Downloads/jdvrif-main/src/jdvin$ sudo apt-get install libsodium-dev
+user1@mx:~/Downloads/jdvrif-main/src/jdvin$ sudo apt-get install libturbojpeg-dev
+user1@mx:~/Downloads/jdvrif-main/src/jdvin$ chmod +x compile_jdvin.sh
+user1@mx:~/Downloads/jdvrif-main/src/jdvin$ ./compile_jdvin.sh
+user1@mx:~/Downloads/jdvrif-main/src/jdvin$ Compilation successful. Executable 'jdvin' created.
+user1@mx:~/Downloads/jdvrif-main/src/jdvin$ sudo cp jdvin /usr/bin
 
-user1@linuxbox:~/Desktop$ jdvin 
+user1@mx:~/Desktop$ jdvin 
 
 Usage: jdvin [-b|-r] <cover_image> <secret_file>  
        jdvin --info
 
-user1@linuxbox:~/Desktop$ jdvin Cover_Image.jpg Hidden_File.zip
+user1@mx:~/Desktop$ jdvin Cover_Image.jpg Hidden_File.zip
   
 Saved "file-embedded" JPG image: jrif_12462.jpg (143029 bytes).
 
@@ -49,17 +49,17 @@ Important: Keep your PIN safe, so that you can extract the hidden file.
 
 Complete!
 
-user1@linuxbox:~/Downloads/jdvrif-main/src/jdvout$ chmod +x compile_jdvout.sh
-user1@linuxbox:~/Downloads/jdvrif-main/src/jdvout$ ./compile_jdvout.sh
-user1@linuxbox:~/Downloads/jdvrif-main/src/jdvout$ Compilation successful. Executable 'jdvout' created.
-user1@linuxbox:~/Downloads/jdvrif-main/src/jdvout$ sudo cp jdvout /usr/bin
+user1@mx:~/Downloads/jdvrif-main/src/jdvout$ chmod +x compile_jdvout.sh
+user1@mx:~/Downloads/jdvrif-main/src/jdvout$ ./compile_jdvout.sh
+user1@mx:~/Downloads/jdvrif-main/src/jdvout$ Compilation successful. Executable 'jdvout' created.
+user1@mx:~/Downloads/jdvrif-main/src/jdvout$ sudo cp jdvout /usr/bin
 
-user1@linuxbox:~/Desktop$ jdvout
+user1@mx:~/Desktop$ jdvout
 
 Usage: jdvout <file_embedded_image>
        jdvout --info
         
-user1@linuxbox:~/Desktop$ jdvout jrif_12462.jpg
+user1@mx:~/Desktop$ jdvout jrif_12462.jpg
 
 PIN: *******************
 
@@ -122,4 +122,3 @@ This project makes use of the following third-party libraries:
   - Copyright (C) 1995-2024 Jean-loup Gailly and Mark Adler
     
 ##
-
