@@ -1,4 +1,4 @@
-// Writes updated values, such as chunk lengths, CRC, etc. into the relevant vector index locations.
+// Writes updated values, such as segment lengths, into the relevant vector index locations.
 
 #include "valueUpdater.h"
 
