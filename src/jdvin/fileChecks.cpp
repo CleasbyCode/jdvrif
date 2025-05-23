@@ -1,4 +1,3 @@
-
 #include "fileChecks.h"
 #include <stdexcept>
 #include <cctype>
@@ -6,7 +5,6 @@
 #include <set>
 #include <cstdint>
 #include <filesystem>
-
 
 bool isCompressedFile(const std::string& extension) {
 	static const std::set<std::string> compressed_extensions = {
