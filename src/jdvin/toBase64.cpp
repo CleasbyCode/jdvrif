@@ -1,4 +1,3 @@
-
 #include "toBase64.h"
 
 void convertToBase64(std::vector<uint8_t>& data_vec) {
