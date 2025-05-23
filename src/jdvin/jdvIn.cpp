@@ -1,4 +1,3 @@
-
 #include "jdvIn.h"
 #include "segmentsVec.h"
 #include "eraseSegments.h"
