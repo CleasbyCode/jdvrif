@@ -1,4 +1,3 @@
-
 #include "splitDataFile.h"
 #include "valueUpdater.h"
 #include <algorithm>
