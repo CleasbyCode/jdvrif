@@ -1,4 +1,3 @@
-
 #include "writeFile.h"       
 #include <string>          
 #include <fstream>         
