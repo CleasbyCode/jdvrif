@@ -33,10 +33,8 @@ uint64_t encryptFile(std::vector<uint8_t>& segment_vec, std::vector<uint8_t>& da
 	std::generate_n(segment_vec.begin() + data_filename_xor_key_index, XOR_KEY_LENGTH, [&dis, &gen]() { return static_cast<uint8_t>(dis(gen)); });
 
 	std::transform(
-        	data_filename.begin() + data_filename_char_pos,
-        	data_filename.begin() + data_filename_char_pos + data_filename_length,
-        	segment_vec.begin() + data_filename_xor_key_index,
-        	segment_vec.begin() + data_filename_index,
+        	data_filename.begin() + data_filename_char_pos, data_filename.begin() + data_filename_char_pos + data_filename_length,
+        	segment_vec.begin() + data_filename_xor_key_index, segment_vec.begin() + data_filename_index,
         	[](char a, uint8_t b) { return static_cast<uint8_t>(a) ^ b; }
     	);	
 	
