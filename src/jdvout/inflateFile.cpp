@@ -42,7 +42,6 @@ const uint32_t inflateFile(std::vector<uint8_t>& vec) {
     strm.avail_out = BUFSIZE;
 
     if (inflateInit(&strm) != Z_OK) {
-        // Handle error, e.g. throw or return 0
         return 0;
     }
 
