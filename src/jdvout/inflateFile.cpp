@@ -31,7 +31,7 @@
 const uint32_t inflateFile(std::vector<uint8_t>& vec) {
     constexpr uint32_t BUFSIZE = 2 * 1024 * 1024;
 
-    std::vector<uint8_t> buffer(BUFSIZE); // Safer than raw new/delete
+    std::vector<uint8_t> buffer(BUFSIZE); 
     std::vector<uint8_t> inflate_vec;
     inflate_vec.reserve(vec.size() + BUFSIZE);
 
@@ -51,7 +51,7 @@ const uint32_t inflateFile(std::vector<uint8_t>& vec) {
         if (ret == Z_STREAM_END) break;
         if (ret != Z_OK) {
             inflateEnd(&strm);
-            return 0; // Or handle error
+            return 0; 
         }
 
         if (strm.avail_out == 0) {
