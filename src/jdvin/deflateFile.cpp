@@ -26,66 +26,68 @@
 #include "deflateFile.h"
 #include <zlib.h>    
 #include <algorithm> 
-#include <iterator>  
 #include <utility>   
-#include <new>       
+  
+void deflateFile(std::vector<uint8_t>& vec, bool isCompressedFile) {
+    constexpr uint32_t 
+        FIFTH_SIZE_OPTION   = 800 * 1024 * 1024,
+        FOURTH_SIZE_OPTION  = 450 * 1024 * 1024,
+        THIRD_SIZE_OPTION   = 200 * 1024 * 1024,
+        SECOND_SIZE_OPTION  = 100 * 1024 * 1024,
+        FIRST_SIZE_OPTION   = 5 * 1024 * 1024,
+        BUFSIZE             = 2 * 1024 * 1024;
 
-void deflateFile(std::vector<uint8_t>& vec, bool isCompressedFile) {		
-	constexpr uint32_t 	
-		FIFTH_SIZE_OPTION 	= 800 * 1024 * 1024,
-		FOURTH_SIZE_OPTION	= 450 * 1024 * 1024,  
-		THIRD_SIZE_OPTION	= 200 * 1024 * 1024,
-		SECOND_SIZE_OPTION   	= 100 * 1024 * 1024,
-		FIRST_SIZE_OPTION	= 5 * 1024 * 1024,
-		BUFSIZE 	  	= 2 * 1024 * 1024;
+    const uint32_t VEC_SIZE = static_cast<uint32_t>(vec.size());
 
-	const uint32_t VEC_SIZE = static_cast<uint32_t>(vec.size());
+    std::vector<uint8_t> buffer(BUFSIZE); 
+    std::vector<uint8_t> deflate_vec;
+    deflate_vec.reserve(VEC_SIZE + BUFSIZE);
 
-	uint8_t* buffer{ new uint8_t[BUFSIZE] };
-	
-	std::vector<uint8_t>deflate_vec;
-	deflate_vec.reserve(VEC_SIZE + BUFSIZE);
+    z_stream strm = {};
+    strm.next_in = vec.data();
+    strm.avail_in = VEC_SIZE;
+    strm.next_out = buffer.data();
+    strm.avail_out = BUFSIZE;
 
-	z_stream strm;
-	strm.zalloc = Z_NULL;
-	strm.zfree = Z_NULL;
-	strm.next_in = vec.data();
-	strm.avail_in = VEC_SIZE;
-	strm.next_out = buffer;
-	strm.avail_out = BUFSIZE;
+    int compression_level = Z_DEFAULT_COMPRESSION;
 
-	int8_t compression_level = Z_DEFAULT_COMPRESSION;
+    if (FIRST_SIZE_OPTION > VEC_SIZE && isCompressedFile) {
+        compression_level = Z_NO_COMPRESSION;
+    } else if (SECOND_SIZE_OPTION > VEC_SIZE && isCompressedFile) {
+        compression_level = Z_BEST_SPEED;
+    } else if (isCompressedFile || VEC_SIZE > FIFTH_SIZE_OPTION) {
+        compression_level = Z_NO_COMPRESSION;
+    } else if (VEC_SIZE > FOURTH_SIZE_OPTION) {
+        compression_level = Z_BEST_SPEED;
+    } else if (VEC_SIZE > THIRD_SIZE_OPTION) {
+        compression_level = Z_DEFAULT_COMPRESSION;
+    } else {
+        compression_level = Z_BEST_COMPRESSION;
+    }
 
-	if (FIRST_SIZE_OPTION > VEC_SIZE && isCompressedFile) {
-		compression_level = Z_NO_COMPRESSION;
-	} else if (SECOND_SIZE_OPTION > VEC_SIZE && isCompressedFile) {
-		compression_level = Z_BEST_SPEED;
-	} else if (isCompressedFile || VEC_SIZE > FIFTH_SIZE_OPTION ) {
-		compression_level = Z_NO_COMPRESSION;
-	} else if (VEC_SIZE > FOURTH_SIZE_OPTION) {
-	    	compression_level = Z_BEST_SPEED;
-	} else if (VEC_SIZE > THIRD_SIZE_OPTION) {
-	    	compression_level = Z_DEFAULT_COMPRESSION;
-	} else {
-	    	compression_level = Z_BEST_COMPRESSION;
-	}
-	deflateInit(&strm, compression_level);
+    deflateInit(&strm, compression_level);
 
-	while (strm.avail_in) {
-		deflate(&strm, Z_NO_FLUSH);	
-		if (!strm.avail_out) {
-			std::copy_n(buffer, BUFSIZE, std::back_inserter(deflate_vec));
-			strm.next_out = buffer;
-			strm.avail_out = BUFSIZE;
-		} else {
-			break;
-		}
-	}
-	deflate(&strm, Z_FINISH);
-	std::copy_n(buffer, BUFSIZE - strm.avail_out, std::back_inserter(deflate_vec));
-	deflateEnd(&strm);
+    while (strm.avail_in > 0) {
+        int ret = deflate(&strm, Z_NO_FLUSH);
+        if (ret != Z_OK) break;
 
-	delete[] buffer;
-	vec = std::move(deflate_vec);		
-	std::vector<uint8_t>().swap(deflate_vec);
+        if (strm.avail_out == 0) {
+            deflate_vec.insert(deflate_vec.end(), buffer.begin(), buffer.end());
+            strm.next_out = buffer.data();
+            strm.avail_out = BUFSIZE;
+        }
+    }
+
+    int ret;
+    do {
+        ret = deflate(&strm, Z_FINISH);
+        size_t bytes_written = BUFSIZE - strm.avail_out;
+        deflate_vec.insert(deflate_vec.end(), buffer.begin(), buffer.begin() + bytes_written);
+        strm.next_out = buffer.data();
+        strm.avail_out = BUFSIZE;
+    } while (ret == Z_OK);
+
+    deflateEnd(&strm);
+
+    vec = std::move(deflate_vec);
 }
