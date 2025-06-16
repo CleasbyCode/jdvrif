@@ -58,10 +58,8 @@ int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, ArgOpti
     	data_filename = file_path.filename().string();
 
 	constexpr uint8_t DATA_FILENAME_MAX_LENGTH = 20;
-
-	const uint8_t DATA_FILENAME_LENGTH = static_cast<uint8_t>(data_filename.size());
-
-	if (DATA_FILENAME_LENGTH > DATA_FILENAME_MAX_LENGTH) {
+	
+	if (data_filename.size() > DATA_FILENAME_MAX_LENGTH) {
     		std::cerr << "\nData File Error: For compatibility requirements, length of data filename must not exceed 20 characters.\n\n";
     	 	return 1;
 	}
@@ -72,7 +70,7 @@ int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, ArgOpti
 
 	const uint16_t DATA_FILENAME_LENGTH_INDEX = hasBlueskyOption ? 0x160 : 0x2E6;
 
-	segment_vec[DATA_FILENAME_LENGTH_INDEX] = DATA_FILENAME_LENGTH;	
+	segment_vec[DATA_FILENAME_LENGTH_INDEX] = static_cast<uint8_t>(data_filename.size());	
 
 	constexpr uint32_t LARGE_FILE_SIZE = 300 * 1024 * 1024;  
 
