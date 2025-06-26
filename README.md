@@ -2,7 +2,7 @@
 
 ***jdvrif*** is a *"steganography-like"* utility for ***Linux*** and ***Windows***. It consists of two CLI tools, ***jdvin***, *used for embedding a data file within a ***JPG*** cover image*, and ***jdvout***, *used for extracting the hidden file from the cover image.*  
 
-There is also a [***jdvrif Web App,***](https://cleasbycode.co.uk/jdvrif/index/) available to use, if you don't want to download and compile the CLI source code.  *Web file uploads are limited to 20MB.*    
+*Try the jdvrif Web App [***here***](https://cleasbycode.co.uk/jdvrif/index/) for a convenient alternative to downloading and compiling the CLI source code. Web file uploads are limited to 20MB.*    
 
 ![Demo Image](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/jrif_60228.jpg)  
 *Image credit: **"Camouflage"** is the work of [***@carochan_me***](https://x.com/carochan_me) / ***PIN: 11455761492008362387****
@@ -79,7 +79,7 @@ https://github.com/user-attachments/assets/28553eaa-4162-43c5-b596-f6ab676c1b61
 
 To create "*file-embedded*" ***JPG*** images compatible for posting on ***Bluesky***, use the ***-b*** option with ***jdvin***.
 
-For ***Bluesky***, you are required to use the ***Python*** script "*bsky_post.py*" (found in the repo ***src*** folder), to post the image.
+For ***Bluesky***, you are required to use the ***Python*** script "*bsky_post.py*" (found in the repo ***src/bsky*** folder), to post the image.
 It will not work if you post images via the ***Bluesky*** browser site or mobile app.
 
 Bluesky script example:
