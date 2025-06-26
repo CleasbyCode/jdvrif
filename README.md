@@ -21,7 +21,7 @@ For increased storage capacity and better security, your embedded data file is c
 
 **Other:*  
 ● ***Bluesky*** (***Image:*** **800KB** | ***Compressed data file:*** **~106KB** | ***-b option***).  
-*Use the "***bsky_post.py***" script, found within the ***src folder*** of this repo, to post images on ***Bluesky***.*
+*Use the "***bsky_post.py***" script, found within the ***src/bsky folder*** of this repo, to post images on ***Bluesky***.*
   
 ## Usage (Linux - jdvin / jdvout)
 
