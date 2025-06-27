@@ -28,7 +28,7 @@ For increased storage capacity and better security, your embedded data file is c
 ```console
 
 user1@mx:~/Downloads/jdvrif-main/src/jdvin$ sudo apt-get install libsodium-dev
-user1@mx:~/Downloads/jdvrif-main/src/jdvin$ sudo apt-get install libturbojpeg-dev
+user1@mx:~/Downloads/jdvrif-main/src/jdvin$ sudo apt-get install libturbojpeg0-dev
 user1@mx:~/Downloads/jdvrif-main/src/jdvin$ chmod +x compile_jdvin.sh
 user1@mx:~/Downloads/jdvrif-main/src/jdvin$ ./compile_jdvin.sh
 user1@mx:~/Downloads/jdvrif-main/src/jdvin$ Compilation successful. Executable 'jdvin' created.
