@@ -1,6 +1,6 @@
 # jdvrif
 
-***jdvrif*** is a *"steganography-like"* utility for ***Linux*** and ***Windows***. It consists of two CLI tools, ***jdvin***, *used for embedding a data file within a ***JPG*** cover image*, and ***jdvout***, *used for extracting the hidden file from the cover image.*  
+A *"steganography-like"* command-line utility consisting of two CLI tools, ***jdvin***, *used for embedding a data file within a ***JPG*** cover image*, and ***jdvout***, *used for extracting the hidden file from the cover image.*  
 
 *Try the ***jdvrif*** Web App [***here***](https://cleasbycode.co.uk/jdvrif/index/) for a convenient alternative to downloading and compiling the CLI source code. Web file uploads are limited to 20MB.*    
 
