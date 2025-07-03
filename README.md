@@ -2,7 +2,7 @@
 
 A *"steganography-like"* command-line utility consisting of two CLI tools, ***jdvin***, *used for embedding a data file within a ***JPG*** cover image*, and ***jdvout***, *used for extracting the hidden file from the cover image.*  
 
-*Try the ***jdvrif*** Web App [***here***](https://cleasbycode.co.uk/jdvrif/index/) for a convenient alternative to downloading and compiling the CLI source code. Web file uploads are limited to 20MB.*    
+*The is also a ***jdvrif*** Web App, which you are try [***here***](https://cleasbycode.co.uk/jdvrif/index/) as a convenient alternative to downloading and compiling the CLI source code. Web file uploads are limited to 20MB.*    
 
 ![Demo Image](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/jrif_60228.jpg)  
 *Image credit: **"Camouflage"** is the work of [***@carochan_me***](https://x.com/carochan_me) / ***PIN: 11455761492008362387****
