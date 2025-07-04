@@ -13,13 +13,13 @@ For increased storage capacity and better security, your embedded data file is c
 
 ***jdvrif*** partly derives from the ***[technique implemented](https://www.vice.com/en/article/bj4wxm/tiny-picture-twitter-complete-works-of-shakespeare-steganography)*** by security researcher ***[David Buchanan](https://www.da.vidbuchanan.co.uk/).*** 
 ## Compatible Platforms
-*Limit measured by the combined size of the cover image + compressed data file:*  
+*Posting size limit measured by the combined size of the cover image + compressed data file:*  
 ● ***Flickr*** (**200MB**), ***ImgPile*** (**100MB**), ***ImgBB*** (**32MB**), ***PostImage*** (**32MB**), ***Reddit*** (**20MB** | ***-r option***).  
 
 *Limit measured by just the compressed data file size:*  
 ● ***Mastodon*** (**~6MB**), ***Tumblr*** (**~64KB**), ***X-Twitter*** (**~10KB**).  
 
-**Other:*  
+*Seperate size limits for cover image, data file and *other posting requirements:*  
 ● ***Bluesky*** (***Image:*** **800KB** | ***Compressed data file:*** **~106KB** | ***-b option***).  
 *Use the "***bsky_post.py***" script, found within the ***src/bsky*** folder of this repo, to post images on ***Bluesky***.*
   
