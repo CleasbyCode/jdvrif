@@ -20,7 +20,7 @@ For increased storage capacity and better security, your embedded data file is c
 ● ***Mastodon*** (**~6MB**), ***Tumblr*** (**~64KB**), ***X-Twitter*** (**~10KB**).  
 
 *Seperate size limits for cover image, data file and other posting requirements:*  
-● ***Bluesky*** (***Image:*** **800KB** | ***Compressed data file:*** **~106KB** | ***-b option***).
+● ***Bluesky*** (***Image:*** **800KB** | ***Compressed data file:*** **~106KB** | ***-b option***).  
 ● "***bsky_post.py***" script, (***src/bsky***) is required to post images on ***Bluesky***.*
   
 ## Usage (Linux - jdvin / jdvout)
