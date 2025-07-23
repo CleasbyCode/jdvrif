@@ -1,13 +1,9 @@
 //	JPG Data Vehicle (jdvin v4.4) Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
-
 //	Compile program (Linux):
-
 //	$ sudo apt-get install libsodium-dev
 //	$ sudo apt-get install libturbojpeg0-dev
-
 //	$ chmod +x compile_jdvin.sh
 //	$ ./compile_jdvin.sh
-	
 //	$ Compilation successful. Executable 'jdvin' created.
 //	$ sudo cp jdvin /usr/bin
 //	$ jdvin
