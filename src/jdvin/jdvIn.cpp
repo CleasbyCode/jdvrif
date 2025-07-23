@@ -12,7 +12,6 @@
 // Copyright (C) 2015 Viktor Szathmáry. All Rights Reserved.
 // https://github.com/libjpeg-turbo/libjpeg-turbo
 
-
 #ifdef _WIN32
 	#include "zlib-1.3.1/zlib.h"
 #else
