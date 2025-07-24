@@ -1,22 +1,14 @@
 #include "jdvIn.h"
 #include "segmentsVec.h"   
 
-#ifdef _WIN32
-	#include "libjpeg-turbo/turbojpeg.h"	
-#else
-	#include <turbojpeg.h>
-#endif
+#include <turbojpeg.h>
 
 // This software is based in part on the work of the Independent JPEG Group.
 // Copyright (C) 2009-2024 D. R. Commander. All Rights Reserved.
 // Copyright (C) 2015 Viktor Szathmáry. All Rights Reserved.
 // https://github.com/libjpeg-turbo/libjpeg-turbo
 
-#ifdef _WIN32
-	#include "zlib-1.3.1/zlib.h"
-#else
-	#include <zlib.h>
-#endif
+#include <zlib.h>
 
 // zlib.h -- interface of the 'zlib' general purpose compression library
 // version 1.3.1, January 22nd, 2024
@@ -43,11 +35,8 @@
 // jloup@gzip.org          madler@alumni.caltech.edu
 
 #define SODIUM_STATIC
-#ifdef _WIN32
-	#include "libsodium/include/sodium.h"
-#else
-	#include <sodium.h>
-#endif
+#include <sodium.h>
+
 // This project uses libsodium (https://libsodium.org/) for cryptographic functions.
 // Copyright (c) 2013-2025 Frank Denis <github@pureftpd.org>
 
@@ -220,7 +209,7 @@ int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, ArgOpti
 
     	z_stream strm = {};
     	strm.next_in = data_file_vec.data();
-    	strm.avail_in = DATA_FILE_SIZE;
+    	strm.avail_in = static_cast<uint32_t>(DATA_FILE_SIZE);
     	strm.next_out = buffer.data();
     	strm.avail_out = BUFSIZE;
 
