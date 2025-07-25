@@ -42,7 +42,9 @@
 
 #include <array>
 #include <algorithm>
-#include <utility>         
+#include <utility>        
+#include <cstddef>
+#include <stdexcept>
 #include <fstream>          
 #include <iostream>         
 #include <filesystem>       
@@ -127,6 +129,7 @@ int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, ArgOpti
     	std::vector<uint8_t> output_image_vec(jpegBuf, jpegBuf + jpegSize);
     	tjFree(jpegBuf);
     	image_vec.swap(output_image_vec);
+    	std::vector<uint8_t>().swap(output_image_vec);
 	// ------------
 	
 	// Remove superfluous segments from cover image. (EXIF, ICC color profile, etc).
@@ -254,6 +257,7 @@ int jdvIn(const std::string& IMAGE_FILENAME, std::string& data_filename, ArgOpti
     	deflateEnd(&strm);
 
     	data_file_vec = std::move(deflate_vec);
+    	std::vector<uint8_t>().swap(deflate_vec);
 	// ------------
 	
 	// Encrypt data file using the Libsodium cryptographic library
