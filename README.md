@@ -1,7 +1,7 @@
 # jdvrif
 **JDVRIF IS CURRENTLY BEING UPDATED!....
 
-A *"steganography-like"* command-line tool used for concealing and extracting any file type within and from a JPG image.
+A steganography command-line tool used for concealing and extracting any file type within and from a JPG image.
 
 *There is also a ***jdvrif Web App***, which you can try [***here***](https://cleasbycode.co.uk/jdvrif/index/) as a convenient alternative to downloading and compiling the CLI source code. Web file uploads are limited to 20MB.*    
 
