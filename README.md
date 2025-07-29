@@ -41,12 +41,12 @@ that compress well, such as .txt documents, etc.
 
 ```console
 
-user1@mx:~/Downloads/jdvrif-main/src/jdvrif$ sudo apt-get install libsodium-dev
-user1@mx:~/Downloads/jdvrif-main/src/jdvrif$ sudo apt-get install libturbojpeg0-dev
-user1@mx:~/Downloads/jdvrif-main/src/jdvrif$ chmod +x compile_jdvrif.sh
-user1@mx:~/Downloads/jdvrif-main/src/jdvrif$ ./compile_jdvrif.sh
-user1@mx:~/Downloads/jdvrif-main/src/jdvrif$ Compilation successful. Executable 'jdvrif' created.
-user1@mx:~/Downloads/jdvrif-main/src/jdvrif$ sudo cp jdvrif /usr/bin
+user1@mx:~/Downloads/jdvrif-main/src$ sudo apt-get install libsodium-dev
+user1@mx:~/Downloads/jdvrif-main/src$ sudo apt-get install libturbojpeg0-dev
+user1@mx:~/Downloads/jdvrif-main/src$ chmod +x compile_jdvrif.sh
+user1@mx:~/Downloads/jdvrif-main/src$ ./compile_jdvrif.sh
+user1@mx:~/Downloads/jdvrif-main/src$ Compilation successful. Executable 'jdvrif' created.
+user1@mx:~/Downloads/jdvrif-main/src$ sudo cp jdvrif /usr/bin
 
 user1@mx:~/Desktop$ jdvrif 
 
