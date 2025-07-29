@@ -80,7 +80,7 @@ jdvrif ***mode*** arguments:
  
 jdvrif ***conceal*** mode platform options:
  
-  "***-b***" - To share/post compatible "*file-embedded*" ***JPG*** images on the ***Bluesky*** platform, you must use the ***-b*** option with ***conceal*** mode.
+  "***-b***" - To post compatible "*file-embedded*" ***JPG*** images on the ***Bluesky*** platform, you must use the ***-b*** option with ***conceal*** mode.
   ```console
   $ jdvrif conceal -b my_image.jpg hidden.doc
   ```
@@ -97,7 +97,7 @@ jdvrif ***conceal*** mode platform options:
   ```
    You will also need to create an ***app password*** from your ***Bluesky*** account. (https://bsky.app/settings/app-passwords).
 
-   "***-r***" - To share/post compatible "*file-embedded*" ***JPG*** images on the ***Reddit*** platform, you must use the ***-r*** option with ***conceal*** mode.
+   "***-r***" - To post compatible "*file-embedded*" ***JPG*** images on the ***Reddit*** platform, you must use the ***-r*** option with ***conceal*** mode.
    ```console
   $ jdvrif conceal -r my_image.jpg secret.mp3 
    ```
