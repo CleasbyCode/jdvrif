@@ -109,10 +109,6 @@ jdvrif ***conceal*** mode platform options:
 
 https://github.com/user-attachments/assets/7b6485f2-969d-47d4-86a7-c9b22920ee0a
 
-https://github.com/user-attachments/assets/28553eaa-4162-43c5-b596-f6ab676c1b61
-
-https://github.com/user-attachments/assets/dcc7c31d-4bec-4741-81e5-3b70fd6c29f5
-
 https://github.com/user-attachments/assets/e5d2e0f1-d110-4712-8334-b1394d59f3dd
 
 https://github.com/user-attachments/assets/ba338a2b-5c38-4cb7-808b-83a642fc618c
