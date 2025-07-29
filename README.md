@@ -73,38 +73,51 @@ Extracted hidden file: your_secret_file.doc (6165 bytes).
 Complete! Please check your file.
 
 ```
-To correctly download images from ***X-Twitter*** or ***Reddit***, click the image in the post to ***fully expand it***, before saving.  
+jdvrif ***mode*** arguments:
+ 
+  ***conceal*** - Compresses, encrypts and embeds your secret data file within a ***JPG*** cover image.
+  ***recover*** - Decrypts, uncompresses and extracts the concealed data file from a ***JPG*** cover image (recovery ***PIN*** required!).
+ 
+jdvrif ***conceal*** mode platform options:
+ 
+  ***-b*** To share/post compatible "*file-embedded*" ***JPG*** images on the ***Bluesky*** platform, you must use the ***-b*** option with ***conceal*** mode.
+  ```console
+  $ jdvrif conceal -b my_image.jpg hidden.doc
+  ```
+  These images are only compatible for posting on ***Bluesky***. Your embedded data file will be removed if posted on a different platform.
+ 
+  You are required to use the Python script ***"bsky_post.py"*** (found in the repo ***src*** folder) to post the image to ***Bluesky***.
+  It will not work if you post images to ***Bluesky*** via the browser site or mobile app.
+
+  Script example:
+  
+  ```console
+   $ python3 bsky_post.py --handle exampleuser.bsky.social --password pxae-f17r-alp4-xqka --image jrif_11050.jpg
+   --alt-text "alt-text to describe image..." "text to appear in main post..."
+  ```
+   You will also need to create an ***app password*** from your ***Bluesky*** account. (https://bsky.app/settings/app-passwords).
+
+   ***-r*** To share/post compatible "*file-embedded*" ***JPG*** images on the ***Reddit*** platform, you must use the ***-r*** option with ***conceal*** mode.
+   ```console
+  $ jdvrif conceal -r my_image.jpg secret.mp3 
+   ```
+   From the ***Reddit*** site, select "***Create Post***" followed by "***Images & Video***" tab, to attach and post your ***JPG*** image.
+  
+   These images are only compatible for posting on the ***Reddit***. Your embedded data file will be removed if posted on a different platform.
+  
+ To correctly download images from X-Twitter or Reddit, click the image in the post to fully expand it, before saving.
 
 https://github.com/user-attachments/assets/7b6485f2-969d-47d4-86a7-c9b22920ee0a
 
-To create "*file-embedded*" ***JPG*** images compatible for posting on ***Reddit***, use the ***-r*** option with ***jdvin***.  
-From the ***Reddit*** site, click "*Create Post*" then select "*Images & Video*" tab, to post your ***JPG*** image.  
-
 https://github.com/user-attachments/assets/28553eaa-4162-43c5-b596-f6ab676c1b61
-
-To create "*file-embedded*" ***JPG*** images compatible for posting on ***Bluesky***, use the ***-b*** option with ***jdvin***.
-
-For ***Bluesky***, you are required to use the ***Python*** script "*bsky_post.py*" (found in the repo ***src/bsky*** folder), to post the image.
-It will not work if you post images via the ***Bluesky*** browser site or mobile app.
-
-Bluesky script example:
-```console
-$ python3 bsky_post.py --handle exampleuser.bsky.social --password pxae-f17r-alp4-xqka --image jrif_11050.jpg --alt-text "text to describe image..." "text to appear in main post...*"
-```
-You will need to create an app password from your ***Bluesky*** account. (*https://bsky.app/settings/app-passwords*)
 
 https://github.com/user-attachments/assets/dcc7c31d-4bec-4741-81e5-3b70fd6c29f5
 
 https://github.com/user-attachments/assets/e5d2e0f1-d110-4712-8334-b1394d59f3dd
 
-With ***X-Twitter,*** ***Bluesky,*** & ***Tumblr***, the small size limits are measured by the ***data file size*** and not the combined image + data file size.
-As the embedded data file is compressed with ***jdvin*** using ***zlib/deflate*** (*if not already a compressed file type*), you should be able to get significantly more than the default size limit, especially for text documents and other file types that compress well. You may wish to compress the data file yourself (***zip, rar, 7z***, etc) before embedding it with ***jdvin***, so as to know exactly what the compressed file size will be.
-
 https://github.com/user-attachments/assets/ba338a2b-5c38-4cb7-808b-83a642fc618c
 
 https://github.com/user-attachments/assets/5a9fb804-3354-44ce-ab09-064d446bde42
-
-To correctly download an image from ***Flickr***, click the download arrow near the bottom right-hand corner of the page and select ***Original*** for the size of image to download.
 
 https://github.com/user-attachments/assets/3f393e2c-145f-49ab-a952-d2b120bad9f9
 
