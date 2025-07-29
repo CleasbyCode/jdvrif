@@ -14,6 +14,9 @@ You can embed any file type up to ***2GB***, although compatible sites (*listed 
 For increased storage capacity and better security, your embedded data file is compressed with ***zlib/deflate*** and encrypted using the ***libsodium*** cryptographic library.  
 
 ***jdvrif*** partly derives from the ***[technique implemented](https://www.vice.com/en/article/bj4wxm/tiny-picture-twitter-complete-works-of-shakespeare-steganography)*** by security researcher ***[David Buchanan](https://www.da.vidbuchanan.co.uk/).*** 
+
+https://github.com/user-attachments/assets/01428038-3e8a-4e1c-a86c-2eda2cb6d986
+
 ## Compatible Platforms
 *Posting size limit measured by the combined size of the cover image + compressed data file:*  
 
@@ -35,8 +38,6 @@ before embedding it with ***jdvrif***, so as to know exactly what the compressed
 
 For platforms such as ***X-Twitter*** & ***Tumblr***, which have small size limits, you may want to focus on data files  
 that compress well, such as .txt documents, etc.  
-
-https://github.com/user-attachments/assets/01428038-3e8a-4e1c-a86c-2eda2cb6d986
   
 ## Usage (Linux)
 
