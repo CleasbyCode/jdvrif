@@ -109,8 +109,6 @@ jdvrif ***conceal*** mode platform options:
   
  To correctly download images from ***X-Twitter*** or ***Reddit***, click the image in the post to fully expand it, before saving.
 
-https://github.com/user-attachments/assets/7b6485f2-969d-47d4-86a7-c9b22920ee0a
-
 https://github.com/user-attachments/assets/e5d2e0f1-d110-4712-8334-b1394d59f3dd
 
 ## Third-Party Libraries
