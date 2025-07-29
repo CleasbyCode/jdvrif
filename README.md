@@ -25,7 +25,7 @@ For increased storage capacity and better security, your embedded data file is c
 
 For example, with ***Mastodon***, if your cover image is **1MB** you can still embed a data file up to the **~6MB** size limit.
 
-**Other: The ***Bluesky*** platform has seperate size limits for the cover image and the compressed data file:*  
+**Other: The ***Bluesky*** platform has separate size limits for the cover image and the compressed data file:*  
 
 ● ***Bluesky*** (***-b option***). Cover image size limit (**800KB**). Compressed data file size limit (**~106KB**).  
 ● "***bsky_post.py***" script is required to post images on ***Bluesky***. *More info on this further down the page.*
