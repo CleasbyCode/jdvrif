@@ -105,7 +105,7 @@ jdvrif ***conceal*** mode platform options:
   
    These images are only compatible for posting on the ***Reddit***. Your embedded data file will be removed if posted on a different platform.
   
- To correctly download images from X-Twitter or Reddit, click the image in the post to fully expand it, before saving.
+ To correctly download images from ***X-Twitter*** or ***Reddit***, click the image in the post to fully expand it, before saving.
 
 https://github.com/user-attachments/assets/7b6485f2-969d-47d4-86a7-c9b22920ee0a
 
