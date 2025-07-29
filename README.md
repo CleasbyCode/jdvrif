@@ -1,5 +1,4 @@
 # jdvrif
-**JDVRIF IS CURRENTLY BEING UPDATED!....
 
 A steganography command-line tool used for embedding and extracting any file type via a **JPG** cover image.  
 
