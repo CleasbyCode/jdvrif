@@ -76,7 +76,7 @@ Complete! Please check your file.
 jdvrif ***mode*** arguments:
  
   ***conceal*** - Compresses, encrypts and embeds your secret data file within a ***JPG*** cover image.  
-  ***recover*** - Decrypts, uncompresses and extracts the concealed data file from a ***JPG*** cover image (recovery ***PIN*** required!).
+  ***recover*** - Decrypts, uncompresses and extracts the concealed data file from a ***JPG*** cover image.
  
 jdvrif ***conceal*** mode platform options:
  
