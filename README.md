@@ -29,7 +29,7 @@ For example, with ***Mastodon***, if your cover image is **1MB** you can still e
 **Other: The ***Bluesky*** platform has seperate size limits for the cover image and the compressed data file:*  
 
 ● ***Bluesky*** (***-b option***). Cover image size limit (**800KB**). Compressed data file size limit (**~106KB**).  
-● "***bsky_post.py***" Python script is required to post images on ***Bluesky***. *More info on this further down the page.*
+● "***bsky_post.py***" script is required to post images on ***Bluesky***. *More info on this further down the page.*
 
 Even though ***jdvrif*** will compress your data file, you may wish to compress the file yourself (zip, rar, 7z, etc.)  
 before embedding it with ***jdvrif***, so as to know exactly what the compressed data file size will be.   
