@@ -34,7 +34,9 @@ Even though ***jdvrif*** will compress your data file, you may wish to compress 
 before embedding it with ***jdvrif***, so as to know exactly what the compressed data file size will be.   
 
 For platforms such as ***X-Twitter*** & ***Tumblr***, which have small size limits, you may want to focus on data files  
-that compress well, such as .txt documents, etc.
+that compress well, such as .txt documents, etc.  
+
+https://github.com/user-attachments/assets/01428038-3e8a-4e1c-a86c-2eda2cb6d986
   
 ## Usage (Linux)
 
