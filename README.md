@@ -92,8 +92,8 @@ jdvrif ***conceal*** mode platform options:
   Script example:
   
   ```console
-   $ python3 bsky_post.py --handle exampleuser.bsky.social --password pxae-f17r-alp4-xqka --image jrif_11050.jpg
-   --alt-text "alt-text to describe image..." "text to appear in main post..."
+   $ python3 bsky_post.py --handle exampleuser.bsky.social --password pxae-f17r-alp4-xqka
+    --image jrif_11050.jpg --alt-text "alt-text to describe image..." "text to appear in main post..."
   ```
    You will also need to create an ***app password*** from your ***Bluesky*** account. (https://bsky.app/settings/app-passwords).
 
