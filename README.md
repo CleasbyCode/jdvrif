@@ -111,12 +111,6 @@ https://github.com/user-attachments/assets/7b6485f2-969d-47d4-86a7-c9b22920ee0a
 
 https://github.com/user-attachments/assets/e5d2e0f1-d110-4712-8334-b1394d59f3dd
 
-https://github.com/user-attachments/assets/ba338a2b-5c38-4cb7-808b-83a642fc618c
-
-https://github.com/user-attachments/assets/5a9fb804-3354-44ce-ab09-064d446bde42
-
-https://github.com/user-attachments/assets/3f393e2c-145f-49ab-a952-d2b120bad9f9
-
 ## Third-Party Libraries
 
 This project makes use of the following third-party libraries:
