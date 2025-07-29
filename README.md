@@ -1,4 +1,5 @@
 # jdvrif
+**JDVRIF IS CURRENTLY BEING UPDATED!....
 
 A *"steganography-like"* command-line utility consisting of two CLI tools, ***jdvin***, *used for embedding a data file within a ***JPG*** cover image*, and ***jdvout***, *used for extracting the hidden file from the cover image.*  
 
