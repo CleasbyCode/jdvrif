@@ -4,8 +4,8 @@ A steganography command-line tool used for embedding and extracting any file typ
 
 There is also a ***jdvrif Web App***, which you can try [***here***](https://cleasbycode.co.uk/jdvrif/index/) as a convenient alternative to downloading and compiling the CLI source code. Web file uploads are limited to **20MB**.    
 
-![Demo Image](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/jrif_71594.jpg)  
-*Image: **"Camouflage"** / ***PIN: 8532993820861383452****
+![Demo Image](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/jrif_94775.jpeg)  
+*Image: **"A place of concealment"** / ***PIN: 6566957027304539351****
 
 Unlike the common steganography method of concealing data within the pixels of a cover image ([***LSB***](https://ctf101.org/forensics/what-is-stegonagraphy/)), ***jdvrif*** hides files within ***application segments*** of a ***JPG*** image. 
 
