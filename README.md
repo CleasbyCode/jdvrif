@@ -104,7 +104,9 @@ jdvrif ***conceal*** mode platform options:
    $ python3 bsky_post.py --handle exampleuser.bsky.social --password pxae-f17r-alp4-xqka
     --image jrif_11050.jpg --alt-text "text to describe image" "text to appear in main post"
   ```
-   You will also need to create an ***app password*** from your ***Bluesky*** account, to use with the ***bsky_post.py*** script. (https://bsky.app/settings/app-passwords).
+   You will also need to create an ***app password*** from your ***Bluesky*** account, to use with the ***bsky_post.py*** script. (https://bsky.app/settings/app-passwords).  
+
+https://github.com/user-attachments/assets/b4c72ea7-40e3-49b0-89aa-ae2dd8ccccb9   
 
    "***-r***" - To create compatible "*file-embedded*" ***JPG*** images for posting on the ***Reddit*** platform, you must use the ***-r*** option with ***conceal*** mode.
    ```console
