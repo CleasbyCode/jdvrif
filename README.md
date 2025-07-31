@@ -54,6 +54,16 @@ Usage: jdvrif conceal [-b|-r] <cover_image> <secret_file>
        jdvrif --info
 
 user1@mx:~/Desktop$ jdvrif conceal your_cover_image.jpg your_secret_file.doc
+
+Platform compatibility for output image:-
+
+  ✓ X-Twitter
+  ✓ Tumblr
+  ✓ Mastodon
+  ✓ PostImage
+  ✓ ImgBB
+  ✓ ImgPile
+  ✓ Flickr
   
 Saved "file-embedded" JPG image: jrif_12462.jpg (143029 bytes).
 
