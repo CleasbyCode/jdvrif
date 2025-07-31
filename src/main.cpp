@@ -1,4 +1,4 @@
-//	JPG Data Vehicle (jdvrif v4.5) Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
+//	JPG Data Vehicle (jdvin v4.5) Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
 
 //	Compile program (Linux):
 
@@ -94,7 +94,7 @@ int main(int argc, char** argv) {
         	validateImageFile(args.image_file, args.mode, args.platform, IMAGE_FILE_SIZE);
         	
         	std::vector<uint8_t> image_vec(IMAGE_FILE_SIZE); 
-	
+        	
 		image_file_ifs.read(reinterpret_cast<char*>(image_vec.data()), IMAGE_FILE_SIZE);
 		image_file_ifs.close();
         	
@@ -127,7 +127,10 @@ int main(int argc, char** argv) {
         			throw std::runtime_error("Image File Error: This is not a valid JPG image.");
 			}
 	
-			bool hasBlueskyOption = (args.platform == ArgOption::bluesky);
+			bool 
+				hasBlueskyOption = (args.platform == ArgOption::bluesky),
+				hasRedditOption = (args.platform == ArgOption::reddit),
+				hasNoneOption = (args.platform == ArgOption::none);
 	
 			// To improve compatibility, default re-encode image to JPG Progressive format with a quality value set at 97 with no chroma subsampling.
 			// If Bluesky option, re-encode to standard Baseline format with a quality value set at 85.
@@ -446,8 +449,6 @@ int main(int argc, char** argv) {
 			std::vector<uint8_t>().swap(data_file_vec);
 
 			value_bit_length = 16;
-	
-			bool shouldDisplayMastodonWarning = false; 
 
 			if (hasBlueskyOption) {	 // We can store binary data within the first (EXIF) segment, with a max compressed storage capacity close to ~64KB. See encryptFile.cpp
 				constexpr uint8_t MARKER_BYTES_VAL = 4; // FFD8, FFE1
@@ -503,8 +504,8 @@ int main(int argc, char** argv) {
 					std::copy_n(bluesky_xmp_vec.begin(), BLUESKY_XMP_VEC_SIZE, std::back_inserter(segment_vec));
 				}
 				image_vec.insert(image_vec.begin(), segment_vec.begin(), segment_vec.end());
-				std::cout << "\nBluesky platform option selected: Only share this \"file-embedded\" JPG image on Bluesky.\n\n"
-			 	 		<< "Make sure to use the Python script \"bsky_post.py\" (found in the repo src folder)\nto post the image to Bluesky.\n";
+					platforms_vec[0] = std::move(platforms_vec[2]);
+					platforms_vec.resize(1);
 			} else {
 				// Default segment_vec uses color profile segment (FFE2) to store data file. If required, split data file and use multiple segments for these larger files.
 				constexpr uint8_t
@@ -570,14 +571,6 @@ int main(int argc, char** argv) {
 					// Insert the start of image sig bytes that were removed.
 					data_file_vec.insert(data_file_vec.begin(), icc_segment_header_vec.begin(), icc_segment_header_vec.begin() + IMAGE_START_SIG_LENGTH);
 
-					constexpr uint8_t MASTODON_SEGMENTS_LIMIT = 100;		   
-					constexpr uint32_t MASTODON_IMAGE_UPLOAD_LIMIT = 16 * 1024 * 1024; 
-					   
-					// The warning is important because Mastodon will allow you to post an image that is greater than its 100 segments limit, as long as you do not exceed
-					// the image size limit, which is 16MB. This seems fine until someone downloads/saves the image. Data segments over the limit will be truncated, so parts 
-					// of the data file will be missing when an attempt is made to extract the (now corrupted) file from the image.
-					shouldDisplayMastodonWarning = icc_segments_sequence_val > MASTODON_SEGMENTS_LIMIT && MASTODON_IMAGE_UPLOAD_LIMIT > icc_profile_with_data_file_vec_size;
-			
 				} else {  
 					// Data file is small enough to fit within a single icc profile segment.
 					constexpr uint8_t
@@ -605,16 +598,16 @@ int main(int argc, char** argv) {
 				// -------
 		
 				image_vec.reserve(IMAGE_FILE_SIZE + data_file_vec.size());	
-				if (args.platform == ArgOption::reddit) {
+				if (hasRedditOption) {
 					image_vec.insert(image_vec.begin(), IMAGE_START_SIG.begin(), IMAGE_START_SIG.end());
 					image_vec.insert(image_vec.end() - 2, 8000, 0x23);
 					image_vec.insert(image_vec.end() - 2, data_file_vec.begin() + 2, data_file_vec.end());
-					std::cout << "\nReddit platform option selected: Only share this \"file-embedded\" JPG image on Reddit.\n";
+					platforms_vec[0] = std::move(platforms_vec[4]);
+					platforms_vec.resize(1);
 				} else {
+					platforms_vec.erase(platforms_vec.begin() + 4); 
+					platforms_vec.erase(platforms_vec.begin() + 2);
 					image_vec.insert(image_vec.begin(), data_file_vec.begin(), data_file_vec.end());
-					if (shouldDisplayMastodonWarning) {
-						std::cout << "\n**Warning**\n\nEmbedded image is not compatible with Mastodon. Image file exceeds platform's segments limit.\n";
-					}
 				}
 				std::vector<uint8_t>().swap(data_file_vec);
 			}	
@@ -632,7 +625,59 @@ int main(int argc, char** argv) {
 			const uint32_t IMAGE_SIZE = static_cast<uint32_t>(image_vec.size());
 
 			file_ofs.write(reinterpret_cast<const char*>(image_vec.data()), IMAGE_SIZE);
-	
+			
+			if (hasNoneOption) {
+				const uint32_t 
+					FLICKR_MAX_IMAGE_SIZE = 200 * 1024 * 1024,
+					IMGPILE_MAX_IMAGE_SIZE = 100 * 1024 * 1024,
+					IMGBB_POSTIMAGE_MAX_IMAGE_SIZE = 32 * 1024 * 1024,
+					MASTODON_MAX_IMAGE_SIZE = 16 * 1024 * 1024,
+					TWITTER_MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+					
+				const uint16_t 
+					TWITTER_MAX_DATA_SIZE = 10 * 1024,
+					TUMBLR_MAX_DATA_SIZE =  64 * 1024 - 2,
+					FIRST_SEGMENT_SIZE = (image_vec[0x04] << 8) | image_vec[0x05],
+					TOTAL_SEGMENTS = (image_vec[0x2E0] << 8) | image_vec[0x2E1];
+				
+				const uint8_t MASTODON_MAX_SEGMENTS = 100;
+				
+				std::vector<std::string> filtered_platforms;
+
+				for (const std::string& platform : platforms_vec) {
+    					if (platform == "X-Twitter" && (FIRST_SEGMENT_SIZE > TWITTER_MAX_DATA_SIZE || IMAGE_SIZE > TWITTER_MAX_IMAGE_SIZE)) {
+        					continue;
+    					}
+    					if (platform == "Tumblr" && (FIRST_SEGMENT_SIZE > TUMBLR_MAX_DATA_SIZE)) {
+        					continue;
+    					}
+    					if (platform == "Mastodon" && (TOTAL_SEGMENTS > MASTODON_MAX_SEGMENTS || IMAGE_SIZE > MASTODON_MAX_IMAGE_SIZE)) {
+        					continue;
+    					}
+    					if ((platform == "ImgBB" || platform == "PostImage") && (IMAGE_SIZE > IMGBB_POSTIMAGE_MAX_IMAGE_SIZE)) {
+        					continue;
+    					}
+    					if (platform == "ImgPile" && IMAGE_SIZE > IMGPILE_MAX_IMAGE_SIZE) {
+        					continue;
+    					}
+    					if (platform == "Flickr" && IMAGE_SIZE > FLICKR_MAX_IMAGE_SIZE) {
+        					continue;
+    					}
+    					
+					filtered_platforms.push_back(platform);
+				}
+					if (filtered_platforms.empty()) {
+    						filtered_platforms.push_back("\b\bUnknown!\n\n Due to the large file size of the output JPG image, I'm unaware of any\n compatible platforms that this image can be posted on. Local use only?");
+					}
+					platforms_vec = std::move(filtered_platforms);
+			}
+			
+			std::cout << "\nPlatform compatibility for output image:-\n\n";
+			
+			for (const auto& s : platforms_vec) {
+        			std::cout << " ✔ "<< s << '\n' ;
+   		 	}	
+			
 			std::vector<uint8_t>().swap(image_vec);
 	
 			std::cout << "\nSaved \"file-embedded\" JPG image: " << OUTPUT_FILENAME << " (" << IMAGE_SIZE << " bytes).\n";

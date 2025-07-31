@@ -158,3 +158,16 @@ std::vector<uint8_t>bluesky_xmp_vec {
 	0x3E, 0x0A, 0x3C, 0x3F, 0x78, 0x70, 0x61, 0x63, 0x6B, 0x65, 0x74, 0x20,
 	0x65, 0x6E, 0x64, 0x3D, 0x22, 0x77, 0x22, 0x3F, 0x3E
 };
+
+std::vector<std::string> platforms_vec { 
+	"X-Twitter", 
+	"Tumblr", 
+	"Bluesky. (Only share this \"file-embedded\" JPG image on Bluesky).\n\n You must use the Python script \"bsky_post.py\" (found in the repo src folder)\n to post the image to Bluesky.", 
+	"Mastodon", 
+	"Reddit. (Only share this \"file-embedded\" JPG image on Reddit).",
+	"PostImage", 
+	"ImgBB",
+	"ImgPile", 
+	"Flickr", 
+	};
+
