@@ -15,7 +15,7 @@ For increased storage capacity and better security, your embedded data file is c
 
 ***jdvrif*** partly derives from the ***[technique implemented](https://www.vice.com/en/article/bj4wxm/tiny-picture-twitter-complete-works-of-shakespeare-steganography)*** by security researcher ***[David Buchanan](https://www.da.vidbuchanan.co.uk/).*** 
 
-https://github.com/user-attachments/assets/01428038-3e8a-4e1c-a86c-2eda2cb6d986
+https://github.com/user-attachments/assets/8d21cdbb-30f0-424c-aeb8-bcacca8c4255
 
 ## Compatible Platforms
 *Posting size limit measured by the combined size of the cover image + compressed data file:*  
