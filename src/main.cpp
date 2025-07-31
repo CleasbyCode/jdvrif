@@ -53,6 +53,9 @@
 
 #ifdef _WIN32
 	#include <conio.h>
+
+	#define NOMINMAX
+	#include <windows.h>
 #else
 	#include <termios.h>
 	#include <unistd.h>
@@ -75,6 +78,10 @@
 
 int main(int argc, char** argv) {
 	try {
+		#ifdef _WIN32
+			SetConsoleOutputCP(CP_UTF8);
+		#endif
+		
 		ProgramArgs args = ProgramArgs::parse(argc, argv);
 		
 		std::ifstream image_file_ifs(args.image_file, std::ios::binary);
@@ -628,17 +635,17 @@ int main(int argc, char** argv) {
 			
 			if (hasNoneOption) {
 				const uint32_t 
-					FLICKR_MAX_IMAGE_SIZE = 200 * 1024 * 1024,
-					IMGPILE_MAX_IMAGE_SIZE = 100 * 1024 * 1024,
-					IMGBB_POSTIMAGE_MAX_IMAGE_SIZE = 32 * 1024 * 1024,
-					MASTODON_MAX_IMAGE_SIZE = 16 * 1024 * 1024,
-					TWITTER_MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+					FLICKR_MAX_IMAGE_SIZE 		= 200 * 1024 * 1024,
+					IMGPILE_MAX_IMAGE_SIZE 		= 100 * 1024 * 1024,
+					IMGBB_POSTIMAGE_MAX_IMAGE_SIZE 	= 32 * 	1024 * 1024,
+					MASTODON_MAX_IMAGE_SIZE 	= 16 * 	1024 * 1024,
+					TWITTER_MAX_IMAGE_SIZE 		= 5 * 	1024 * 1024;
 					
 				const uint16_t 
-					TWITTER_MAX_DATA_SIZE = 10 * 1024,
-					TUMBLR_MAX_DATA_SIZE =  64 * 1024 - 2,
-					FIRST_SEGMENT_SIZE = (image_vec[0x04] << 8) | image_vec[0x05],
-					TOTAL_SEGMENTS = (image_vec[0x2E0] << 8) | image_vec[0x2E1];
+					TWITTER_MAX_DATA_SIZE 	= 10 * 1024,
+					TUMBLR_MAX_DATA_SIZE 	= 64 * 1024 - 2,
+					FIRST_SEGMENT_SIZE 	= (image_vec[0x04] << 8) | image_vec[0x05],
+					TOTAL_SEGMENTS 		= (image_vec[0x2E0] << 8) | image_vec[0x2E1];
 				
 				const uint8_t MASTODON_MAX_SEGMENTS = 100;
 				
@@ -675,7 +682,7 @@ int main(int argc, char** argv) {
 			std::cout << "\nPlatform compatibility for output image:-\n\n";
 			
 			for (const auto& s : platforms_vec) {
-        			std::cout << " ✔ "<< s << '\n' ;
+        			std::cout << " ✓ "<< s << '\n' ;
    		 	}	
 			
 			std::vector<uint8_t>().swap(image_vec);
