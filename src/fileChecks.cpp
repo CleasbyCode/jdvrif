@@ -25,7 +25,7 @@ bool hasValidImageExtension(const std::string& ext) {
     	return valid_extensions.count(ext) > 0;
 }
 
-void validateImageFile(const std::string& image_file, ArgMode mode, ArgOption platform, uintmax_t IMAGE_FILE_SIZE) {
+void validateImageFile(const std::string& image_file, ArgMode mode, ArgOption platform, const uintmax_t IMAGE_FILE_SIZE) {
 	std::filesystem::path image_path(image_file);
 
     	std::string image_ext = image_path.extension().string();
@@ -61,7 +61,7 @@ void validateImageFile(const std::string& image_file, ArgMode mode, ArgOption pl
 	}
 }
 	
-void validateDataFile(const std::string& data_file, ArgOption platform, uintmax_t IMAGE_FILE_SIZE, uintmax_t DATA_FILE_SIZE) {
+void validateDataFile(const std::string& data_file, ArgOption platform, const uintmax_t IMAGE_FILE_SIZE, const uintmax_t DATA_FILE_SIZE) {
 
     	constexpr uintmax_t 
 		MAX_DATA_SIZE_BLUESKY = 5ULL * 1024 * 1024,
