@@ -1,6 +1,7 @@
 #pragma once
 
 #include "programArgs.h"
+#include <cstdint>
 
 bool isCompressedFile(const std::string&);
 bool hasValidImageExtension(const std::string&);
