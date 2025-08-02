@@ -122,6 +122,8 @@ https://github.com/user-attachments/assets/a84ffb6d-b5ce-4f66-bf65-7589d2d93a49
   
  To correctly download images from ***X-Twitter*** or ***Reddit***, click the image in the post to fully expand it, before saving.
 
+https://github.com/user-attachments/assets/f56f54bb-658f-4b0e-a2f3-7d3428333304
+
 ## Third-Party Libraries
 
 This project makes use of the following third-party libraries:
