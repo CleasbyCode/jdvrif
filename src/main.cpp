@@ -94,13 +94,20 @@ int main(int argc, char** argv) {
         		
         	const uintmax_t IMAGE_FILE_SIZE = std::filesystem::file_size(image_path);
         	
-        	constexpr uint32_t LARGE_FILE_SIZE = 300 * 1024 * 1024; 
+		validateImageFile(args.image_file, args.mode, args.platform, IMAGE_FILE_SIZE);
+		
+        	constexpr uint32_t 
+			LARGE_FILE_SIZE = 300 * 1024 * 1024,
+			ZLIB_BUFSIZE = 2 * 1024 * 1024;
         	
 		const std::string LARGE_FILE_MSG = "\nPlease wait. Larger files will take longer to complete this process.\n";
-		
-        	validateImageFile(args.image_file, args.mode, args.platform, IMAGE_FILE_SIZE);
-        	
-        	std::vector<uint8_t> image_vec(IMAGE_FILE_SIZE); 
+
+		z_stream strm = {};
+	
+        	std::vector<uint8_t> 
+        		image_vec(IMAGE_FILE_SIZE),
+        		zlib_buffer(ZLIB_BUFSIZE),
+        		zlib_vec;
         	
 		image_file_ifs.read(reinterpret_cast<char*>(image_vec.data()), IMAGE_FILE_SIZE);
 		image_file_ifs.close();
@@ -249,18 +256,14 @@ int main(int argc, char** argv) {
         			FOURTH_SIZE_OPTION  = 450 * 1024 * 1024,
         			THIRD_SIZE_OPTION   = 200 * 1024 * 1024,
         			SECOND_SIZE_OPTION  = 100 * 1024 * 1024,
-        			FIRST_SIZE_OPTION   = 5 * 1024 * 1024,
-        			BUFSIZE             = 2 * 1024 * 1024;
+        			FIRST_SIZE_OPTION   = 5 * 1024 * 1024;
 
-    			std::vector<uint8_t> buffer(BUFSIZE); 
-    			std::vector<uint8_t> deflate_vec;
-    			deflate_vec.reserve(DATA_FILE_SIZE + BUFSIZE);
+    			zlib_vec.reserve(DATA_FILE_SIZE + ZLIB_BUFSIZE);
 
-    			z_stream strm = {};
     			strm.next_in = data_file_vec.data();
     			strm.avail_in = static_cast<uint32_t>(DATA_FILE_SIZE);
-    			strm.next_out = buffer.data();
-    			strm.avail_out = BUFSIZE;
+    			strm.next_out = zlib_buffer.data();
+    			strm.avail_out = ZLIB_BUFSIZE;
 
     			int compression_level = Z_DEFAULT_COMPRESSION;
 
@@ -277,7 +280,7 @@ int main(int argc, char** argv) {
     			} else {
         			compression_level = Z_BEST_COMPRESSION;
     			}
-
+    			
     			deflateInit(&strm, compression_level);
 
     			while (strm.avail_in > 0) {
@@ -285,25 +288,27 @@ int main(int argc, char** argv) {
         			if (ret != Z_OK) break;
 
         			if (strm.avail_out == 0) {
-            				deflate_vec.insert(deflate_vec.end(), buffer.begin(), buffer.end());
-            				strm.next_out = buffer.data();
-            				strm.avail_out = BUFSIZE;
+            				zlib_vec.insert(zlib_vec.end(), zlib_buffer.begin(), zlib_buffer.end());
+            				strm.next_out = zlib_buffer.data();
+            				strm.avail_out = ZLIB_BUFSIZE;
         			}
     			}
 
     			int ret;
     			do {
         			ret = deflate(&strm, Z_FINISH);
-        			size_t bytes_written = BUFSIZE - strm.avail_out;
-        			deflate_vec.insert(deflate_vec.end(), buffer.begin(), buffer.begin() + bytes_written);
-        			strm.next_out = buffer.data();
-        			strm.avail_out = BUFSIZE;
+        			size_t bytes_written = ZLIB_BUFSIZE - strm.avail_out;
+        			zlib_vec.insert(zlib_vec.end(), zlib_buffer.begin(), zlib_buffer.begin() + bytes_written);
+        			strm.next_out = zlib_buffer.data();
+        			strm.avail_out = ZLIB_BUFSIZE;
     			} while (ret == Z_OK);
 
     			deflateEnd(&strm);
 
-    			data_file_vec = std::move(deflate_vec);
-    			std::vector<uint8_t>().swap(deflate_vec);
+    			data_file_vec = std::move(zlib_vec);
+    			
+    			std::vector<uint8_t>().swap(zlib_vec);
+    			std::vector<uint8_t>().swap(zlib_buffer);
 			// ------------
 	
 			// Encrypt data file using the Libsodium cryptographic library
@@ -994,20 +999,14 @@ int main(int argc, char** argv) {
 		// ----------------	
 	
 		// Uncompress the decrypted data file using zlib inflate.
-		constexpr uint32_t BUFSIZE = 2 * 1024 * 1024;
-
-    		std::vector<uint8_t> buffer(BUFSIZE); 
-    		std::vector<uint8_t> inflate_vec;
-    		inflate_vec.reserve(image_vec.size() + BUFSIZE);
-
-    		z_stream strm = {};
+		zlib_vec.reserve(image_vec.size() + ZLIB_BUFSIZE);
     		strm.next_in = image_vec.data();
     		strm.avail_in = static_cast<uint32_t>(image_vec.size());
-    		strm.next_out = buffer.data();
-    		strm.avail_out = BUFSIZE;
+    		strm.next_out = zlib_buffer.data();
+    		strm.avail_out = ZLIB_BUFSIZE;
 
     		if (inflateInit(&strm) != Z_OK) {
-        		return 0;
+    				return 0;
     		}
 
     		while (strm.avail_in > 0) {
@@ -1015,29 +1014,30 @@ int main(int argc, char** argv) {
         		if (ret == Z_STREAM_END) break;
         		if (ret != Z_OK) {
             			inflateEnd(&strm);
-            			return 0; 
+            			throw std::runtime_error("Zlib Compression Error: Could not inflate data! File probably corrupt.");
         		}
 
         		if (strm.avail_out == 0) {
-            			inflate_vec.insert(inflate_vec.end(), buffer.begin(), buffer.end());
-            			strm.next_out = buffer.data();
-            			strm.avail_out = BUFSIZE;
+            			zlib_vec.insert(zlib_vec.end(), zlib_buffer.begin(), zlib_buffer.end());
+            			strm.next_out = zlib_buffer.data();
+            			strm.avail_out = ZLIB_BUFSIZE;
         		}
     		}
 
     		int ret;
     		do {
         		ret = inflate(&strm, Z_FINISH);
-        		size_t bytes_written = BUFSIZE - strm.avail_out;
-        		inflate_vec.insert(inflate_vec.end(), buffer.begin(), buffer.begin() + bytes_written);
-        		strm.next_out = buffer.data();
-        		strm.avail_out = BUFSIZE;
+        		size_t bytes_written = ZLIB_BUFSIZE - strm.avail_out;
+        		zlib_vec.insert(zlib_vec.end(), zlib_buffer.begin(), zlib_buffer.begin() + bytes_written);
+        		strm.next_out = zlib_buffer.data();
+        		strm.avail_out = ZLIB_BUFSIZE;
     		} while (ret == Z_OK);
 
     		inflateEnd(&strm);
 
-    		image_vec = std::move(inflate_vec);
-    		std::vector<uint8_t>().swap(inflate_vec);
+    		image_vec = std::move(zlib_vec);
+    		std::vector<uint8_t>().swap(zlib_vec);
+    		std::vector<uint8_t>().swap(zlib_buffer);
     	
 		const uint32_t INFLATED_FILE_SIZE = static_cast<uint32_t>(image_vec.size());
 		// -------------
