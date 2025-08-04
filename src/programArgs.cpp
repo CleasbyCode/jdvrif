@@ -32,13 +32,13 @@ ProgramArgs ProgramArgs::parse(int argc, char** argv) {
 			args.platform = ArgOption::reddit;
 		}
         	++arg_index;
-        	args.image_file = argv[arg_index];
+        	args.cover_image = argv[arg_index];
     		args.data_file = argv[++arg_index];
     	} else if (argc == 4) {
-    		args.image_file = argv[arg_index];
+    		args.cover_image = argv[arg_index];
     		args.data_file = argv[++arg_index];
     	} else {
-    		args.image_file = argv[arg_index];
+    		args.cover_image = argv[arg_index];
     		args.mode = ArgMode::recover;
     	}
 

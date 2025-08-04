@@ -4,7 +4,7 @@
 
 void displayInfo() {
 	std::cout << R"(
- JPG Data Vehicle (jdvrif v4.6)
+ JPG Data Vehicle (jdvrif v4.7)
  Created by Nicholas Cleasby (@CleasbyCode) 24/01/2023.
 
  jdvrif is a "steganography-like" command-line tool used for concealing and extracting any file type within and from a JPG image. 
@@ -41,7 +41,10 @@ void displayInfo() {
  *Other: Size limit for the Bluesky platform has seperate size limits for cover image and the compressed data file:
  
   Bluesky (-b option) cover image size limit: 800KB. / Secret data file size limit (Compressed): ~106KB. 
-  
+ 
+ Even though jdvrif will compress your data file, you may wish to compress the file yourself (zip, rar, 7z, etc) 
+ before embedding it with jdvrif, so as to know exactly what the compressed data file size will be. 
+ 
  For platforms such as X-Twitter & Tumblr, which have small size limits, you may want to focus on data files that 
  compress well, such as .txt documents, etc.
 
