@@ -164,8 +164,11 @@ int main(int argc, char** argv) {
 
     			std::vector<uint8_t> output_image_vec(jpegBuf, jpegBuf + jpegSize);
     			tjFree(jpegBuf);
+    			
     			cover_image_vec.swap(output_image_vec);
+    			
     			std::vector<uint8_t>().swap(output_image_vec);
+    			std::vector<uint8_t>().swap(decoded_image_vec);
     			
 			// ------------
 	
@@ -202,9 +205,15 @@ int main(int argc, char** argv) {
     			std::string data_filename = args.data_file;
     			
 			if (hasBlueskyOption) {
-				segment_vec.swap(bluesky_exif_vec);	// Use the EXIF segment instead of the default color profile segment to store user data.
-			}						// The color profile segment (FFE2) is removed by Bluesky, so we use EXIF.
-
+				// Use the EXIF segment instead of the default color profile segment to store user data.
+				// The color profile segment (FFE2) is removed by Bluesky, so we use EXIF.
+				segment_vec.swap(bluesky_exif_vec);	
+				std::vector<uint8_t>().swap(bluesky_exif_vec);
+			} else {
+				std::vector<uint8_t>().swap(bluesky_exif_vec);
+				std::vector<uint8_t>().swap(bluesky_xmp_vec);
+			}
+			
 			const uint16_t DATA_FILENAME_LENGTH_INDEX = hasBlueskyOption ? 0x160 : 0x2E6;
 
 			segment_vec[DATA_FILENAME_LENGTH_INDEX] = static_cast<uint8_t>(data_filename.size());	 
@@ -385,6 +394,7 @@ int main(int argc, char** argv) {
 					std::vector<uint8_t>().swap(tmp_xmp_vec);
 				} else { // Data file was small enough to fit within the EXIF segment, XMP segment not required.
 					segment_vec.insert(segment_vec.begin() + EXIF_SEGMENT_DATA_INSERT_INDEX, encrypted_vec.begin(), encrypted_vec.end());
+					std::vector<uint8_t>().swap(bluesky_xmp_vec);
 				}
 
 			} else { // Used the default color profile segment for data storage.
@@ -485,6 +495,7 @@ int main(int argc, char** argv) {
 					updateValue(bluesky_xmp_vec, segment_size_field_index, BLUESKY_XMP_VEC_SIZE - SEGMENT_SIG_LENGTH, value_bit_length);
 			
 					std::copy_n(bluesky_xmp_vec.begin(), BLUESKY_XMP_VEC_SIZE, std::back_inserter(segment_vec));
+					std::vector<uint8_t>().swap(bluesky_xmp_vec);
 				}
 				cover_image_vec.insert(cover_image_vec.begin(), segment_vec.begin(), segment_vec.end());
 					platforms_vec[0] = std::move(platforms_vec[2]);
@@ -553,6 +564,7 @@ int main(int argc, char** argv) {
 		
 					// Insert the start of image sig bytes that were removed.
 					data_file_vec.insert(data_file_vec.begin(), icc_segment_header_vec.begin(), icc_segment_header_vec.begin() + IMAGE_START_SIG_LENGTH);
+					std::vector<uint8_t>().swap(icc_segment_header_vec);
 
 				} else {  
 					// Data file is small enough to fit within a single icc profile segment.
@@ -610,6 +622,7 @@ int main(int argc, char** argv) {
 			const uint32_t IMAGE_SIZE = static_cast<uint32_t>(cover_image_vec.size());
 
 			file_ofs.write(reinterpret_cast<const char*>(cover_image_vec.data()), IMAGE_SIZE);
+			file_ofs.close();
 			
 			if (hasNoneOption) {
 				const uint32_t 
@@ -654,7 +667,8 @@ int main(int argc, char** argv) {
 					if (filtered_platforms.empty()) {
     						filtered_platforms.push_back("\b\bUnknown!\n\n Due to the large file size of the output JPG image, I'm unaware of any\n compatible platforms that this image can be posted on. Local use only?");
 					}
-					platforms_vec = std::move(filtered_platforms);
+					platforms_vec.swap(filtered_platforms);
+					std::vector<std::string>().swap(filtered_platforms);
 			}
 			
 			std::cout << "\nPlatform compatibility for output image:-\n\n";
@@ -662,8 +676,10 @@ int main(int argc, char** argv) {
 			for (const auto& s : platforms_vec) {
         			std::cout << " ✓ "<< s << '\n' ;
    		 	}	
-			
+   		 	
+			std::vector<std::string>().swap(platforms_vec);
 			std::vector<uint8_t>().swap(cover_image_vec);
+			
 	
 			std::cout << "\nSaved \"file-embedded\" JPG image: " << OUTPUT_FILENAME << " (" << IMAGE_SIZE << " bytes).\n";
 	
@@ -926,7 +942,6 @@ int main(int argc, char** argv) {
 		std::vector<uint8_t> tmp_vec(cover_image_vec.begin() + ENCRYPTED_FILE_START_INDEX, cover_image_vec.begin() + ENCRYPTED_FILE_START_INDEX + embedded_file_size);
 		
 		cover_image_vec.swap(tmp_vec);
-		
 		std::vector<uint8_t>().swap(tmp_vec);
 
 		std::vector<uint8_t>decrypted_file_vec;
@@ -937,9 +952,9 @@ int main(int argc, char** argv) {
 				std::cerr << "\nDecryption failed!" << std::endl;
 				hasDecryptionFailed = true;
 			}
+			
 		} else {		
 			const uint32_t ENCRYPTED_FILE_SIZE = static_cast<uint32_t>(cover_image_vec.size());
-
 			uint32_t 
 				header_index = 0xFCB0, // The first split segment profile header location, this is after the main header/icc profile, which was previously removed.
 				index_pos = 0;
@@ -961,8 +976,8 @@ int main(int argc, char** argv) {
 						header_index += COMMON_DIFF_VAL;
 					}	
 				}
-
 			std::vector<uint8_t>().swap(cover_image_vec);
+			
 			decrypted_file_vec.resize(sanitize_vec.size() - crypto_secretbox_MACBYTES);
 			if (crypto_secretbox_open_easy(decrypted_file_vec.data(), sanitize_vec.data(), sanitize_vec.size(), nonce.data(), key.data()) !=0 ) {
 				std::cerr << "\nDecryption failed!" << std::endl;
@@ -970,10 +985,9 @@ int main(int argc, char** argv) {
 			}	
 			std::vector<uint8_t>().swap(sanitize_vec);
 		}
-		cover_image_vec.swap(decrypted_file_vec);
-		std::vector<uint8_t>().swap(decrypted_file_vec);
+		
 		// ----------------	
-	
+		
 		std::streampos pin_attempts_index = JDVRIF_SIG_INDEX + INDEX_DIFF - 1;
 			 
 		if (hasDecryptionFailed) {	
@@ -998,9 +1012,9 @@ int main(int argc, char** argv) {
 		}
 	
 		// Uncompress the decrypted data file using zlib inflate.
-    		zlib_vec.reserve(cover_image_vec.size() + ZLIB_BUFSIZE);
-    		strm.next_in = cover_image_vec.data();
-    		strm.avail_in = static_cast<uint32_t>(cover_image_vec.size());
+    		zlib_vec.reserve(decrypted_file_vec.size() + ZLIB_BUFSIZE);
+    		strm.next_in = decrypted_file_vec.data();
+    		strm.avail_in = static_cast<uint32_t>(decrypted_file_vec.size());
     		strm.next_out = zlib_buffer.data();
     		strm.avail_out = ZLIB_BUFSIZE;
 
@@ -1034,12 +1048,12 @@ int main(int argc, char** argv) {
 
     		inflateEnd(&strm);
 	
-    		cover_image_vec.swap(zlib_vec);
+    		decrypted_file_vec.swap(zlib_vec);
     		
     		std::vector<uint8_t>().swap(zlib_vec);
     		std::vector<uint8_t>().swap(zlib_buffer);
     	
-		const uint32_t INFLATED_FILE_SIZE = static_cast<uint32_t>(cover_image_vec.size());
+		const uint32_t INFLATED_FILE_SIZE = static_cast<uint32_t>(decrypted_file_vec.size());
 		// -------------
 		if (!INFLATED_FILE_SIZE) {
 			throw std::runtime_error("Zlib Compression Error: Output file is empty. Inflating file failed.");
@@ -1062,9 +1076,10 @@ int main(int argc, char** argv) {
 			throw std::runtime_error("Write Error: Unable to write to file. Make sure you have WRITE permissions for this location.");
 		}
 
-		file_ofs.write(reinterpret_cast<const char*>(cover_image_vec.data()), INFLATED_FILE_SIZE);
-
-		std::vector<uint8_t>().swap(cover_image_vec);
+		file_ofs.write(reinterpret_cast<const char*>(decrypted_file_vec.data()), INFLATED_FILE_SIZE);
+		file_ofs.close();
+		
+		std::vector<uint8_t>().swap(decrypted_file_vec);
 
 		std::cout << "\nExtracted hidden file: " << decrypted_filename << " (" << INFLATED_FILE_SIZE << " bytes).\n\nComplete! Please check your file.\n\n";
 		return 0;		

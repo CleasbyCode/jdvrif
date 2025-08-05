@@ -74,9 +74,13 @@ void validateImageFile(std::string& cover_image, ArgMode mode, ArgOption platfor
 		throw std::runtime_error("File Size Error: Image file exceeds maximum default size limit for jdvrif.");
 	}
 	
-	cover_image_vec.resize(cover_image_size);
-	cover_image_ifs.read(reinterpret_cast<char*>(cover_image_vec.data()), cover_image_size);
+	std::vector<uint8_t> tmp_vec(cover_image_size);
+	
+	cover_image_ifs.read(reinterpret_cast<char*>(tmp_vec.data()), cover_image_size);
 	cover_image_ifs.close();
+	
+	cover_image_vec.swap(tmp_vec);
+	std::vector<uint8_t>().swap(tmp_vec);
 	
 	constexpr std::array<uint8_t, 2>
 		IMAGE_START_SIG	{ 0xFF, 0xD8 },
@@ -144,7 +148,11 @@ void validateDataFile(std::string& data_filename, ArgOption platform, uintmax_t&
 		throw std::runtime_error("File Size Error: Combined size of image and data file exceeds maximum default size limit for jdvrif.");
 	}
 	
-	data_file_vec.resize(data_file_size);
-	data_file_ifs.read(reinterpret_cast<char*>(data_file_vec.data()), data_file_size);
+	std::vector<uint8_t> tmp_vec(data_file_size);
+
+	data_file_ifs.read(reinterpret_cast<char*>(tmp_vec.data()), data_file_size);
 	data_file_ifs.close();
+	
+	data_file_vec.swap(tmp_vec);
+	std::vector<uint8_t>().swap(tmp_vec);
 }
