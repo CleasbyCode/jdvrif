@@ -239,22 +239,14 @@ int main(int argc, char** argv) {
 
     			int8_t compression_level = Z_DEFAULT_COMPRESSION;
 
-			if (data_file_size >= FIFTH_SIZE_OPTION) {
-				compression_level = Z_NO_COMPRESSION;
-			} else if (data_file_size >= FOURTH_SIZE_OPTION && isCompressedFile) {
+			if (isCompressedFile || data_file_size >= FIFTH_SIZE_OPTION) {
 				compression_level = Z_NO_COMPRESSION;
 			} else if (data_file_size >= FOURTH_SIZE_OPTION) {
 				compression_level = Z_BEST_SPEED;
-			} else if (data_file_size >= THIRD_SIZE_OPTION && isCompressedFile) {
-				compression_level = Z_BEST_SPEED;
 			} else if (data_file_size >= THIRD_SIZE_OPTION) {
-				compression_level = Z_DEFAULT_COMPRESSION;
-			} else if (data_file_size >= SECOND_SIZE_OPTION && isCompressedFile) {
 				compression_level = Z_DEFAULT_COMPRESSION;
 			} else if (data_file_size >= SECOND_SIZE_OPTION) {
 				compression_level = Z_BEST_COMPRESSION;
-			} else if (data_file_size >= FIRST_SIZE_OPTION && isCompressedFile) {
-				compression_level = Z_DEFAULT_COMPRESSION;
 			} else if (data_file_size >= FIRST_SIZE_OPTION) {
 				compression_level = Z_DEFAULT_COMPRESSION;
 			} else {
@@ -1090,3 +1082,4 @@ int main(int argc, char** argv) {
         	return 1;
     	}
 }
+
