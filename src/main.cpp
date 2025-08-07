@@ -329,6 +329,7 @@ int main(int argc, char** argv) {
     			std::vector<uint8_t> encrypted_vec(DATA_FILE_VEC_SIZE + crypto_secretbox_MACBYTES); 
 
     			crypto_secretbox_easy(encrypted_vec.data(), data_file_vec.data(), DATA_FILE_VEC_SIZE, nonce.data(), key.data());
+				std::vector<uint8_t>().swap(data_file_vec);
 
 			if (hasBlueskyOption) { // User has selected the -b argument option for the Bluesky platform.
 				constexpr uint16_t EXIF_SEGMENT_DATA_SIZE_LIMIT = 65027; // + With EXIF overhead segment data (511) - four bytes we don't count (FFD8 FFE1),  
@@ -430,9 +431,7 @@ int main(int argc, char** argv) {
 
 			updateValue(segment_vec, sodium_key_pos, RANDOM_VAL, value_bit_length);
 			// ------------
-	
-			std::vector<uint8_t>().swap(data_file_vec);
-
+				
 			value_bit_length = 16;
 
 			if (hasBlueskyOption) {	 // We can store binary data within the first (EXIF) segment, with a max compressed storage capacity close to ~64KB. See encryptFile.cpp
@@ -1082,4 +1081,5 @@ int main(int argc, char** argv) {
         	return 1;
     	}
 }
+
 
