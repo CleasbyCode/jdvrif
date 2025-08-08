@@ -514,7 +514,7 @@ int main(int argc, char** argv) {
 						}
 
 						constexpr uint8_t 
-							SEGMENT_SIG_LENGTH = 2, // FFE1
+							SIG_LENGTH = 2, // FFE1
 							XMP_SIZE_FIELD_INDEX = 0x02;
 						
 						value_bit_length = 16;
@@ -1073,3 +1073,4 @@ int main(int argc, char** argv) {
         	return 1;
     	}
 }
+
