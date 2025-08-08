@@ -96,9 +96,9 @@ int main(int argc, char** argv) {
 		
 			validateImageFile(args.cover_image, args.mode, args.platform, cover_image_size, cover_image_vec);
 		
-        		auto searchSig = []<typename T, size_t N>(std::vector<uint8_t>& vec, const std::array<T, N>& SIG) -> uint32_t {
-    					return static_cast<uint32_t>(std::search(vec.begin(), vec.end(), SIG.begin(), SIG.end()) - vec.begin());
-				};
+        	auto searchSig = []<typename T, size_t N>(std::vector<uint8_t>& vec, const std::array<T, N>& SIG) -> uint32_t {
+    				return static_cast<uint32_t>(std::search(vec.begin(), vec.end(), SIG.begin(), SIG.end()) - vec.begin());
+			};
 		
 			auto zlibFunc = [&isCompressedFile](std::vector<uint8_t>& vec, ArgMode mode) {	
 				constexpr uint32_t BUFSIZE = 2 * 1024 * 1024;
@@ -1072,3 +1072,4 @@ int main(int argc, char** argv) {
         	return 1;
     	}
 }
+
