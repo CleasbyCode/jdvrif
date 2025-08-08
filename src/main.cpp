@@ -105,14 +105,14 @@ int main(int argc, char** argv) {
         			
 				const uint32_t VEC_SIZE = static_cast<uint32_t>(vec.size());
 
-				std::vector<uint8_t> buffer(BUFSIZE); 
+				std::vector<uint8_t> buffer_vec(BUFSIZE); 
     			std::vector<uint8_t> tmp_vec;
     			tmp_vec.reserve(VEC_SIZE + BUFSIZE);
 
     			z_stream strm = {};
     			strm.next_in = vec.data();
     			strm.avail_in = VEC_SIZE;
-    			strm.next_out = buffer.data();
+    			strm.next_out = buffer_vec.data();
     			strm.avail_out = BUFSIZE;
 
 				if (mode == ArgMode::conceal) {
@@ -126,7 +126,7 @@ int main(int argc, char** argv) {
 					int8_t compression_level = Z_DEFAULT_COMPRESSION;
 				
 					if (isCompressedFile || VEC_SIZE >= FIFTH_SIZE_OPTION) {
-						compression_level = Z_NO_COMPRESSION;
+							compression_level = Z_NO_COMPRESSION;
 					} else if (VEC_SIZE >= FOURTH_SIZE_OPTION) {
 						compression_level = Z_BEST_SPEED;
 					} else if (VEC_SIZE >= THIRD_SIZE_OPTION) {
@@ -143,33 +143,33 @@ int main(int argc, char** argv) {
 	
 					while (strm.avail_in > 0) {
 						int ret = deflate(&strm, Z_NO_FLUSH);
-        				if (ret != Z_OK) {
-        					deflateEnd(&strm);
-        					throw std::runtime_error("Zlib Compression Error: Could not deflate data!");
-        				}
+        					if (ret != Z_OK) {
+        						deflateEnd(&strm);
+        						throw std::runtime_error("Zlib Compression Error: Could not deflate data!");
+        					}
        
-        				if (strm.avail_out == 0) {
-							tmp_vec.insert(tmp_vec.end(), buffer.begin(), buffer.end());
-            				strm.next_out = buffer.data();
-            				strm.avail_out = BUFSIZE;
-        				}
+        					if (strm.avail_out == 0) {
+            					tmp_vec.insert(tmp_vec.end(), buffer_vec.begin(), buffer_vec.end());
+            					strm.next_out = buffer_vec.data();
+            					strm.avail_out = BUFSIZE;
+        					}
     				}
 
     				int ret;
     				do {
         				ret = deflate(&strm, Z_FINISH);
         				size_t bytes_written = BUFSIZE - strm.avail_out;
-        				tmp_vec.insert(tmp_vec.end(), buffer.begin(), buffer.begin() + bytes_written);
-        				strm.next_out = buffer.data();
+        				tmp_vec.insert(tmp_vec.end(), buffer_vec.begin(), buffer_vec.begin() + bytes_written);
+        				strm.next_out = buffer_vec.data();
         				strm.avail_out = BUFSIZE;
     				} while (ret == Z_OK);
 
     				deflateEnd(&strm);
     			} else {
-					inflateInit(&strm);
+    				inflateInit(&strm);
 
     				while (strm.avail_in > 0) {
-						int ret = inflate(&strm, Z_NO_FLUSH);
+        				int ret = inflate(&strm, Z_NO_FLUSH);
         				if (ret == Z_STREAM_END) break;
         				if (ret != Z_OK) {
             				inflateEnd(&strm);
@@ -177,8 +177,8 @@ int main(int argc, char** argv) {
         				}
 
         				if (strm.avail_out == 0) {
-							tmp_vec.insert(tmp_vec.end(), buffer.begin(), buffer.end());
-            				strm.next_out = buffer.data();
+            				tmp_vec.insert(tmp_vec.end(), buffer_vec.begin(), buffer_vec.end());
+            				strm.next_out = buffer_vec.data();
             				strm.avail_out = BUFSIZE;
         				}
     				}
@@ -187,8 +187,8 @@ int main(int argc, char** argv) {
     				do {
         				ret = inflate(&strm, Z_FINISH);
         				size_t bytes_written = BUFSIZE - strm.avail_out;
-        				tmp_vec.insert(tmp_vec.end(), buffer.begin(), buffer.begin() + bytes_written);
-        				strm.next_out = buffer.data();
+        				tmp_vec.insert(tmp_vec.end(), buffer_vec.begin(), buffer_vec.begin() + bytes_written);
+        				strm.next_out = buffer_vec.data();
         				strm.avail_out = BUFSIZE;
     				} while (ret == Z_OK);
 
@@ -196,8 +196,8 @@ int main(int argc, char** argv) {
     			}
     			vec.swap(tmp_vec);
     			std::vector<uint8_t>().swap(tmp_vec);
-    			std::vector<uint8_t>().swap(buffer);
-		};		
+    			std::vector<uint8_t>().swap(buffer_vec);
+			};		
         	
         	constexpr uint32_t LARGE_FILE_SIZE = 300 * 1024 * 1024;
         	const std::string LARGE_FILE_MSG = "\nPlease wait. Larger files will take longer to complete this process.\n";
@@ -366,15 +366,17 @@ int main(int argc, char** argv) {
     			std::vector<uint8_t>().swap(data_file_vec);
 
 				if (hasBlueskyOption) { // User has selected the -b argument option for the Bluesky platform.
-					constexpr uint16_t EXIF_SEGMENT_DATA_SIZE_LIMIT = 65027; // + With EXIF overhead segment data (511) - four bytes we don't count (FFD8 FFE1),  
-								         		 // = Max. segment size 65534 (0xFFFE). Can't have 65535 (0xFFFF) as Bluesky will strip the EXIF segment.
+					// + With EXIF overhead segment data (511) - four bytes we don't count (FFD8 FFE1),  
+					// = Max. segment size 65534 (0xFFFE). Can't have 65535 (0xFFFF) as Bluesky will strip the EXIF segment.
+					constexpr uint16_t 
+						EXIF_SEGMENT_DATA_SIZE_LIMIT = 65027,
+						COMPRESSED_FILE_SIZE_INDEX = 0x1CD;
+					
 					const uint32_t ENCRYPTED_VEC_SIZE = static_cast<uint32_t>(encrypted_vec.size());
-		
-					uint16_t compressed_file_size_index = 0x1CD;
 		
 					value_bit_length = 32;					 	 
 		
-					updateValue(segment_vec, compressed_file_size_index, ENCRYPTED_VEC_SIZE, value_bit_length);
+					updateValue(segment_vec, COMPRESSED_FILE_SIZE_INDEX, ENCRYPTED_VEC_SIZE, value_bit_length);
 
 					// Split the data file if it exceeds the max compressed EXIF capacity of ~64KB. 
 					// We can then use the second segment (XMP) for the remaining data.
@@ -469,16 +471,15 @@ int main(int argc, char** argv) {
 				value_bit_length = 16;
 
 				if (hasBlueskyOption) {	 // We can store binary data within the first (EXIF) segment, with a max compressed storage capacity close to ~64KB. See encryptFile.cpp
-					constexpr uint8_t MARKER_BYTES_VAL = 4; // FFD8, FFE1
+					constexpr uint8_t 
+						MARKER_BYTES_VAL = 4, // FFD8, FFE1
+						EXIF_SIZE_FIELD_INDEX = 0x04,  
+						EXIF_XRES_OFFSET_FIELD_INDEX = 0x2A,  
+						EXIF_YRES_OFFSET_FIELD_INDEX = 0x36,  
+						EXIF_ARTIST_SIZE_FIELD_INDEX = 0x4A,  
+						EXIF_SUBIFD_OFFSET_FIELD_INDEX = 0x5A;  
 
 					const uint32_t EXIF_SEGMENT_SIZE = static_cast<uint32_t>(segment_vec.size() - MARKER_BYTES_VAL);
-
-					uint8_t	
-						segment_size_field_index = 0x04,  
-						exif_segment_xres_offset_field_index = 0x2A,
-						exif_segment_yres_offset_field_index = 0x36, 
-						exif_segment_artist_size_field_index = 0x4A,
-						exif_segment_subifd_offset_field_index = 0x5A;
 
 					const uint16_t	
 						EXIF_XRES_OFFSET   = EXIF_SEGMENT_SIZE - 0x36,
@@ -486,15 +487,15 @@ int main(int argc, char** argv) {
 						EXIF_SUBIFD_OFFSET = EXIF_SEGMENT_SIZE - 0x26,
 						EXIF_ARTIST_SIZE   = EXIF_SEGMENT_SIZE - 0x8C;
 
-					updateValue(segment_vec, segment_size_field_index, EXIF_SEGMENT_SIZE, value_bit_length);
+					updateValue(segment_vec, EXIF_SIZE_FIELD_INDEX , EXIF_SEGMENT_SIZE, value_bit_length);
 		
 					value_bit_length = 32;
 
-					updateValue(segment_vec, exif_segment_xres_offset_field_index, EXIF_XRES_OFFSET, value_bit_length);
-					updateValue(segment_vec, exif_segment_yres_offset_field_index, EXIF_YRES_OFFSET, value_bit_length);
-					updateValue(segment_vec, exif_segment_artist_size_field_index, EXIF_ARTIST_SIZE, value_bit_length); 
-					updateValue(segment_vec, exif_segment_subifd_offset_field_index, EXIF_SUBIFD_OFFSET, value_bit_length);
-
+					updateValue(segment_vec, EXIF_XRES_OFFSET_FIELD_INDEX, EXIF_XRES_OFFSET, value_bit_length);
+					updateValue(segment_vec, EXIF_YRES_OFFSET_FIELD_INDEX, EXIF_YRES_OFFSET, value_bit_length);
+					updateValue(segment_vec, EXIF_ARTIST_SIZE_FIELD_INDEX, EXIF_ARTIST_SIZE, value_bit_length); 
+					updateValue(segment_vec, EXIF_SUBIFD_OFFSET_FIELD_INDEX, EXIF_SUBIFD_OFFSET, value_bit_length);
+					
 					constexpr uint16_t BLUESKY_XMP_VEC_DEFAULT_SIZE = 405;  // XMP segment size without user data.
 		
 					const uint32_t BLUESKY_XMP_VEC_SIZE = static_cast<uint32_t>(bluesky_xmp_vec.size());
@@ -512,12 +513,12 @@ int main(int argc, char** argv) {
 							throw std::runtime_error("File Size Error: Data file exceeds segment size limit for Bluesky.");
 						}
 
-						constexpr uint8_t SEGMENT_SIG_LENGTH = 2; // FFE1
-
-						segment_size_field_index = 0x02;
-
+						constexpr uint8_t 
+							SEGMENT_SIG_LENGTH = 2, // FFE1
+							XMP_SIZE_FIELD_INDEX = 0x02;
+						
 						value_bit_length = 16;
-						updateValue(bluesky_xmp_vec, segment_size_field_index, BLUESKY_XMP_VEC_SIZE - SEGMENT_SIG_LENGTH, value_bit_length);
+						updateValue(bluesky_xmp_vec, XMP_SIZE_FIELD_INDEX, BLUESKY_XMP_VEC_SIZE - SIG_LENGTH, value_bit_length);
 			
 						std::copy_n(bluesky_xmp_vec.begin(), BLUESKY_XMP_VEC_SIZE, std::back_inserter(segment_vec));
 						std::vector<uint8_t>().swap(bluesky_xmp_vec);
@@ -553,9 +554,9 @@ int main(int argc, char** argv) {
 						constexpr uint16_t ICC_SEGMENTS_TOTAL_VAL_INDEX = 0x2E0;  // The value stored here is used by jdvout when extracting the data file.
 						updateValue(segment_vec, ICC_SEGMENTS_TOTAL_VAL_INDEX, !icc_segment_remainder_size ? --icc_segments_required : icc_segments_required, value_bit_length);
 
-						uint8_t 
-							icc_segments_sequence_val_index = 0x11,
-							icc_segment_remainder_size_index = 0x04;
+						constexpr uint8_t 
+							ICC_SEGMENTS_SEQUENCE_VAL_INDEX = 0x11,
+							ICC_SEGMENT_REMAINDER_SIZE_INDEX = 0x04;
 
 						std::vector<uint8_t> icc_segment_header_vec { 
 							segment_vec.begin(), segment_vec.begin() + IMAGE_START_SIG_LENGTH + ICC_SEGMENT_SIG_LENGTH + ICC_SEGMENT_HEADER_LENGTH 
@@ -572,14 +573,14 @@ int main(int argc, char** argv) {
 							if (!icc_segments_required) {
 								if (icc_segment_remainder_size) {
 									icc_segment_data_size = icc_segment_remainder_size;	
-			   						updateValue(icc_segment_header_vec, icc_segment_remainder_size_index, (icc_segment_remainder_size + ICC_SEGMENT_HEADER_LENGTH), value_bit_length);
+			   						updateValue(icc_segment_header_vec, ICC_SEGMENT_REMAINDER_SIZE_INDEX, (icc_segment_remainder_size + ICC_SEGMENT_HEADER_LENGTH), value_bit_length);
 								} else {
 									break;
 								}	 	
 							}
 							std::copy_n(icc_segment_header_vec.begin() + IMAGE_START_SIG_LENGTH, ICC_SEGMENT_SIG_LENGTH + ICC_SEGMENT_HEADER_LENGTH, std::back_inserter(data_file_vec));
 							std::copy_n(segment_vec.begin() + byte_index, icc_segment_data_size, std::back_inserter(data_file_vec));
-							updateValue(icc_segment_header_vec, icc_segments_sequence_val_index, ++icc_segments_sequence_val, value_bit_length);
+							updateValue(icc_segment_header_vec, ICC_SEGMENTS_SEQUENCE_VAL_INDEX, ++icc_segments_sequence_val, value_bit_length);
 							byte_index += icc_segment_data_size;
 						}
 
@@ -1072,4 +1073,3 @@ int main(int argc, char** argv) {
         	return 1;
     	}
 }
-
