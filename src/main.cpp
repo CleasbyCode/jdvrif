@@ -79,14 +79,14 @@
 int main(int argc, char** argv) {
 	try {
 			#ifdef _WIN32
-    				SetConsoleOutputCP(CP_UTF8);  
+    			SetConsoleOutputCP(CP_UTF8);  
 			#endif
 		
 			ProgramArgs args = ProgramArgs::parse(argc, argv);
 		
 			std::vector<uint8_t> 
-        			cover_image_vec,
-        			data_file_vec;
+        		cover_image_vec,
+        		data_file_vec;
 		
 			uintmax_t 
 				cover_image_size = 0,
@@ -97,108 +97,99 @@ int main(int argc, char** argv) {
 			validateImageFile(args.cover_image, args.mode, args.platform, cover_image_size, cover_image_vec);
 		
         	auto searchSig = []<typename T, size_t N>(std::vector<uint8_t>& vec, const std::array<T, N>& SIG) -> uint32_t {
-    				return static_cast<uint32_t>(std::search(vec.begin(), vec.end(), SIG.begin(), SIG.end()) - vec.begin());
+    			return static_cast<uint32_t>(std::search(vec.begin(), vec.end(), SIG.begin(), SIG.end()) - vec.begin());
 			};
 		
-			auto zlibFunc = [&isCompressedFile](std::vector<uint8_t>& vec, ArgMode mode) {	
-				constexpr uint32_t BUFSIZE = 2 * 1024 * 1024;
-        			
-				const uint32_t VEC_SIZE = static_cast<uint32_t>(vec.size());
+			auto zlibFunc = [&isCompressedFile](std::vector<uint8_t>& vec, ArgMode mode) {
+				constexpr std::size_t BUFSIZE = 2 * 1024 * 1024;
 
-				std::vector<uint8_t> buffer_vec(BUFSIZE); 
-    			std::vector<uint8_t> tmp_vec;
-    			tmp_vec.reserve(VEC_SIZE + BUFSIZE);
+    			constexpr uint32_t 
+    				FIFTH_SIZE_OPTION   = 750 * 1024 * 1024,
+    	 			FOURTH_SIZE_OPTION  = 450 * 1024 * 1024,
+    	 			THIRD_SIZE_OPTION   = 250 * 1024 * 1024,
+    	 			SECOND_SIZE_OPTION  = 150 * 1024 * 1024,
+    	 			FIRST_SIZE_OPTION   = 10 * 1024 * 1024;
+    	 	
+    			auto select_compression_level = [](uint32_t vec_size, bool isCompressedFile) -> int8_t {
+    				if (isCompressedFile || vec_size >= FIFTH_SIZE_OPTION) return Z_NO_COMPRESSION;
+    				if (vec_size >= FOURTH_SIZE_OPTION) return Z_BEST_SPEED;
+    				if (vec_size >= THIRD_SIZE_OPTION)  return Z_DEFAULT_COMPRESSION;
+    				if (vec_size >= SECOND_SIZE_OPTION) return Z_BEST_COMPRESSION;
+    				if (vec_size >= FIRST_SIZE_OPTION)  return Z_DEFAULT_COMPRESSION;
+    				return Z_BEST_COMPRESSION;
+				};
+    	 	
+    			z_stream strm{};
+    			int ret;
+			
+    			std::vector<uint8_t> buffer(BUFSIZE);
+    			std::vector<uint8_t> tmp;
+    			tmp.reserve(vec.size() + std::min<size_t>(BUFSIZE, vec.size()));
 
-    			z_stream strm = {};
-    			strm.next_in = vec.data();
-    			strm.avail_in = VEC_SIZE;
-    			strm.next_out = buffer_vec.data();
-    			strm.avail_out = BUFSIZE;
+    			strm.next_in = vec.empty() ? nullptr : const_cast<Bytef*>(vec.data());
+    			strm.avail_in = static_cast<uInt>(vec.size());
 
-				if (mode == ArgMode::conceal) {
-					constexpr uint32_t
-						FIFTH_SIZE_OPTION   = 750 * 1024 * 1024,
-        				FOURTH_SIZE_OPTION  = 450 * 1024 * 1024,
-        				THIRD_SIZE_OPTION   = 250 * 1024 * 1024,
-        				SECOND_SIZE_OPTION  = 150 * 1024 * 1024,
-        				FIRST_SIZE_OPTION   = 10 * 1024 * 1024;
-        			
-					int8_t compression_level = Z_DEFAULT_COMPRESSION;
-				
-					if (isCompressedFile || VEC_SIZE >= FIFTH_SIZE_OPTION) {
-							compression_level = Z_NO_COMPRESSION;
-					} else if (VEC_SIZE >= FOURTH_SIZE_OPTION) {
-						compression_level = Z_BEST_SPEED;
-					} else if (VEC_SIZE >= THIRD_SIZE_OPTION) {
-						compression_level = Z_DEFAULT_COMPRESSION;
-					} else if (VEC_SIZE >= SECOND_SIZE_OPTION) {
-						compression_level = Z_BEST_COMPRESSION;
-					} else if (VEC_SIZE >= FIRST_SIZE_OPTION) {
-						compression_level = Z_DEFAULT_COMPRESSION;
-					} else {
-						compression_level = Z_BEST_COMPRESSION;
-					} 
+    			if (mode == ArgMode::conceal) {
+        			int8_t level = select_compression_level(static_cast<uint32_t>(vec.size()), isCompressedFile);
+					std::cout << level << '\n';
+        			ret = deflateInit(&strm, level);
+        			if (ret != Z_OK) throw std::runtime_error("deflateInit failed");
 
-					deflateInit(&strm, compression_level);
-	
-					while (strm.avail_in > 0) {
-						int ret = deflate(&strm, Z_NO_FLUSH);
-        					if (ret != Z_OK) {
-        						deflateEnd(&strm);
-        						throw std::runtime_error("Zlib Compression Error: Could not deflate data!");
-        					}
-       
-        					if (strm.avail_out == 0) {
-            					tmp_vec.insert(tmp_vec.end(), buffer_vec.begin(), buffer_vec.end());
-            					strm.next_out = buffer_vec.data();
-            					strm.avail_out = BUFSIZE;
-        					}
-    				}
+        			while (strm.avail_in > 0) {
+						strm.next_out = buffer.data();
+            			strm.avail_out = static_cast<uInt>(buffer.size());
 
-    				int ret;
-    				do {
-        				ret = deflate(&strm, Z_FINISH);
-        				size_t bytes_written = BUFSIZE - strm.avail_out;
-        				tmp_vec.insert(tmp_vec.end(), buffer_vec.begin(), buffer_vec.begin() + bytes_written);
-        				strm.next_out = buffer_vec.data();
-        				strm.avail_out = BUFSIZE;
-    				} while (ret == Z_OK);
+            			ret = deflate(&strm, Z_NO_FLUSH);
+            			if (ret != Z_OK) {
+                			deflateEnd(&strm);
+                			throw std::runtime_error("Zlib Error: Deflate failed during processing.");
+            			}
 
-    				deflateEnd(&strm);
+            			size_t have = buffer.size() - strm.avail_out;
+            			if (have > 0)
+                			tmp.insert(tmp.end(), buffer.begin(), buffer.begin() + have);
+        				}
+
+        			do {
+						strm.next_out = buffer.data();
+            			strm.avail_out = static_cast<uInt>(buffer.size());
+
+            			ret = deflate(&strm, Z_FINISH);
+            			if (ret != Z_OK && ret != Z_STREAM_END) {
+                			deflateEnd(&strm);
+                			throw std::runtime_error("Zlib Error: Deflate failed during completion.");
+            			}
+            			size_t have = buffer.size() - strm.avail_out;
+            			if (have > 0)
+                			tmp.insert(tmp.end(), buffer.begin(), buffer.begin() + have);
+        				} while (ret != Z_STREAM_END);
+
+        				deflateEnd(&strm);
     			} else {
-    				inflateInit(&strm);
+					ret = inflateInit(&strm);
+        			if (ret != Z_OK) throw std::runtime_error("Zlib Error: InflateInit failed.");
 
-    				while (strm.avail_in > 0) {
-        				int ret = inflate(&strm, Z_NO_FLUSH);
-        				if (ret == Z_STREAM_END) break;
-        				if (ret != Z_OK) {
-            				inflateEnd(&strm);
-            				throw std::runtime_error("Zlib Compression Error: Could not inflate data! File probably corrupt.");
-        				}
+        			do {
+            			strm.next_out = buffer.data();
+            			strm.avail_out = static_cast<uInt>(buffer.size());
 
-        				if (strm.avail_out == 0) {
-            				tmp_vec.insert(tmp_vec.end(), buffer_vec.begin(), buffer_vec.end());
-            				strm.next_out = buffer_vec.data();
-            				strm.avail_out = BUFSIZE;
-        				}
-    				}
+            			ret = inflate(&strm, Z_NO_FLUSH);
+            			if (ret != Z_OK && ret != Z_STREAM_END) {
+                			inflateEnd(&strm);
+                			throw std::runtime_error("Zlib Error: Inflate failed (corrupt or incomplete data?).");
+            			}
 
-    				int ret;
-    				do {
-        				ret = inflate(&strm, Z_FINISH);
-        				size_t bytes_written = BUFSIZE - strm.avail_out;
-        				tmp_vec.insert(tmp_vec.end(), buffer_vec.begin(), buffer_vec.begin() + bytes_written);
-        				strm.next_out = buffer_vec.data();
-        				strm.avail_out = BUFSIZE;
-    				} while (ret == Z_OK);
+            			size_t have = buffer.size() - strm.avail_out;
+            			if (have > 0)
+                			tmp.insert(tmp.end(), buffer.begin(), buffer.begin() + have);
+        			} while (ret != Z_STREAM_END);
 
-    				inflateEnd(&strm);
+        			inflateEnd(&strm);
     			}
-    			vec.swap(tmp_vec);
-    			std::vector<uint8_t>().swap(tmp_vec);
-    			std::vector<uint8_t>().swap(buffer_vec);
-			};		
-        	
+    			vec.swap(tmp);
+    			std::vector<uint8_t>().swap(tmp);
+    			std::vector<uint8_t>().swap(buffer);
+			};	
         	constexpr uint32_t LARGE_FILE_SIZE = 300 * 1024 * 1024;
         	const std::string LARGE_FILE_MSG = "\nPlease wait. Larger files will take longer to complete this process.\n";
         	
@@ -1073,4 +1064,5 @@ int main(int argc, char** argv) {
         	return 1;
     	}
 }
+
 
