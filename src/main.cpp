@@ -101,7 +101,7 @@ int main(int argc, char** argv) {
 			};
 		
 			auto zlibFunc = [&isCompressedFile](std::vector<uint8_t>& vec, ArgMode mode) {
-				constexpr std::size_t BUFSIZE = 2 * 1024 * 1024;
+				constexpr size_t BUFSIZE = 2 * 1024 * 1024;
 
     			constexpr uint32_t 
     				FIFTH_SIZE_OPTION   = 750 * 1024 * 1024,
@@ -1064,5 +1064,6 @@ int main(int argc, char** argv) {
         	return 1;
     	}
 }
+
 
 
