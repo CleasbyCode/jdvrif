@@ -219,12 +219,7 @@ int main(int argc, char** argv) {
         	constexpr uint32_t LARGE_FILE_SIZE = 300 * 1024 * 1024;
         	const std::string LARGE_FILE_MSG = "\nPlease wait. Larger files will take longer to complete this process.\n";
         	
-        	if (args.mode == ArgMode::conceal) {  // Embed data file section code.
-				bool
-					hasBlueskyOption = (args.platform == ArgOption::bluesky),
-					hasRedditOption = (args.platform == ArgOption::reddit),
-					hasNoneOption = (args.platform == ArgOption::none);
-                                               
+        	if (args.mode == ArgMode::conceal) {  // Embed data file section code.                                   
         		validateDataFile(args.data_file, args.platform, cover_image_size, data_file_size, data_file_vec, isCompressedFile);
         		
         		// Lambda function writes new values, such as segments lengths, etc. into the relevant vector index locations.	
@@ -258,12 +253,12 @@ int main(int argc, char** argv) {
         			throw std::runtime_error("tjInitCompress() failed.");
     			}
 
-    			const uint8_t JPG_QUALITY_VAL = hasBlueskyOption ? 85 : 97;
+    			const uint8_t JPG_QUALITY_VAL = (args.platform == ArgOption::bluesky) ? 85 : 97;
 
     			unsigned char* jpegBuf = nullptr;
     			unsigned long jpegSize = 0;
 
-    			int flags = hasBlueskyOption ? TJFLAG_ACCURATEDCT : TJFLAG_PROGRESSIVE | TJFLAG_ACCURATEDCT;
+    			int flags = TJFLAG_ACCURATEDCT | ((args.platform == ArgOption::bluesky) ? 0 : TJFLAG_PROGRESSIVE);
 
     			if (tjCompress2(compressor, decoded_image_vec.data(), width, 0, height, TJPF_RGB, &jpegBuf, &jpegSize, TJSAMP_444, JPG_QUALITY_VAL, flags) != 0) {
         			tjDestroy(compressor);
@@ -313,7 +308,7 @@ int main(int argc, char** argv) {
 	
     			std::string data_filename = args.data_file;
     			
-				if (hasBlueskyOption) {
+				if (args.platform == ArgOption::bluesky) {
 					// Use the EXIF segment instead of the default color profile segment to store user data.
 					// The color profile segment (FFE2) is removed by Bluesky, so we use EXIF.
 					segment_vec.swap(bluesky_exif_vec);	
@@ -323,7 +318,7 @@ int main(int argc, char** argv) {
 					std::vector<uint8_t>().swap(bluesky_xmp_vec);
 				}
 			
-				const uint16_t DATA_FILENAME_LENGTH_INDEX = hasBlueskyOption ? 0x160 : 0x2E6;
+				const uint16_t DATA_FILENAME_LENGTH_INDEX = (args.platform == ArgOption::bluesky) ? 0x160 : 0x2E6;
 
 				segment_vec[DATA_FILENAME_LENGTH_INDEX] = static_cast<uint8_t>(data_filename.size());	 
 
@@ -342,8 +337,8 @@ int main(int argc, char** argv) {
 				constexpr uint8_t XOR_KEY_LENGTH = 24;
 	
 				uint16_t
-					data_filename_xor_key_index = hasBlueskyOption ? 0x175 : 0x2FB,
-					data_filename_index = hasBlueskyOption ? 0x161: 0x2E7;
+					data_filename_xor_key_index = (args.platform == ArgOption::bluesky) ? 0x175 : 0x2FB,
+					data_filename_index = (args.platform == ArgOption::bluesky) ? 0x161: 0x2E7;
 		
 				uint8_t
 					value_bit_length = 32, 
@@ -371,8 +366,8 @@ int main(int argc, char** argv) {
 				constexpr uint16_t EXIF_SEGMENT_DATA_INSERT_INDEX = 0x1D1;
 
 				const uint16_t
-					SODIUM_KEY_INDEX = hasBlueskyOption ? 0x18D : 0x313,     
-					NONCE_KEY_INDEX  = hasBlueskyOption ? 0x1AD : 0x333;  
+					SODIUM_KEY_INDEX = (args.platform == ArgOption::bluesky) ? 0x18D : 0x313,     
+					NONCE_KEY_INDEX  = (args.platform == ArgOption::bluesky) ? 0x1AD : 0x333;  
 	
 				std::copy_n(key.begin(), crypto_secretbox_KEYBYTES, segment_vec.begin() + SODIUM_KEY_INDEX); 	
 				std::copy_n(nonce.begin(), crypto_secretbox_NONCEBYTES, segment_vec.begin() + NONCE_KEY_INDEX);
@@ -382,7 +377,8 @@ int main(int argc, char** argv) {
     			crypto_secretbox_easy(encrypted_vec.data(), data_file_vec.data(), DATA_FILE_VEC_SIZE, nonce.data(), key.data());
     			std::vector<uint8_t>().swap(data_file_vec);
 
-				if (hasBlueskyOption) { // User has selected the -b argument option for the Bluesky platform.
+				if (args.platform == ArgOption::bluesky) { 
+					// User has selected the -b argument option for the Bluesky platform.
 					// + With EXIF overhead segment data (511) - four bytes we don't count (FFD8 FFE1),  
 					// = Max. segment size 65534 (0xFFFE). Can't have 65535 (0xFFFF) as Bluesky will strip the EXIF segment.
 					constexpr uint16_t 
@@ -487,7 +483,7 @@ int main(int argc, char** argv) {
 	
 				value_bit_length = 16;
 
-				if (hasBlueskyOption) {	 // We can store binary data within the first (EXIF) segment, with a max compressed storage capacity close to ~64KB. See encryptFile.cpp
+				if (args.platform == ArgOption::bluesky) {	 // We can store binary data within the first (EXIF) segment, with a max compressed storage capacity close to ~64KB. See encryptFile.cpp
 					constexpr uint8_t 
 						MARKER_BYTES_VAL = 4, // FFD8, FFE1
 						EXIF_SIZE_FIELD_INDEX = 0x04,  
@@ -634,7 +630,7 @@ int main(int argc, char** argv) {
 					// -------
 		
 					cover_image_vec.reserve(cover_image_size + data_file_vec.size());	
-					if (hasRedditOption) {
+					if (args.platform == ArgOption::reddit) {
 						constexpr std::array<uint8_t, 2> IMAGE_START_SIG { 0xFF, 0xD8 };
 						cover_image_vec.insert(cover_image_vec.begin(), IMAGE_START_SIG.begin(), IMAGE_START_SIG.end());
 						cover_image_vec.insert(cover_image_vec.end() - 2, 8000, 0x23);
@@ -664,7 +660,7 @@ int main(int argc, char** argv) {
 				file_ofs.write(reinterpret_cast<const char*>(cover_image_vec.data()), IMAGE_SIZE);
 				file_ofs.close();
 			
-				if (hasNoneOption) {
+				if (args.platform == ArgOption::none) {
 					constexpr uint32_t 
 						FLICKR_MAX_IMAGE_SIZE = 200 * 1024 * 1024,
 						IMGPILE_MAX_IMAGE_SIZE = 100 * 1024 * 1024,
@@ -1090,6 +1086,7 @@ int main(int argc, char** argv) {
         	return 1;
     	}
 }
+
 
 
 
