@@ -118,11 +118,12 @@ int main(int argc, char** argv) {
 
     			if (mode == ArgMode::conceal) {
     				auto select_compression_level = [](uint32_t vec_size, bool isCompressedFile) -> int {
-    					constexpr uint32_t FIFTH_SIZE_OPTION   = 750 * 1024 * 1024;
-    					constexpr uint32_t FOURTH_SIZE_OPTION  = 450 * 1024 * 1024;
-    					constexpr uint32_t THIRD_SIZE_OPTION   = 250 * 1024 * 1024;
-    					constexpr uint32_t SECOND_SIZE_OPTION  = 150 * 1024 * 1024;
-    					constexpr uint32_t FIRST_SIZE_OPTION   = 10 * 1024 * 1024;
+    					constexpr uint32_t 
+							FIFTH_SIZE_OPTION   = 750 * 1024 * 1024,
+    						FOURTH_SIZE_OPTION  = 450 * 1024 * 1024,
+    						THIRD_SIZE_OPTION   = 250 * 1024 * 1024,
+    						SECOND_SIZE_OPTION  = 150 * 1024 * 1024,
+    						FIRST_SIZE_OPTION   = 10 * 1024 * 1024;
     					
     					if (isCompressedFile || vec_size >= FIFTH_SIZE_OPTION) return Z_NO_COMPRESSION;
     					if (vec_size >= FOURTH_SIZE_OPTION) return Z_BEST_SPEED;
@@ -1086,3 +1087,4 @@ int main(int argc, char** argv) {
         	return 1;
     	}
 }
+
