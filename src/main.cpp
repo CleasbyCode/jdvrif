@@ -221,8 +221,6 @@ int main(int argc, char** argv) {
         	const std::string LARGE_FILE_MSG = "\nPlease wait. Larger files will take longer to complete this process.\n";
         	
         	if (args.mode == ArgMode::conceal) {  // Embed data file section code.                                   
-        		validateDataFile(args.data_file, args.platform, cover_image_size, data_file_size, data_file_vec, isCompressedFile);
-        		
         		// Lambda function writes new values, such as segments lengths, etc. into the relevant vector index locations.	
 				auto updateValue = [](std::vector<uint8_t>& vec, uint32_t insert_index, const uint64_t NEW_VALUE, uint8_t bits) {
 					while (bits) { vec[insert_index++] = (NEW_VALUE >> (bits -= 8)) & 0xff; }	// Big-endian.
@@ -306,7 +304,11 @@ int main(int argc, char** argv) {
 
 				cover_image_vec.erase(cover_image_vec.begin(), cover_image_vec.begin() + DQT_POS);
 				// ------------
-	
+
+				cover_image_size = cover_image_vec.size();  // Get updated image size after image re-encode and removing superfluous segments.
+			
+				validateDataFile(args.data_file, args.platform, cover_image_size, data_file_size, data_file_vec, isCompressedFile);
+				
     			std::string data_filename = args.data_file;
     			
 				if (args.platform == ArgOption::bluesky) {
@@ -1087,4 +1089,5 @@ int main(int argc, char** argv) {
         	return 1;
     	}
 }
+
 
