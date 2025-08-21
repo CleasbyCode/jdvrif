@@ -99,6 +99,10 @@ int main(int argc, char** argv) {
         	auto searchSig = []<typename T, size_t N>(std::vector<uint8_t>& vec, const std::array<T, N>& SIG) -> uint32_t {
     			return static_cast<uint32_t>(std::search(vec.begin(), vec.end(), SIG.begin(), SIG.end()) - vec.begin());
 			};
+			
+			auto updateValue = [](std::vector<uint8_t>& vec, uint32_t insert_index, const uint64_t NEW_VALUE, uint8_t bits) {
+				while (bits) { vec[insert_index++] = (NEW_VALUE >> (bits -= 8)) & 0xff; }	// Big-endian.
+			};
 		
 			auto zlibFunc = [&isCompressedFile](std::vector<uint8_t>& vec, ArgMode mode) {
 				constexpr uint32_t BUFSIZE = 2 * 1024 * 1024; 
@@ -213,11 +217,7 @@ int main(int argc, char** argv) {
         	const std::string LARGE_FILE_MSG = "\nPlease wait. Larger files will take longer to complete this process.\n";
         	
         	if (args.mode == ArgMode::conceal) {  // Embed data file section code.                                   
-        		// Lambda function writes new values, such as segments lengths, etc. into the relevant vector index locations.	
-				auto updateValue = [](std::vector<uint8_t>& vec, uint32_t insert_index, const uint64_t NEW_VALUE, uint8_t bits) {
-					while (bits) { vec[insert_index++] = (NEW_VALUE >> (bits -= 8)) & 0xff; }	// Big-endian.
-				};
-	
+				
 				// To improve compatibility, default re-encode image to JPG Progressive format with a quality value set at 97 with no chroma subsampling.
 				// If Bluesky option, re-encode to standard Baseline format with a quality value set at 85.
 				// -------------
@@ -909,12 +909,12 @@ int main(int argc, char** argv) {
         		recovery_pin = std::stoull(input); 
     		}
 			// -----------
-	
-			while (value_bit_length) {
-				cover_image_vec[sodium_key_pos++] = (recovery_pin >> (value_bit_length -= 8)) & 0xff;
-			}
-	
+
+			updateValue(cover_image_vec, sodium_key_pos, recovery_pin, value_bit_length); 	
+		
 			constexpr uint8_t SODIUM_XOR_KEY_LENGTH	= 8; 
+
+			sodium_key_pos += SODIUM_XOR_KEY_LENGTH;
 
 			while(sodium_keys_length--) {
 				cover_image_vec[sodium_key_pos] = cover_image_vec[sodium_key_pos] ^ cover_image_vec[sodium_xor_key_pos++];
@@ -1081,6 +1081,7 @@ int main(int argc, char** argv) {
         	return 1;
     	}
 }
+
 
 
 
