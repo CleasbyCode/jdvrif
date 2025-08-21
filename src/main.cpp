@@ -246,7 +246,7 @@ int main(int argc, char** argv) {
 
     			const uint8_t JPG_QUALITY_VAL = (args.platform == ArgOption::bluesky) ? 85 : 97;
 
-    			unsigned char* jpegBuf = nullptr;
+    			uint8_t* jpegBuf = nullptr;
     			unsigned long jpegSize = 0;
 
     			int flags = TJFLAG_ACCURATEDCT | ((args.platform == ArgOption::bluesky) ? 0 : TJFLAG_PROGRESSIVE);
@@ -1081,6 +1081,7 @@ int main(int argc, char** argv) {
         	return 1;
     	}
 }
+
 
 
 
