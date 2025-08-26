@@ -75,7 +75,7 @@
 #include <random>       
 #include <iterator>   
 
-// Return vector index loction for relevant signature search.
+// Return vector index location for relevant signature search.
 template <typename T, size_t N>
 static inline uint32_t searchSig(std::vector<uint8_t>& vec, const std::array<T, N>& SIG) {
 	return static_cast<uint32_t>(std::search(vec.begin(), vec.end(), SIG.begin(), SIG.end()) - vec.begin());
@@ -1085,6 +1085,7 @@ int main(int argc, char** argv) {
         	return 1;
     	}
 }
+
 
 
 
