@@ -16,10 +16,8 @@ enum class ArgOption {
 struct ProgramArgs {
 	ArgMode mode = ArgMode::conceal;
 	ArgOption platform = ArgOption::none;
-    	std::string cover_image;
-    	std::string data_file;
+    std::string cover_image;
+    std::string data_file;
 
-    	static ProgramArgs parse(int argc, char** argv);
+    static ProgramArgs parse(int argc, char** argv);
 };
-
-
