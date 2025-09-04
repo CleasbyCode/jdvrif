@@ -60,16 +60,12 @@ void validateImageFile(std::string& cover_image, ArgMode mode, ArgOption platfor
     constexpr uintmax_t 
 		MAX_IMAGE_SIZE_BLUESKY = 800ULL * 1024,
 		MAX_SIZE_RECOVER = 3ULL * 1024 * 1024 * 1024;    
-
-    bool 
-    	isModeRecover = (mode == ArgMode::recover),
-		hasBlueskyOption = (platform == ArgOption::bluesky);
-
-	if (hasBlueskyOption && cover_image_size > MAX_IMAGE_SIZE_BLUESKY) {
+	
+	if (platform == ArgOption::bluesky && cover_image_size > MAX_IMAGE_SIZE_BLUESKY) {
 		throw std::runtime_error("File Size Error: Image file exceeds maximum size limit for the Bluesky platform.");
 	}
 
-	if (isModeRecover && cover_image_size > MAX_SIZE_RECOVER) {
+	if (mode == ArgMode::recover && cover_image_size > MAX_SIZE_RECOVER) {
 		throw std::runtime_error("File Size Error: Image file exceeds maximum default size limit for jdvrif.");
 	}
 	
@@ -122,12 +118,7 @@ void validateDataFile(std::string& data_filename, ArgOption platform, uintmax_t&
     }
 
 	isCompressedFile = isFileCompressed(data_path.extension().string());
-
-    bool 
-		hasNoneOption   = (platform == ArgOption::none),
-		hasRedditOption  = (platform == ArgOption::reddit),
-		hasBlueskyOption = (platform == ArgOption::bluesky);
-
+	
 	constexpr uintmax_t 
 		MAX_DATA_SIZE_BLUESKY = 5ULL * 1024 * 1024,
 		MAX_SIZE_CONCEAL = 2ULL * 1024 * 1024 * 1024,  		
@@ -135,15 +126,15 @@ void validateDataFile(std::string& data_filename, ArgOption platform, uintmax_t&
 
 	const uintmax_t COMBINED_FILE_SIZE = data_file_size + cover_image_size;
 
-	if (hasBlueskyOption && data_file_size > MAX_DATA_SIZE_BLUESKY) {
+	if (platform == ArgOption::bluesky && data_file_size > MAX_DATA_SIZE_BLUESKY) {
 		throw std::runtime_error("Data File Size Error: File exceeds maximum size limit for the Bluesky platform.");
 	}
 
-   	if (hasRedditOption && COMBINED_FILE_SIZE > MAX_SIZE_REDDIT) {
+   	if (platform == ArgOption::reddit && COMBINED_FILE_SIZE > MAX_SIZE_REDDIT) {
    		throw std::runtime_error("File Size Error: Combined size of image and data file exceeds maximum size limit for the Reddit platform.");
    	}
 
-	if (hasNoneOption && COMBINED_FILE_SIZE > MAX_SIZE_CONCEAL) {
+	if (platform == ArgOption::none && COMBINED_FILE_SIZE > MAX_SIZE_CONCEAL) {
 		throw std::runtime_error("File Size Error: Combined size of image and data file exceeds maximum default size limit for jdvrif.");
 	}
 	
