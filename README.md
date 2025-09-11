@@ -32,7 +32,7 @@ For example, with ***Mastodon***, if your cover image is **1MB** you can still e
 
 **Other: The ***Bluesky*** platform has separate size limits for the cover image and the compressed data file:*  
 
-● ***Bluesky*** (***-b option***). Cover image size limit (**800KB**). Compressed data file size limit (**~106KB**).  
+● ***Bluesky*** (***-b option***). Cover image size limit (**800KB**). Compressed data file size limit (**~171KB**).  
 ● "***bsky_post.py***" script is required to post images on ***Bluesky***. *More info on this further down the page.*
 
 For platforms such as ***X-Twitter*** & ***Tumblr***, which have small size limits, you may want to focus on data files  
