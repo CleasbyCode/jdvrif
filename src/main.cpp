@@ -517,8 +517,8 @@ int main(int argc, char** argv) {
     				segment_vec[sodium_key_pos] = segment_vec[sodium_key_pos] ^ segment_vec[sodium_xor_key_pos++];
 					sodium_key_pos++;
     				sodium_xor_key_pos = (sodium_xor_key_pos >= SODIUM_XOR_KEY_LENGTH + SODIUM_KEY_INDEX) 
-                        		 ? SODIUM_KEY_INDEX 
-                         		 : sodium_xor_key_pos;
+                    	? SODIUM_KEY_INDEX 
+                        : sodium_xor_key_pos;
 				}
 	
 				sodium_key_pos = SODIUM_KEY_INDEX; 
@@ -564,7 +564,7 @@ int main(int argc, char** argv) {
 					if (bluesky_pshop_vec.size() > BLUESKY_PSHOP_VEC_DEFAULT_SIZE) {
 						// Data file was too big for the EXIF segment, so will spill over to the PSHOP vec.	
 						constexpr uint8_t 
-							PSHOP_VEC_SEGMENT_SIZE_INDEX 		= 0x02,
+							PSHOP_VEC_SEGMENT_SIZE_INDEX 	= 0x02,
 							PSHOP_VEC_BIM_SIZE_INDEX 		= 0x1C,
 							PSHOP_VEC_BIM_SIZE_DIFF			= 28,	// Consistant size difference between PSHOP segment size and BIM size.	
 							PSHOP_SEGMENT_MARKER_BYTES 		= 2;
@@ -650,7 +650,7 @@ int main(int argc, char** argv) {
 						updateValue(segment_vec, ICC_SEGMENTS_TOTAL_VAL_INDEX, !icc_segment_remainder_size ? --icc_segments_required : icc_segments_required, value_bit_length);
 
 						constexpr uint8_t 
-							ICC_SEGMENTS_SEQUENCE_VAL_INDEX = 0x11,
+							ICC_SEGMENTS_SEQUENCE_VAL_INDEX  = 0x11,
 							ICC_SEGMENT_REMAINDER_SIZE_INDEX = 0x04;
 
 						std::vector<uint8_t> icc_segment_header_vec { 
@@ -744,11 +744,11 @@ int main(int argc, char** argv) {
 			
 				if (args.platform == ArgOption::none) {
 					constexpr uint32_t 
-						FLICKR_MAX_IMAGE_SIZE = 200 * 1024 * 1024,
-						IMGPILE_MAX_IMAGE_SIZE = 100 * 1024 * 1024,
-						IMGBB_POSTIMAGE_MAX_IMAGE_SIZE = 32 * 1024 * 1024,
-						MASTODON_MAX_IMAGE_SIZE = 16 * 1024 * 1024,
-						TWITTER_MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+						FLICKR_MAX_IMAGE_SIZE 			= 200 * 1024 * 1024,
+						IMGPILE_MAX_IMAGE_SIZE 			= 100 * 1024 * 1024,
+						IMGBB_POSTIMAGE_MAX_IMAGE_SIZE 	= 32 * 1024 * 1024,
+						MASTODON_MAX_IMAGE_SIZE 		= 16 * 1024 * 1024,
+						TWITTER_MAX_IMAGE_SIZE 			= 5 * 1024 * 1024;
 					
 					constexpr uint16_t 
 						TWITTER_MAX_DATA_SIZE = 10 * 1024,
@@ -843,9 +843,9 @@ int main(int argc, char** argv) {
 						constexpr uint16_t MAX_SINGLE_DATASET_PSHOP_SEGMENT_SIZE = 32800; // If the photoshop segment size is greater than this size, we have two datasets.
 
 						constexpr uint8_t 
-							PSHOP_SEGMENT_SIZE_INDEX_DIFF = 7,
+							PSHOP_SEGMENT_SIZE_INDEX_DIFF 		= 7,
 							PSHOP_FIRST_DATASET_SIZE_INDEX_DIFF = 24,
-							PSHOP_DATASET_FILE_INDEX_DIFF = 2;
+							PSHOP_DATASET_FILE_INDEX_DIFF 		= 2;
 							
 						const uint32_t 
 							PSHOP_SEGMENT_SIZE_INDEX = PSHOP_SIG_INDEX - PSHOP_SEGMENT_SIZE_INDEX_DIFF,	
