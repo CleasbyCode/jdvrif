@@ -10,21 +10,35 @@ ProgramArgs ProgramArgs::parse(int argc, char** argv) {
         std::exit(0);
 	}
 
+	const std::string USAGE_MSG = "Usage: jdvrif conceal [-b|-r] <cover_image> <secret_file>\n\t\bjdvrif recover <cover_image>\n\t\bjdvrif --info";
+
 	if (argc < 3 || argc > 5) {
-    	throw std::runtime_error("Usage: jdvrif conceal [-b|-r] <cover_image> <secret_file>\n\t\bjdvrif recover <cover_image>\n\t\bjdvrif --info");
+    	throw std::runtime_error(USAGE_MSG);
     }
 
     int arg_index = 1;
     	
     if (std::string(argv[arg_index]) != "conceal" && std::string(argv[arg_index]) != "recover") {
-    	throw std::runtime_error("Input Error: Invalid mode arguments. Expecting \"conceal\" or \"recover\" as the only mode arguments.");
+    	throw std::runtime_error(USAGE_MSG);
     }
 	
-	++arg_index;
-	
+    if (argc == 3 && std::string(argv[arg_index]) == "conceal") {
+    	throw std::runtime_error(USAGE_MSG);
+	}
+    
+    if (argc > 3 && std::string(argv[arg_index]) == "recover") {
+    	throw std::runtime_error(USAGE_MSG);
+    }
+    
+    ++arg_index;
+    
+    if ((argc == 3 || argc == 4) && (std::string(argv[arg_index]) == "-b" || std::string(argv[arg_index]) == "-r")) {
+    	throw std::runtime_error(USAGE_MSG);
+    }
+		
     if (argc == 5) {
 		if (std::string(argv[arg_index]) != "-b" && std::string(argv[arg_index]) != "-r") {
-    		throw std::runtime_error("Input Error: Invalid platform arguments. Expecting \"-b\" or \"-r\" as the only optional platform arguments.");
+    		throw std::runtime_error(USAGE_MSG);
     	}
 		if (std::string(argv[arg_index]) == "-b") {
     		args.platform = ArgOption::bluesky;
