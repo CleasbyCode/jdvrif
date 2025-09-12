@@ -4,7 +4,7 @@
 
 void displayInfo() {
 	std::cout << R"(
- JPG Data Vehicle (jdvrif v5.1)
+ JPG Data Vehicle (jdvrif v5.2)
  Created by Nicholas Cleasby (@CleasbyCode) 24/01/2023.
 
  jdvrif is a "steganography-like" command-line tool used for concealing and extracting any file type within and from a JPG image. 
@@ -90,3 +90,4 @@ void displayInfo() {
 
 )";
 }
+
