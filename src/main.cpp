@@ -1,4 +1,4 @@
-// JPG Data Vehicle (jdvrif v5.1) Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
+// JPG Data Vehicle (jdvrif v5.2) Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
 
 // Compile program (Linux):
 
@@ -452,7 +452,7 @@ int main(int argc, char** argv) {
 								std::copy_n(encrypted_vec.begin() + data_file_index, remaining_data_size, tmp_xmp_vec.begin());
 			
 								// We can only store Base64 encoded data in the XMP segment, so convert the binary data here.
-								static constexpr uint8_t base64_table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+								static constexpr char base64_table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
     							uint32_t input_size = static_cast<uint32_t>(tmp_xmp_vec.size());
     							uint32_t output_size = ((input_size + 2) / 3) * 4; 
@@ -589,7 +589,7 @@ int main(int argc, char** argv) {
 						
 						// Size includes segment SIG two bytes (don't count). Bluesky will strip XMP data segment greater than 60031 bytes (0xEA7F).
 						// With the overhead of the XMP default segment data (405 bytes) and the Base64 encoding overhead (~33%),
-						// The max compressed data storage in this segment is probably around ~40KB. 
+						// The max compressed binary data storage in this segment is probably around ~40KB. 
 
  						constexpr uint16_t XMP_SEGMENT_SIZE_LIMIT = 60033;  
 
@@ -901,69 +901,87 @@ int main(int argc, char** argv) {
 								std::vector<uint8_t> base64_data_vec(BASE64_DATA_SIZE);
 								std::copy_n(cover_image_vec.begin() + BEGIN_BASE64_DATA_INDEX, BASE64_DATA_SIZE, base64_data_vec.begin());
 
-								// Convert Base64 data back to binary.
-								static constexpr int8_t base64_decode_table[256] = {
+								uint32_t input_size = static_cast<uint32_t>(base64_data_vec.size());
+								
+								if (input_size == 0 || (input_size % 4) != 0) {
+    								throw std::invalid_argument("Base64 input size must be a multiple of 4 and non-empty");
+								}
+								
+								const auto& in = base64_data_vec;
+
+								static constexpr int8_t base64_table[256] = {
+  									-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
         							-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-        							-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-        							-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 62, -1, -1, -1, 63, 
+       								-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 62, -1, -1, -1, 63, 
         							52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1, -1, -1, -1, -1, -1, 
-        							-1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 
+       								-1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 
         							15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, -1, -1, -1, -1, -1, 
         							-1, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 
         							41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, -1, -1, -1, -1, -1, 
         							-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+       								-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+       								-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
         							-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
         							-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
         							-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
         							-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-        							-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-        							-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-        							-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
-    							};
-
-    							uint32_t input_size = static_cast<uint32_t>(base64_data_vec.size());
-    									
-    							if (input_size == 0 || input_size % 4 != 0) {
-        							throw std::invalid_argument("Base64 input size must be a multiple of 4 and non-empty");
-    							}
-
-    							uint32_t padding_count = 0;
-    					
-    							if (base64_data_vec[input_size - 1] == '=') padding_count++;
-    							if (base64_data_vec[input_size - 2] == '=') padding_count++;
-    					
-    							for (uint32_t i = 0; i < input_size - padding_count; i++) {
-        							if (base64_data_vec[i] == '=') {
-            							throw std::invalid_argument("Invalid '=' character in Base64 input");
-        							}
-    							}
-
-    							uint32_t output_size = (input_size / 4) * 3 - padding_count;
-    									
-    							std::vector<uint8_t> temp_vec;
-    							temp_vec.reserve(output_size);
-
-    							for (uint32_t i = 0; i < input_size; i += 4) {
-        							int sextet_a = base64_decode_table[base64_data_vec[i]];
-        							int sextet_b = base64_decode_table[base64_data_vec[i + 1]];
-        							int sextet_c = base64_decode_table[base64_data_vec[i + 2]];
-        							int sextet_d = base64_decode_table[base64_data_vec[i + 3]];
-
-        							if (sextet_a == -1 || sextet_b == -1 || (sextet_c == -1 && base64_data_vec[i + 2] != '=') || (sextet_d == -1 && base64_data_vec[i + 3] != '=')) {
-            							throw std::invalid_argument("Invalid Base64 character encountered");
-        							}
-
-        							uint32_t triple = (sextet_a << 18) | (sextet_b << 12) | ((sextet_c & 0x3F) << 6) | (sextet_d & 0x3F);
-        
-        							temp_vec.emplace_back((triple >> 16) & 0xFF);
-        								
-        							if (base64_data_vec[i + 2] != '=') temp_vec.emplace_back((triple >> 8) & 0xFF);
-        							if (base64_data_vec[i + 3] != '=') temp_vec.emplace_back(triple & 0xFF);
-    							}
-    							base64_data_vec.swap(temp_vec);
-    							std::vector<uint8_t>().swap(temp_vec);
-    							// ------------
+       								-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
+								};
 								
+								auto decode_val = [&](uint8_t c) -> int {
+    								return base64_table[c];
+								};
+
+								uint32_t padding = 0;
+								
+								if (in[input_size - 1] == '=') ++padding;
+								if (in[input_size - 2] == '=') ++padding;
+
+								uint32_t output_size = (input_size / 4) * 3 - padding;
+								
+								std::vector<uint8_t> output_vec(output_size);
+
+								uint32_t o = 0;
+								
+								for (uint32_t i = 0; i < input_size; i += 4) {
+    								const uint8_t c0 = in[i + 0];
+    								const uint8_t c1 = in[i + 1];
+    								const uint8_t c2 = in[i + 2];
+    								const uint8_t c3 = in[i + 3];
+
+    								const bool p2 = (c2 == '=');
+    								const bool p3 = (c3 == '=');
+    
+    								if (p2 && !p3) {
+        								throw std::invalid_argument("Invalid Base64 padding: '==' required when third char is '='");
+    								}
+   
+    								if ((p2 || p3) && (i + 4 < input_size)) {
+        								throw std::invalid_argument("Padding '=' may only appear in the final quartet");
+    								}
+
+    								const int v0 = decode_val(c0);
+    								const int v1 = decode_val(c1);
+    								const int v2 = p2 ? 0 : decode_val(c2);
+    								const int v3 = p3 ? 0 : decode_val(c3);
+
+    								if (v0 < 0 || v1 < 0 || (!p2 && v2 < 0) || (!p3 && v3 < 0)) {
+        								throw std::invalid_argument("Invalid Base64 character encountered");
+    								}
+
+    								const uint32_t triple = (static_cast<uint32_t>(v0) << 18) | (static_cast<uint32_t>(v1) << 12) | (static_cast<uint32_t>(v2) << 6) |  static_cast<uint32_t>(v3);
+
+    								output_vec[o++] = static_cast<uint8_t>((triple >> 16) & 0xFF);
+									
+    								if (!p2) output_vec[o++] = static_cast<uint8_t>((triple >> 8) & 0xFF);
+    								if (!p3) output_vec[o++] = static_cast<uint8_t>(triple & 0xFF);
+								}						
+								
+    							base64_data_vec.swap(output_vec);
+    							std::vector<uint8_t>().swap(output_vec);
+    						
+								// ------------
+							
 								pshop_tmp_vec.reserve(pshop_tmp_vec.size() + base64_data_vec.size());
 									
 								std::copy_n(base64_data_vec.begin(), base64_data_vec.size(), std::back_inserter(pshop_tmp_vec));
@@ -1227,3 +1245,4 @@ int main(int argc, char** argv) {
         	return 1;
     	}
 }
+
