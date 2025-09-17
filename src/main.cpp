@@ -198,12 +198,13 @@ Notes
 )"; 
 }
 
-enum class Mode : unsigned char { conceal, recover };
-enum class Option : unsigned char { None, Bluesky, Reddit };
+enum class Mode 	: unsigned char { conceal, recover };
+enum class Option 	: unsigned char { None, Bluesky, Reddit };
 
 struct ProgramArgs {
 	Mode mode{Mode::conceal};
 	Option option{Option::None};
+
 	fs::path image_file_path;
 	fs::path data_file_path;
     
@@ -451,7 +452,7 @@ int main(int argc, char** argv) {
 			
 		constexpr uintmax_t 
 			MAX_IMAGE_SIZE_BLUESKY 	= 800ULL * 1024,
-			MAX_SIZE_RECOVER 	= 3ULL * 1024 * 1024 * 1024;    
+			MAX_SIZE_RECOVER 		= 3ULL * 1024 * 1024 * 1024;    
 	
 		if (args.option == Option::Bluesky && image_file_size > MAX_IMAGE_SIZE_BLUESKY) {
 			throw std::runtime_error("File Size Error: Image file exceeds maximum size limit for the Bluesky platform.");
@@ -960,12 +961,12 @@ int main(int argc, char** argv) {
 
 			if (args.option == Option::Bluesky) {	 // We can store binary data within the first (EXIF) segment, with a max compressed storage capacity close to ~64KB. See encryptFile.cpp
 				constexpr uint8_t 
-					MARKER_BYTES_VAL = 4, // FFD8, FFE1
-					EXIF_SIZE_FIELD_INDEX = 0x04,  
-					EXIF_XRES_OFFSET_FIELD_INDEX = 0x2A,  
-					EXIF_YRES_OFFSET_FIELD_INDEX = 0x36,  
-					EXIF_ARTIST_SIZE_FIELD_INDEX = 0x4A,  
-					EXIF_SUBIFD_OFFSET_FIELD_INDEX = 0x5A;  
+					MARKER_BYTES_VAL 				= 4, // FFD8, FFE1
+					EXIF_SIZE_FIELD_INDEX 			= 0x04,  
+					EXIF_XRES_OFFSET_FIELD_INDEX 	= 0x2A,  
+					EXIF_YRES_OFFSET_FIELD_INDEX 	= 0x36,  
+					EXIF_ARTIST_SIZE_FIELD_INDEX 	= 0x4A,  
+					EXIF_SUBIFD_OFFSET_FIELD_INDEX 	= 0x5A;  
 
 				const uint32_t EXIF_SEGMENT_SIZE = static_cast<uint32_t>(segment_vec.size() - MARKER_BYTES_VAL);
 
@@ -1236,7 +1237,7 @@ int main(int argc, char** argv) {
 				INDEX_DIFF = 8;
 
 			constexpr std::array<uint8_t, SIG_LENGTH>
-				JDVRIF_SIG	{ 0xB4, 0x6A, 0x3E, 0xEA, 0x5E, 0x9D, 0xF9 },
+				JDVRIF_SIG		{ 0xB4, 0x6A, 0x3E, 0xEA, 0x5E, 0x9D, 0xF9 },
 				ICC_PROFILE_SIG	{ 0x6D, 0x6E, 0x74, 0x72, 0x52, 0x47, 0x42 };
 		
 			const uint32_t 
@@ -1258,8 +1259,8 @@ int main(int argc, char** argv) {
 
 			if (hasBlueskyOption) { // EXIF segment (FFE1) is being used. Check for PHOTOSHOP & XMP segments and their index locations.
 				static constexpr std::array<uint8_t, SIG_LENGTH> 
-					PSHOP_SIG 	{ 0x73, 0x68, 0x6F, 0x70, 0x20, 0x33, 0x2E },
-					XMP_SIG 	{ 0x68, 0x74, 0x74, 0x70, 0x3A, 0x2F, 0x2F },
+					PSHOP_SIG 		{ 0x73, 0x68, 0x6F, 0x70, 0x20, 0x33, 0x2E },
+					XMP_SIG 		{ 0x68, 0x74, 0x74, 0x70, 0x3A, 0x2F, 0x2F },
 					XMP_CREATOR_SIG { 0x3C, 0x72, 0x64, 0x66, 0x3A, 0x6C, 0x69 };
 
 				const uint32_t PSHOP_SIG_INDEX = searchSig(image_file_vec, PSHOP_SIG);
@@ -1268,16 +1269,16 @@ int main(int argc, char** argv) {
 					constexpr uint16_t MAX_SINGLE_DATASET_PSHOP_SEGMENT_SIZE = 32800; // If the photoshop segment size is greater than this size, we have two datasets.
 
 					constexpr uint8_t 
-						PSHOP_SEGMENT_SIZE_INDEX_DIFF = 7,
+						PSHOP_SEGMENT_SIZE_INDEX_DIFF 		= 7,
 						PSHOP_FIRST_DATASET_SIZE_INDEX_DIFF = 24,
-						PSHOP_DATASET_FILE_INDEX_DIFF = 2;
+						PSHOP_DATASET_FILE_INDEX_DIFF 		= 2;
 							
 					const uint32_t 
-						PSHOP_SEGMENT_SIZE_INDEX = PSHOP_SIG_INDEX - PSHOP_SEGMENT_SIZE_INDEX_DIFF,	
-						PSHOP_FIRST_DATASET_SIZE_INDEX = PSHOP_SIG_INDEX + PSHOP_FIRST_DATASET_SIZE_INDEX_DIFF,
-						PSHOP_FIRST_DATASET_FILE_INDEX = PSHOP_FIRST_DATASET_SIZE_INDEX + PSHOP_DATASET_FILE_INDEX_DIFF,
-						PSHOP_SEGMENT_SIZE = (static_cast<uint16_t>(image_file_vec[PSHOP_SEGMENT_SIZE_INDEX]) << 8) | static_cast<uint16_t>(image_file_vec[PSHOP_SEGMENT_SIZE_INDEX + 1]),
-						PSHOP_FIRST_DATASET_SIZE = (static_cast<uint16_t>(image_file_vec[PSHOP_FIRST_DATASET_SIZE_INDEX]) << 8) | static_cast<uint16_t>(image_file_vec[PSHOP_FIRST_DATASET_SIZE_INDEX + 1]);
+						PSHOP_SEGMENT_SIZE_INDEX 		= PSHOP_SIG_INDEX - PSHOP_SEGMENT_SIZE_INDEX_DIFF,	
+						PSHOP_FIRST_DATASET_SIZE_INDEX 	= PSHOP_SIG_INDEX + PSHOP_FIRST_DATASET_SIZE_INDEX_DIFF,
+						PSHOP_FIRST_DATASET_FILE_INDEX 	= PSHOP_FIRST_DATASET_SIZE_INDEX + PSHOP_DATASET_FILE_INDEX_DIFF,
+						PSHOP_SEGMENT_SIZE 				= (static_cast<uint16_t>(image_file_vec[PSHOP_SEGMENT_SIZE_INDEX]) << 8) | static_cast<uint16_t>(image_file_vec[PSHOP_SEGMENT_SIZE_INDEX + 1]),
+						PSHOP_FIRST_DATASET_SIZE 		= (static_cast<uint16_t>(image_file_vec[PSHOP_FIRST_DATASET_SIZE_INDEX]) << 8) | static_cast<uint16_t>(image_file_vec[PSHOP_FIRST_DATASET_SIZE_INDEX + 1]);
 											
 					uint8_t	end_of_exif_data_index_diff = 55;
 						
@@ -1296,9 +1297,9 @@ int main(int argc, char** argv) {
 						constexpr uint8_t PSHOP_LAST_DATASET_SIZE_INDEX_DIFF = 3;
 							
 						const uint32_t 
-							PSHOP_LAST_DATASET_SIZE_INDEX = PSHOP_FIRST_DATASET_FILE_INDEX + PSHOP_FIRST_DATASET_SIZE + PSHOP_LAST_DATASET_SIZE_INDEX_DIFF,
-							PSHOP_LAST_DATASET_SIZE = (static_cast<uint16_t>(image_file_vec[PSHOP_LAST_DATASET_SIZE_INDEX]) << 8) | static_cast<uint16_t>(image_file_vec[PSHOP_LAST_DATASET_SIZE_INDEX + 1]),
-							PSHOP_LAST_DATASET_FILE_INDEX = PSHOP_LAST_DATASET_SIZE_INDEX + PSHOP_DATASET_FILE_INDEX_DIFF;
+							PSHOP_LAST_DATASET_SIZE_INDEX 	= PSHOP_FIRST_DATASET_FILE_INDEX + PSHOP_FIRST_DATASET_SIZE + PSHOP_LAST_DATASET_SIZE_INDEX_DIFF,
+							PSHOP_LAST_DATASET_SIZE 		= (static_cast<uint16_t>(image_file_vec[PSHOP_LAST_DATASET_SIZE_INDEX]) << 8) | static_cast<uint16_t>(image_file_vec[PSHOP_LAST_DATASET_SIZE_INDEX + 1]),
+							PSHOP_LAST_DATASET_FILE_INDEX 	= PSHOP_LAST_DATASET_SIZE_INDEX + PSHOP_DATASET_FILE_INDEX_DIFF;
 								
 						pshop_tmp_vec.reserve(pshop_tmp_vec.size() + PSHOP_LAST_DATASET_SIZE);
 								
