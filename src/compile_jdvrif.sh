@@ -2,7 +2,7 @@
 
 # compile_jdvrif.sh
 
-g++ -std=c++20 main.cpp programArgs.cpp fileChecks.cpp information.cpp segmentsVec.cpp -Wall -O3 -lz -lsodium -lturbojpeg -s -o jdvrif
+g++ -std=c++20 main.cpp -Wall -O2 -lz -lsodium -lturbojpeg -s -o jdvrif
 
 if [ $? -eq 0 ]; then
     echo "Compilation successful. Executable 'jdvrif' created."
