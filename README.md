@@ -118,7 +118,7 @@ https://github.com/user-attachments/assets/a84ffb6d-b5ce-4f66-bf65-7589d2d93a49
    ```
    From the ***Reddit*** site, select "***Create Post***" followed by "***Images & Video***" tab, to attach and post your ***JPG*** image.
   
-   These images are only compatible for posting on the ***Reddit***. Your embedded data file will be removed if posted on a different platform.
+   These images are only compatible for posting on ***Reddit***. Your embedded data file will be removed if posted on a different platform.
   
  To correctly download images from ***X-Twitter*** or ***Reddit***, click the image in the post to fully expand it, before saving.
 
