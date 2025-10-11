@@ -83,7 +83,7 @@
 
 namespace fs = std::filesystem;
 
-static inline void displayInfo() {
+static void displayInfo() {
 	std::cout << R"(
 
 JPG Data Vehicle (jdvrif v5.4)
@@ -266,18 +266,18 @@ struct ProgramArgs {
 
 // Return vector index location for relevant signature search.
 template <typename T, size_t N>
-static inline uint32_t searchSig(std::vector<uint8_t>& vec, const std::array<T, N>& SIG) {
+static uint32_t searchSig(std::vector<uint8_t>& vec, const std::array<T, N>& SIG) {
 	return static_cast<uint32_t>(std::search(vec.begin(), vec.end(), SIG.begin(), SIG.end()) - vec.begin());
 }
 
 // Writes updated values (2, 4 or 8 bytes), such as segments lengths, index/offsets values, etc. into the relevant vector index location.	
-static inline void updateValue(std::vector<uint8_t>& vec, uint32_t insert_index, uint64_t NEW_VALUE, uint8_t bits) {
+static void updateValue(std::vector<uint8_t>& vec, uint32_t insert_index, uint64_t NEW_VALUE, uint8_t bits) {
 	while (bits) {
 		vec[insert_index++] = (NEW_VALUE >> (bits -= 8)) & 0xFF; // Big-endian.
     }
 }
 
-static inline bool hasValidFilename(const fs::path& p) {
+static bool hasValidFilename(const fs::path& p) {
 	if (p.empty()) {
     	return false;
     }
@@ -294,7 +294,7 @@ static inline bool hasValidFilename(const fs::path& p) {
     return std::all_of(filename.begin(), filename.end(), validChar);
 }
 
-static inline bool hasFileExtension(const fs::path& p, std::initializer_list<const char*> exts) {
+static bool hasFileExtension(const fs::path& p, std::initializer_list<const char*> exts) {
 	auto e = p.extension().string();
     std::transform(e.begin(), e.end(), e.begin(), [](unsigned char c){ return static_cast<char>(std::tolower(c)); });
     for (const char* cand : exts) {
@@ -306,12 +306,12 @@ static inline bool hasFileExtension(const fs::path& p, std::initializer_list<con
 }
 
 // Zlib function, deflate or inflate data file within vector.
-static inline void zlibFunc(std::vector<uint8_t>& vec, Mode mode, bool& isCompressedFile) {
+static void zlibFunc(std::vector<uint8_t>& vec, Mode mode, bool& isCompressedFile) {
 	constexpr uint32_t BUFSIZE = 2 * 1024 * 1024; 
 	const uint32_t VEC_SIZE = static_cast<uint32_t>(vec.size());
 	
-    static std::vector<uint8_t> buffer_vec(BUFSIZE);
-    static std::vector<uint8_t> tmp_vec;
+    std::vector<uint8_t> buffer_vec(BUFSIZE);
+    std::vector<uint8_t> tmp_vec;
     tmp_vec.reserve(VEC_SIZE + BUFSIZE);
 
     z_stream strm{};
@@ -1669,5 +1669,6 @@ int main(int argc, char** argv) {
         return 1;
     }
 }
+
 
 
