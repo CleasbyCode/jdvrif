@@ -467,13 +467,28 @@ int main(int argc, char** argv) {
 		image_file_ifs.read(reinterpret_cast<char*>(image_file_vec.data()), image_file_size);
 		image_file_ifs.close();
 	
-		constexpr std::array<uint8_t, 2>
-			IMAGE_START_SIG	{ 0xFF, 0xD8 },
-			IMAGE_END_SIG   { 0xFF, 0xD9 };
+		constexpr uint8_t 
+			SOI0 = 0xFF, 
+			SOI1 = 0xD8,
+   			EOI0 = 0xFF, 
+   			EOI1 = 0xD9;
 
-		if (!std::equal(IMAGE_START_SIG.begin(), IMAGE_START_SIG.end(), image_file_vec.begin()) || !std::equal(IMAGE_END_SIG.begin(), IMAGE_END_SIG.end(), image_file_vec.end() - 2)) {
-    		throw std::runtime_error("Image File Error: This is not a valid JPG image.");
-		}
+	    if (!(image_file_vec[0] == SOI0 && image_file_vec[1] == SOI1)) {
+        	throw std::runtime_error("Image File Error: Missing SOI marker.");
+    	}
+
+    	const std::array<uint8_t,2> EOI{EOI0, EOI1};
+
+    	auto last_eoi = std::find_end(image_file_vec.begin() + 2, image_file_vec.end(), EOI.begin(), EOI.end());
+    	if (last_eoi == image_file_vec.end()) {
+        	throw std::runtime_error("Image File Error: Missing EOI marker.");
+    	}
+
+    	// Erase any trailing data after EOI
+    	auto after_eoi = last_eoi + 2;
+    	if (after_eoi != image_file_vec.end()) {
+        	image_file_vec.erase(after_eoi, image_file_vec.end());
+    	}
 		
         constexpr uint32_t LARGE_FILE_SIZE = 300 * 1024 * 1024;
         const std::string LARGE_FILE_MSG = "\nPlease wait. Larger files will take longer to complete this process.\n";
@@ -1669,6 +1684,7 @@ int main(int argc, char** argv) {
         return 1;
     }
 }
+
 
 
 
