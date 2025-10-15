@@ -98,16 +98,27 @@ jdvrif ***conceal*** mode platform options:
   These images are only compatible for posting on ***Bluesky***. Your embedded data file will be removed if posted on a different platform.
  
   You are required to use the Python script ***"bsky_post.py"*** (found in the repo ***src*** folder) to post the image to ***Bluesky***.
-  It will not work if you post images to ***Bluesky*** via the browser site or mobile app.
+  It will not work if you post images to ***Bluesky*** via the browser site or mobile app.  
 
-  Script example:
-  
+  You will also need to create an ***app password*** from your ***Bluesky*** account, to use with the ***bsky_post.py*** script. (https://bsky.app/settings/app-passwords).  
+
+  Here are some basic usage examples for the bsky_post.py Python script:  
+
+  Standard image post to your profile/account.
+
   ```console
-   $ python3 bsky_post.py --handle exampleuser.bsky.social --password pxae-f17r-alp4-xqka
-    --image jrif_11050.jpg --alt-text "text to describe image" "text to appear in main post"
+  $ python3 bsky_post.py --handle you.bsky.social --password xxxx-xxxx-xxxx-xxxx --image your_image.jpg --alt-text "alt-text here (optional)" "standard post text here (required)"
   ```
-   You will also need to create an ***app password*** from your ***Bluesky*** account, to use with the ***bsky_post.py*** script. (https://bsky.app/settings/app-passwords).  
+  If you want to post multiple images (Max. 4).  
 
+  ```console 
+  $ python3 bsky_post.py --handle you.bsky.social --password xxxx-xxxx-xxxx-xxxx --image img1.jpg --image img2.jpg --alt-text "alt_here" "standard post text..."
+  ```
+  If you want to post an image as a reply to another thread.  
+
+  ```console
+  $ python3 bsky_post.py --handle you.bsky.social --password xxxx-xxxx-xxxx-xxxx --image your_image.jpg --alt-text "alt_here" --reply-to https://bsky.app/profile/someone.bsky.social/post/8m2tgw6cgi23i "standard post text..."
+  ```
 https://github.com/user-attachments/assets/b4c72ea7-40e3-49b0-89aa-ae2dd8ccccb9   
 
 https://github.com/user-attachments/assets/a84ffb6d-b5ce-4f66-bf65-7589d2d93a49
