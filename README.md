@@ -102,7 +102,7 @@ jdvrif ***conceal*** mode platform options:
 
   You will also need to create an ***app password*** from your ***Bluesky*** account, to use with the ***bsky_post.py*** script. (https://bsky.app/settings/app-passwords).  
 
-  Here are some basic usage examples for the bsky_post.py Python script:  
+  Here are some basic usage examples for the ***bsky_post.py*** script:  
 
   Standard image post to your profile/account.
 
@@ -119,6 +119,7 @@ jdvrif ***conceal*** mode platform options:
   ```console
   $ python3 bsky_post.py --handle you.bsky.social --password xxxx-xxxx-xxxx-xxxx --image your_image.jpg --alt-text "alt_here" --reply-to https://bsky.app/profile/someone.bsky.social/post/8m2tgw6cgi23i "standard post text..."
   ```
+
 https://github.com/user-attachments/assets/b4c72ea7-40e3-49b0-89aa-ae2dd8ccccb9   
 
 https://github.com/user-attachments/assets/a84ffb6d-b5ce-4f66-bf65-7589d2d93a49
