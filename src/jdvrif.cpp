@@ -1,4 +1,4 @@
-// JPG Data Vehicle (jdvrif v5.4) Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
+// JPG Data Vehicle (jdvrif v5.6) Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
 
 // Compile program (Linux):
 
@@ -70,11 +70,15 @@
 #include <cctype>
 #include <cstddef>
 #include <cstdlib>
+#include <cstring>
 #include <filesystem>
 #include <fstream> 
 #include <iostream>
 #include <iterator> 
+#include <limits>
+#include <optional>
 #include <random> 
+#include <span>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -86,7 +90,7 @@ namespace fs = std::filesystem;
 static void displayInfo() {
 	std::cout << R"(
 
-JPG Data Vehicle (jdvrif v5.4)
+JPG Data Vehicle (jdvrif v5.6)
 Created by Nicholas Cleasby (@CleasbyCode) 24/01/2023
 
 jdvrif is a metadata “steganography-like” command-line tool used for concealing and extracting
@@ -145,55 +149,63 @@ Bluesky - Separate size limits for cover image and data file - (use -b option).
   • Secret data file (compressed): ~171 KB
 
 Even though jdvrif compresses the data file, you may want to compress it yourself first
-(zip, rar, 7z, etc.) so you know the exact compressed file size.
+(zip, rar, 7z, etc.) so that you know the exact compressed file size.
 
-Platforms with small size limits, like X-Twitter (~10 KB), are best suited for small files that 
-compress especially well, such as textual data.
+Platforms with small size limits, like X-Twitter (~10 KB), are best suited for data that 
+compress especially well, such as text files.
 
 ──────────────────────────
 Modes
 ──────────────────────────
 
-  conceal - Compresses, encrypts and embeds your secret data file within a JPG cover image.
-  recover - Decrypts, uncompresses and extracts the concealed data file from a JPG cover image
-           (recovery PIN required).
+conceal - Compresses, encrypts and embeds your secret data file within a JPG cover image.
+recover - Decrypts, uncompresses and extracts the concealed data file from a JPG cover image
+          (recovery PIN required).
 
 ──────────────────────────
 Platform options for conceal mode
 ──────────────────────────
 
-  -b (Bluesky) : Createa compatible “file-embedded” JPG images for posting on Bluesky.
+-b (Bluesky) : Createa compatible “file-embedded” JPG images for posting on Bluesky.
 
-      $ jdvrif conceal -b my_image.jpg hidden.doc
+$ jdvrif conceal -b my_image.jpg hidden.doc
 
-    These images are only compatible for posting on Bluesky. 
+These images are only compatible for posting on Bluesky. 
 
-    You must use the Python script “bsky_post.py” (in the repo’s src folder) to post to Bluesky.
-    Posting via the Bluesky website or mobile app will NOT work.
+You must use the Python script “bsky_post.py” (in the repo’s src folder) to post to Bluesky.
+Posting via the Bluesky website or mobile app will NOT work.
 
-    Script example:
+You also need to create an app password for your Bluesky account: https://bsky.app/settings/app-passwords
+    
+Here are some basic usage examples for the bsky_post.py Python script:
 
-      $ python3 bsky_post.py --handle exampleuser.bsky.social --password pxae-f17r-alp4-xqka 
-          --image jrif_11050.jpg --alt-text "alt-text to describe image..." 
-          "text to appear in main post..."
+Standard image post to your profile/account.
 
-    You also need to create an app password for your Bluesky account: https://bsky.app/settings/app-passwords
+$ python3 bsky_post.py --handle you.bsky.social --password xxxx-xxxx-xxxx-xxxx 
+--image your_image.jpg --alt-text "alt-text here [optional]" "standard post text here [required]"
 
-    Bluesky size limits: Cover 800 KB / Secret data file (compressed) ~171 KB
+If you want to post multiple images (Max. 4):
 
-  -r (Reddit) : Creates compatible “file-embedded” JPG images for posting on Reddit.
+$ python3 bsky_post.py --handle you.bsky.social --password xxxx-xxxx-xxxx-xxxx 
+--image img1.jpg --image img2.jpg --alt-text "alt_here" "standard post text..."
 
-      $ jdvrif conceal -r my_image.jpg secret.mp3
+If you want to post an image as a reply to another thread:
 
-    From the Reddit site, click “Create Post”, then select the “Images & Video” tab to attach the JPG image.
-    These images are only compatible for posting on Reddit.
+$ python3 bsky_post.py --handle you.bsky.social --password xxxx-xxxx-xxxx-xxxx 
+--image your_image.jpg --alt-text "alt_here" 
+--reply-to https://bsky.app/profile/someone.bsky.social/post/8m2tgw6cgi23i 
+"standard post text..."
 
-──────────────────────────
-Notes
-──────────────────────────
+Bluesky size limits: Cover 800 KB / Secret data file (compressed) ~171 KB
 
-• To correctly download images from X-Twitter or Reddit, click image within the post to fully expand it before saving.
-• ImgPile: sign in to an account before sharing; otherwise, the embedded data will not be preserved.
+-r (Reddit) : Creates compatible “file-embedded” JPG images for posting on Reddit.
+
+$ jdvrif conceal -r my_image.jpg secret.mp3
+
+From the Reddit site, click “Create Post”, then select the “Images & Video” tab to attach the JPG image.
+These images are only compatible for posting on Reddit.
+
+To correctly download images from X-Twitter or Reddit, click image within the post to fully expand it before saving.
 
 )"; 
 }
@@ -208,7 +220,7 @@ struct ProgramArgs {
 	fs::path image_file_path;
 	fs::path data_file_path;
     
-	static ProgramArgs parse(int argc, char** argv) {
+	static std::optional<ProgramArgs> parse(int argc, char** argv) {
 		using std::string_view;
 
         auto arg = [&](int i) -> string_view {
@@ -229,7 +241,7 @@ struct ProgramArgs {
 
         if (argc == 2 && arg(1) == "--info") {
         	displayInfo();
-        	std::exit(0);
+        	return std::nullopt;
         }
 
         ProgramArgs out{};
@@ -238,12 +250,10 @@ struct ProgramArgs {
 
         if (cmd == "conceal") {
         	int i = 2;
-
             if (arg(i) == "-b" || arg(i) == "-r") {
         		out.option = (arg(i) == "-b") ? Option::Bluesky : Option::Reddit;
             	++i;
             }
-
             if (i + 1 >= argc || (i + 2) != argc) die();
 
             out.image_file_path = fs::path(arg(i));
@@ -251,26 +261,143 @@ struct ProgramArgs {
             out.mode = Mode::conceal;
             return out;
         }
-
         if (cmd == "recover") {
         	if (argc != 3) die();
         	out.image_file_path = fs::path(arg(2));
         	out.mode = Mode::recover;
         	return out;
         }
-
         die();
         return out; // Keeps compiler happy.
     }
 };
 
-// Return vector index location for relevant signature search.
-template <typename T, size_t N>
-static uint32_t searchSig(std::vector<uint8_t>& vec, const std::array<T, N>& SIG) {
-	return static_cast<uint32_t>(std::search(vec.begin(), vec.end(), SIG.begin(), SIG.end()) - vec.begin());
+// searchSig function searches a byte vector (uint8_t) for a fixed byte pattern and returns the offset of the first match, or std::nullopt if there’s no match.
+// It uses std::search on v.begin().. v.end() with the pattern given by sig.begin().. sig.end(). 
+	
+// The std::span<const uint8_t> parameter lets you pass anything contiguous - std::array, C-array, another std::vector, or a subrange, without copying. 
+// If std::search returns v.end(), the function maps that to std::nullopt; otherwise it converts the iterator difference to a size_t index.
+// I often then convert the size_t index result to uint32_t for compatibiblty reasons for other parts of the program.
+static std::optional<size_t> searchSig(const std::vector<uint8_t>& v, std::span<const uint8_t> sig) {
+	auto it = std::search(v.begin(), v.end(), sig.begin(), sig.end());
+    if (it == v.end()) return std::nullopt;
+    return static_cast<size_t>(it - v.begin());
 }
 
-// Writes updated values (2, 4 or 8 bytes), such as segments lengths, index/offsets values, etc. into the relevant vector index location.	
+// First search for an EXIF segment, if found search for an Orientation tag.
+// Returns 1..8 if found and passed to normalize_orientation, or std::nullopt if no EXIF/Orientation.
+static std::optional<uint16_t> exif_orientation(const std::vector<uint8_t>& jpg) {
+    const uint8_t APP1[] = {0xFF, 0xE1};
+    auto app1 = searchSig(jpg, std::span<const uint8_t>(APP1, 2));
+    if (!app1) return std::nullopt;
+
+    size_t p = *app1;
+    if (p + 4 > jpg.size()) return std::nullopt;
+
+    uint16_t len = (static_cast<uint16_t>(jpg[p+2]) << 8) | jpg[p+3];
+    size_t exif_end = p + 2 + len;            
+    if (exif_end > jpg.size()) return std::nullopt;
+
+    size_t exif_start = p + 4;
+    if (exif_start + 6 > exif_end) return std::nullopt;
+    if (std::memcmp(&jpg[exif_start], "Exif\0\0", 6) != 0) return std::nullopt;
+
+    size_t tiff = exif_start + 6;
+    if (tiff + 8 > exif_end) return std::nullopt;
+
+    bool le = false;
+    if (jpg[tiff] == 'I' && jpg[tiff+1] == 'I') le = true;
+    else if (jpg[tiff] == 'M' && jpg[tiff+1] == 'M') le = false;
+    else return std::nullopt;
+
+    auto rd16 = [&](size_t off) -> uint16_t {
+        if (off + 1 >= exif_end) return 0;
+        return le ? (uint16_t)(jpg[off] | (jpg[off+1] << 8)) : (uint16_t)((jpg[off] << 8) | jpg[off+1]);
+    };
+    auto rd32 = [&](size_t off) -> uint32_t {
+        if (off + 3 >= exif_end) return 0;
+        return le ? (uint32_t)(jpg[off] | (jpg[off+1] << 8) | (jpg[off+2] << 16) | (jpg[off+3] << 24)) : (uint32_t)((jpg[off] << 24) | (jpg[off+1] << 16) | (jpg[off+2] << 8) | jpg[off+3]);
+    };
+
+    if (rd16(tiff + 2) != 0x002A) return std::nullopt;
+    uint32_t ifd0_off = rd32(tiff + 4);
+    size_t ifd = tiff + ifd0_off;
+    if (ifd + 2 > exif_end) return std::nullopt;
+
+    uint16_t count = rd16(ifd);
+    ifd += 2;
+    for (uint16_t i = 0; i < count; ++i) {
+        size_t entry = ifd + i * 12;
+        if (entry + 12 > exif_end) return std::nullopt;
+        uint16_t tag = rd16(entry + 0);
+        if (tag == 0x0112) {
+            return rd16(entry + 8); // 1..8 usually. 
+        }
+    }
+    return std::nullopt;
+}
+
+static void rotate_rgb_180(std::vector<uint8_t>& rgb, int w, int h) {
+    const int stride = w * 3;
+    for (int y = 0; y < h / 2; ++y) {
+        int opp = h - 1 - y;
+        for (int x = 0; x < w; ++x) {
+            for (int c = 0; c < 3; ++c)
+                std::swap(rgb[y*stride + x*3 + c], rgb[opp*stride + (w-1-x)*3 + c]);
+        }
+    }
+    if (h % 2 == 1) {
+        int y = h/2;
+        for (int x = 0; x < w/2; ++x)
+            for (int c = 0; c < 3; ++c)
+                std::swap(rgb[y*stride + x*3 + c], rgb[y*stride + (w-1-x)*3 + c]);
+    }
+}
+
+static void rotate_rgb_90cw(std::vector<uint8_t>& rgb, int& w, int& h) {
+    std::vector<uint8_t> out(static_cast<size_t>(w) * static_cast<size_t>(h) * 3);
+    int nw = h;
+    for (int y = 0; y < h; ++y) {
+        for (int x = 0; x < w; ++x) {
+            int nx = h - 1 - y, ny = x;
+            for (int c = 0; c < 3; ++c)
+                out[(static_cast<size_t>(ny) * nw + nx) * 3 + c] =
+                    rgb[(static_cast<size_t>(y) * w + x) * 3 + c];
+        }
+    }
+    rgb.swap(out);
+    std::swap(w, h);
+}
+
+static void rotate_rgb_270cw(std::vector<uint8_t>& rgb, int& w, int& h) {
+    std::vector<uint8_t> out(static_cast<size_t>(w) * static_cast<size_t>(h) * 3);
+    int nw = h;
+    for (int y = 0; y < h; ++y) {
+        for (int x = 0; x < w; ++x) {
+            int nx = y, ny = w - 1 - x;
+            for (int c = 0; c < 3; ++c)
+                out[(static_cast<size_t>(ny) * nw + nx) * 3 + c] =
+                    rgb[(static_cast<size_t>(y) * w + x) * 3 + c];
+        }
+    }
+    rgb.swap(out);
+    std::swap(w, h);
+}
+
+// If exif_orientation found an Orientation tag, use normalize_orientation 
+// and its above helpers to normalize the pixels, so that we can later safely remove
+// the EXIF segment from the cover image and have correct orientation with viewers.
+// Minimal mapper: handle 3,6,8 (most common). Add flips (2,4,5,7)...
+static void normalize_orientation(std::vector<uint8_t>& rgb, int& w, int& h, int ori) {
+    switch (ori) {
+        case 3: rotate_rgb_180(rgb, w, h); break;
+        case 6: rotate_rgb_90cw(rgb, w, h); break;
+        case 8: rotate_rgb_270cw(rgb, w, h); break;
+        default: /* 1 or unsupported -> do nothing */ break;
+    }
+}
+
+// Writes updated values (2, 4 or 8 bytes), such as segments lengths, index/offsets values, PIN, etc. into the relevant vector index location.	
 static void updateValue(std::vector<uint8_t>& vec, uint32_t insert_index, uint64_t NEW_VALUE, uint8_t bits) {
 	while (bits) {
 		vec[insert_index++] = (NEW_VALUE >> (bits -= 8)) & 0xFF; // Big-endian.
@@ -420,7 +547,10 @@ int main(int argc, char** argv) {
     		SetConsoleOutputCP(CP_UTF8);  
 		#endif
 		
-		ProgramArgs args = ProgramArgs::parse(argc, argv);
+		auto args_opt = ProgramArgs::parse(argc, argv);
+       	if (!args_opt) return 0; 
+       		
+		ProgramArgs args = *args_opt; 
 				
 		bool isCompressedFile = false;
 			
@@ -450,23 +580,27 @@ int main(int argc, char** argv) {
         	throw std::runtime_error("Image File Error: Invalid file size.");
     	}
 			
-		constexpr uintmax_t 
-			MAX_IMAGE_SIZE_BLUESKY 	= 800ULL * 1024,
-			MAX_SIZE_RECOVER 		= 3ULL * 1024 * 1024 * 1024;    
+		constexpr uint32_t 
+			MAX_IMAGE_SIZE_BLUESKY 			= 805 * 1024,		// 805 KB.
+			MAX_IMAGE_SIZE_BEFORE_ENCODE  	= 8 * 1024 * 1024,	// 8 MB.
+			MAX_IMAGE_SIZE_AFTER_ENCODE		= 4 * 1024 * 1024,	// 4 MB.
+			MAX_IMAGE_SIZE_RECOVER_MODE 	= 3ULL * 1024 * 1024 * 1024;	// 3 GB.
 	
-		if (args.option == Option::Bluesky && image_file_size > MAX_IMAGE_SIZE_BLUESKY) {
-			throw std::runtime_error("File Size Error: Image file exceeds maximum size limit for the Bluesky platform.");
-		}
-
-		if (args.mode == Mode::recover && image_file_size > MAX_SIZE_RECOVER) {
-			throw std::runtime_error("File Size Error: Image file exceeds maximum default size limit for jdvrif.");
+		if (args.mode == Mode::recover && image_file_size > MAX_IMAGE_SIZE_RECOVER_MODE) {
+			throw std::runtime_error("Image File Error: Embedded image file exceeds maximum size limit.");
+		} 
+		
+		if (args.mode == Mode::conceal && image_file_size > MAX_IMAGE_SIZE_BEFORE_ENCODE) {
+			throw std::runtime_error("Image File Error: Cover image file exceeds maximum size limit.");
 		}
 			
 		std::vector<uint8_t> image_file_vec(image_file_size);
 	
 		image_file_ifs.read(reinterpret_cast<char*>(image_file_vec.data()), image_file_size);
 		image_file_ifs.close();
-	
+
+		// Make sure JPG cover image has both "Start Of Image" & "End Of Image" markers.
+		// Also, remove any trailing data after EOI marker.
 		constexpr uint8_t 
 			SOI0 = 0xFF, 
 			SOI1 = 0xD8,
@@ -477,21 +611,21 @@ int main(int argc, char** argv) {
         	throw std::runtime_error("Image File Error: Missing SOI marker.");
     	}
 
-    	const std::array<uint8_t,2> EOI{EOI0, EOI1};
+    	const std::array<uint8_t,2> EOI {EOI0, EOI1};
 
     	auto last_eoi = std::find_end(image_file_vec.begin() + 2, image_file_vec.end(), EOI.begin(), EOI.end());
     	if (last_eoi == image_file_vec.end()) {
         	throw std::runtime_error("Image File Error: Missing EOI marker.");
     	}
 
-    	// Erase any trailing data after EOI
     	auto after_eoi = last_eoi + 2;
     	if (after_eoi != image_file_vec.end()) {
         	image_file_vec.erase(after_eoi, image_file_vec.end());
     	}
+		//---------
 		
         constexpr uint32_t LARGE_FILE_SIZE = 300 * 1024 * 1024;
-        const std::string LARGE_FILE_MSG = "\nPlease wait. Larger files will take longer to complete this process.\n";
+       	const std::string LARGE_FILE_MSG = "\nPlease wait. Larger files will take longer to complete this process.\n";
         	
         if (args.mode == Mode::conceal) {                                    
 			// Embed data file section code.
@@ -502,86 +636,127 @@ int main(int argc, char** argv) {
 				"PostImage", "ImgBB", "ImgPile",  "Flickr", 
 			};
 				
-			// To improve compatibility, default re-encode image to JPG Progressive format with a quality value set at 97 with no chroma subsampling.
-			// If Bluesky option, re-encode to standard Baseline format with a quality value set at 85.
-			// -------------
+			/*
+			To improve compatibility,default re-encode image.
+			The following code takes the JPG cover image already loaded into image_file_vec, decodes it with libjpeg-turbo, then re-encodes it with different settings
+			depending on argument option settings. It starts by creating a decompressor (tjInitDecompress) and reading the JPG header (tjDecompressHeader3) to get 
+			image width & height, chroma subsampling, and colorspace; Failure throws with a readable error.
+			
+			It allocates an RGB buffer of width * height * 3 bytes and decompresses the JPG into that buffer via tjDecompress2.
+			
+			Call the exif_orientation function to first check for an EXIF segment, then search it for an Orientation tag. 
+			If found, use normalize_orientation and its helpers to normalize the pixels, so that when we later remove the EXIF segment, 
+			viewers should still dislpay the image with correct orientation.
+			
+			For re-encode, it chooses a quality (85 for Bluesky option; 97 for anything else), a subsampling mode (space-saving 4:2:0 for Bluesky; full-quality 4:4:4 for anything else),
+			flags: progressive JPGs default, and a DCT speed/quality tradeoff where high quality uses TJFLAG_FASTDCT (faster and fine at ≥90) and lower quality (Bluesky) 
+			uses TJFLAG_ACCURATEDCT (slower, slightly more precise). 
+			
+			The new, re-encoded image is stored in a temporary vector before it is swapped into vector image_file_vec, 
+			replacing the old cover image. Temporary vectors are cleared to free memory. 
+			*/
+
 			tjhandle decompressor = tjInitDecompress();
-    		if (!decompressor) {
-        		throw std::runtime_error("tjInitDecompress() failed.");
-    		}
+			if (!decompressor) throw std::runtime_error("tjInitDecompress() failed.");
 
-    		int width = 0, height = 0, jpegSubsamp = 0, jpegColorspace = 0;
-    		if (tjDecompressHeader3(decompressor, image_file_vec.data(), static_cast<unsigned long>(image_file_vec.size()), &width, &height, &jpegSubsamp, &jpegColorspace) != 0) {
-        		tjDestroy(decompressor);
-        		throw std::runtime_error(std::string("tjDecompressHeader3: ") + tjGetErrorStr());
-    		}
+			int width = 0, height = 0, jpegSubsamp = 0, jpegColorspace = 0;
+		
+			if (tjDecompressHeader3(decompressor, image_file_vec.data(), (unsigned long)image_file_vec.size(), &width, &height, &jpegSubsamp, &jpegColorspace) != 0) {
+    			tjDestroy(decompressor);
+    			throw std::runtime_error(std::string("tjDecompressHeader3: ") + tjGetErrorStr());
+			}
 
-    		std::vector<uint8_t> decoded_image_vec(width * height * 3); 
-    		if (tjDecompress2(decompressor, image_file_vec.data(),static_cast<unsigned long>(image_file_vec.size()), decoded_image_vec.data(), width, 0, height, TJPF_RGB, 0) != 0) {
-        		tjDestroy(decompressor);
-        		throw std::runtime_error(std::string("tjDecompress2: ") + tjGetErrorStr());
-    		}
-    		tjDestroy(decompressor);
-    		tjhandle compressor = tjInitCompress();
-    		if (!compressor) {
-        		throw std::runtime_error("tjInitCompress() failed.");
-    		}
+			std::vector<uint8_t> decoded_image_vec((size_t)width * (size_t)height * 3);
+			if (tjDecompress2(decompressor, image_file_vec.data(), (unsigned long)image_file_vec.size(), decoded_image_vec.data(), width, 0, height, TJPF_RGB, 0) != 0) {
+    			tjDestroy(decompressor);
+    			throw std::runtime_error(std::string("tjDecompress2: ") + tjGetErrorStr());
+			}
+			
+			auto ori = exif_orientation(image_file_vec);
+			if (ori && *ori != 1) {
+    			normalize_orientation(decoded_image_vec, width, height, *ori);
+			}
+			
+			tjDestroy(decompressor);
 
-    		const uint8_t JPG_QUALITY_VAL = (args.option == Option::Bluesky) ? 85 : 97;
+			const bool isBluesky = (args.option == Option::Bluesky);
+			const int JPG_QUALITY_VAL = isBluesky ? 85 : 97;
 
-    		uint8_t* jpegBuf = nullptr;
-    		unsigned long jpegSize = 0;
+			const int subsamp = isBluesky ? TJSAMP_420 : TJSAMP_444;
+			int flags = 0;
+			if (!isBluesky) flags |= TJFLAG_PROGRESSIVE; 
+		
+			flags |= (JPG_QUALITY_VAL >= 90 ? TJFLAG_FASTDCT : TJFLAG_ACCURATEDCT);
 
-    		int flags = TJFLAG_ACCURATEDCT | ((args.option == Option::Bluesky) ? 0 : TJFLAG_PROGRESSIVE);
+			tjhandle compressor = tjInitCompress();
+			if (!compressor) throw std::runtime_error("tjInitCompress() failed.");
 
-    		if (tjCompress2(compressor, decoded_image_vec.data(), width, 0, height, TJPF_RGB, &jpegBuf, &jpegSize, TJSAMP_444, JPG_QUALITY_VAL, flags) != 0) {
-        		tjDestroy(compressor);
-        		throw std::runtime_error(std::string("tjCompress2: ") + tjGetErrorStr());
-    		}
-    		tjDestroy(compressor);
+			uint8_t* jpegBuf = nullptr;
+			unsigned long jpegSize = 0;
 
-    		std::vector<uint8_t> output_image_vec(jpegBuf, jpegBuf + jpegSize);
-    		tjFree(jpegBuf);
-    			
-    		image_file_vec.swap(output_image_vec);
-    			
-    		std::vector<uint8_t>().swap(output_image_vec);
-    		std::vector<uint8_t>().swap(decoded_image_vec);	
+			if (tjCompress2(compressor, decoded_image_vec.data(), width, 0, height, TJPF_RGB, &jpegBuf, &jpegSize, subsamp, JPG_QUALITY_VAL, flags) != 0) {
+    			tjDestroy(compressor);
+    			throw std::runtime_error(std::string("tjCompress2: ") + tjGetErrorStr());
+			}	
+			tjDestroy(compressor);
+
+			std::vector<uint8_t> output_image_vec(jpegBuf, jpegBuf + jpegSize);
+			tjFree(jpegBuf);
+
+			image_file_vec.swap(output_image_vec);
+			std::vector<uint8_t>().swap(output_image_vec);
+			std::vector<uint8_t>().swap(decoded_image_vec);
 			// ------------
-	
-			// Remove superfluous segments from cover image. (EXIF, ICC color profile, etc).
+					
+			// Save some more space:
+			// Safely remove superfluous segments from cover image. (EXIF, ICC color profile, etc).
+			auto eraseAppSegment = [](std::vector<uint8_t>& v, std::span<const uint8_t> sig) {
+    			auto pos = searchSig(v, sig);
+    			if (!pos) return;
+    			if (*pos + 3 >= v.size()) return;
+
+    			uint16_t block_len = (static_cast<uint16_t>(v[*pos + 2]) << 8) | static_cast<uint16_t>(v[*pos + 3]);
+    			size_t erase_end = *pos + 2 + block_len;
+    			if (erase_end > v.size()) return;
+
+    			v.erase(v.begin() + *pos, v.begin() + erase_end);
+			};
+			
 			constexpr std::array<uint8_t, 2>
-				APP1_SIG { 0xFF, 0xE1 }, // EXIF SEGMENT MARKER.
-				APP2_SIG { 0xFF, 0xE2 }; // ICC COLOR PROFILE SEGMENT MARKER.
+				APP1_EXIF_SIG { 0xFF, 0xE1 }, 
+				APP2_ICC_SIG  { 0xFF, 0xE2 }; 
 
 			constexpr std::array<uint8_t, 4>
-				DQT1_SIG { 0xFF, 0xDB, 0x00, 0x43 },
+				DQT1_SIG { 0xFF, 0xDB, 0x00, 0x43 },	// Define Quantization Tables SIG.
 				DQT2_SIG { 0xFF, 0xDB, 0x00, 0x84 };
+				
+			eraseAppSegment(image_file_vec, std::span<const uint8_t>(APP1_EXIF_SIG));
+			eraseAppSegment(image_file_vec, std::span<const uint8_t>(APP2_ICC_SIG));
+
+    		auto dqt1 = searchSig(image_file_vec, std::span<const uint8_t>(DQT1_SIG));
+    		auto dqt2 = searchSig(image_file_vec, std::span<const uint8_t>(DQT2_SIG));
+
+			if (!dqt1 && !dqt2) {
+    			throw std::runtime_error("Image File Error: No DQT segment found (corrupt or unsupported JPG).");
+			}
+
+			const size_t NPOS = static_cast<size_t>(-1);
+			size_t dqt_pos = std::min(dqt1.value_or(NPOS), dqt2.value_or(NPOS));
+			image_file_vec.erase(image_file_vec.begin(), image_file_vec.begin() + static_cast<std::ptrdiff_t>(dqt_pos));
+			// ------------
+
+			image_file_size = image_file_vec.size();  // Get updated cover image size after image re-encode, removing superfluous segments & trailing data.
+			
+			std::cout << (int)image_file_size << '\n';
+			
+			if (image_file_size > MAX_IMAGE_SIZE_AFTER_ENCODE) {
+				throw std::runtime_error("Image File Error: Cover image file exceeds maximum size limit.");
+			}
+			
+			if (isBluesky && image_file_size > MAX_IMAGE_SIZE_BLUESKY) {
+				throw std::runtime_error("File Size Error: Image file exceeds maximum size limit for the Bluesky platform.");
+			}
 		
-			const uint32_t APP1_POS = searchSig(image_file_vec, APP1_SIG);
-
-			if (image_file_vec.size() > APP1_POS) {
-				const uint16_t APP1_BLOCK_SIZE = (static_cast<uint16_t>(image_file_vec[APP1_POS + 2]) << 8) | static_cast<uint16_t>(image_file_vec[APP1_POS + 3]);
-				image_file_vec.erase(image_file_vec.begin() + APP1_POS, image_file_vec.begin() + APP1_POS + APP1_BLOCK_SIZE + 2);
-			}
-
-			const uint32_t APP2_POS = searchSig(image_file_vec, APP2_SIG);
-			
-			if (image_file_vec.size() > APP2_POS) {
-				const uint16_t APP2_BLOCK_SIZE = (static_cast<uint16_t>(image_file_vec[APP2_POS + 2]) << 8) | static_cast<uint16_t>(image_file_vec[APP2_POS + 3]);
-				image_file_vec.erase(image_file_vec.begin() + APP2_POS, image_file_vec.begin() + APP2_POS + APP2_BLOCK_SIZE + 2);
-			}
-
-			const uint32_t
-				DQT1_POS = searchSig(image_file_vec, DQT1_SIG),
-				DQT2_POS = searchSig(image_file_vec, DQT2_SIG),
-				DQT_POS  = std::min(DQT1_POS, DQT2_POS);
-
-			image_file_vec.erase(image_file_vec.begin(), image_file_vec.begin() + DQT_POS);
-				// ------------
-
-			image_file_size = image_file_vec.size();  // Get updated image size after image re-encode and removing superfluous segments.
-			
 			if (!hasValidFilename(args.data_file_path)) {
 				throw std::runtime_error("Invalid Input Error: Unsupported characters in filename arguments.");
     		}
@@ -617,25 +792,6 @@ int main(int argc, char** argv) {
         		".ogg",".flac"
     		});
     				
-			constexpr uintmax_t 
-				MAX_DATA_SIZE_BLUESKY 	= 5ULL * 1024 * 1024,
-				MAX_SIZE_CONCEAL 		= 2ULL * 1024 * 1024 * 1024,  		
-    			MAX_SIZE_REDDIT 		= 20ULL * 1024 * 1024;         
-
-			const uintmax_t COMBINED_FILE_SIZE = data_file_size + image_file_size;
-
-			if (args.option == Option::Bluesky && data_file_size > MAX_DATA_SIZE_BLUESKY) {
-				throw std::runtime_error("Data File Size Error: File exceeds maximum size limit for the Bluesky platform.");
-			}
-
-   			if (args.option == Option::Reddit && COMBINED_FILE_SIZE > MAX_SIZE_REDDIT) {
-   				throw std::runtime_error("File Size Error: Combined size of image and data file exceeds maximum size limit for the Reddit platform.");
-   			}
-
-			if (args.option == Option::None && COMBINED_FILE_SIZE > MAX_SIZE_CONCEAL) {
-				throw std::runtime_error("File Size Error: Combined size of image and data file exceeds maximum default size limit for jdvrif.");
-			}
-	
 			std::vector<uint8_t> data_file_vec(data_file_size);
 
 			data_file_ifs.read(reinterpret_cast<char*>(data_file_vec.data()), data_file_size);
@@ -643,14 +799,14 @@ int main(int argc, char** argv) {
 								
 			// ICC color profile segment (FFE2). Default method for storing data file (in multiple segments, if required).
 			// Notes: 	Total segments value index = 0x2E0 (2 bytes)
-			//		Compressed data file size index = 0x2E2	(4 bytes)
-			//		Data filename length index = 0x2E6 (1 byte)
-			//		Data filename index = 0x2E7 (20 bytes)
-			//		Data filename XOR key index = 0x2FB (24 bytes)
-			//		Sodium key index = 0x313 (32 bytes)
-			//		Nonce key index = 0x333 (24 bytes)
-			//		jdvrif sig index = 0x34B (7 bytes)
-			//		Data file start index = 0x353 (see index 0x2E2 (4 bytes) for compressed data file size).
+			//			Compressed data file size index = 0x2E2	(4 bytes)
+			//			Data filename length index = 0x2E6 (1 byte)
+			//			Data filename index = 0x2E7 (20 bytes)
+			//			Data filename XOR key index = 0x2FB (24 bytes)
+			//			Sodium key index = 0x313 (32 bytes)
+			//			Nonce key index = 0x333 (24 bytes)
+			//			jdvrif sig index = 0x34B (7 bytes)
+			//			Data file start index = 0x353 (see index 0x2E2 (4 bytes) for compressed data file size).
 
 			std::vector<uint8_t>segment_vec {
 				0xFF, 0xD8, 0xFF, 0xE2, 0xFF, 0xFF, 0x49, 0x43, 0x43, 0x5F, 0x50, 0x52, 0x4F, 0x46, 0x49, 0x4C, 0x45, 0x00, 0x01, 0x01, 0x00, 0x00, 0xFF, 0xEF,
@@ -693,14 +849,14 @@ int main(int argc, char** argv) {
 
 			// EXIF (FFE1) segment. This is the way we store the data file when user selects the -b option switch for Bluesky platform. 
 			// Notes: 	Total segments value index = N/A
-			//		Compressed data file size index = 0x1CD	(4 bytes)
-			//		Data filename length index = 0x160 (1 byte)
-			//		Data filename index = 0x161 (20 bytes)
-			//		Data filename XOR key index = 0x175 (24 bytes)
-			//		Sodium key index = 0x18D (32 bytes)
-			//		Nonce key index = 0x1AD (24 bytes)
-			//		jdvrif sig index = 0x1C5 (7 bytes)
-			//		Data file start index = 0x1D1 (see index 0x1CD (4 bytes) for compressed data file size).
+			//			Compressed data file size index = 0x1CD	(4 bytes)
+			//			Data filename length index = 0x160 (1 byte)
+			//			Data filename index = 0x161 (20 bytes)
+			//			Data filename XOR key index = 0x175 (24 bytes)
+			//			Sodium key index = 0x18D (32 bytes)
+			//			Nonce key index = 0x1AD (24 bytes)
+			//			jdvrif sig index = 0x1C5 (7 bytes)
+			//			Data file start index = 0x1D1 (see index 0x1CD (4 bytes) for compressed data file size).
 
 			std::vector<uint8_t>bluesky_exif_vec {
 				0xFF, 0xD8, 0xFF, 0xE1, 0x00, 0x00, 0x45, 0x78, 0x69, 0x66, 0x00, 0x00, 0x4D, 0x4D, 0x00, 0x2A, 0x00, 0x00, 0x00, 0x08, 0x00, 0x06, 0x01, 0x12,
@@ -726,40 +882,72 @@ int main(int argc, char** argv) {
 				0x01, 0x00, 0x02, 0xA0, 0x02, 0x00, 0x04, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x06, 0x00, 0xA0, 0x03, 0x00, 0x04, 0x00, 0x00, 0x00, 0x01, 0x00,
 				0x00, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00
 			};
+			
+			uint8_t value_bit_length = 16;
 				
-			if (args.option == Option::Bluesky) {
+			if (isBluesky) {
 				// Use the EXIF segment instead of the default color profile segment to store user data.
 				// The color profile segment (FFE2) is removed by Bluesky, so we use EXIF.
 				segment_vec.swap(bluesky_exif_vec);	
+				
+				constexpr uint16_t
+					BLUESKY_VEC_HEIGHT_INDEX = 0x1F9,
+					BLUESKY_VEC_WIDTH_INDEX  = 0x1ED;
+				
+				updateValue(segment_vec, BLUESKY_VEC_HEIGHT_INDEX, height, value_bit_length);
+				updateValue(segment_vec, BLUESKY_VEC_WIDTH_INDEX, width, value_bit_length);
+				
 				std::vector<uint8_t>().swap(bluesky_exif_vec);
 			} else {
 				std::vector<uint8_t>().swap(bluesky_exif_vec);
 			}
 			
-			const uint16_t DATA_FILENAME_LENGTH_INDEX = (args.option == Option::Bluesky) ? 0x160 : 0x2E6;
+			const uint16_t DATA_FILENAME_LENGTH_INDEX = (isBluesky) ? 0x160 : 0x2E6;
 
 			segment_vec[DATA_FILENAME_LENGTH_INDEX] = static_cast<uint8_t>(data_filename.size());	 
 
+			// Deflate data file with Zlib.
+			zlibFunc(data_file_vec, args.mode, isCompressedFile);
+			
+			data_file_size = data_file_vec.size();
+			
 			if (data_file_size > LARGE_FILE_SIZE) {
 				std::cout << LARGE_FILE_MSG;
 			}
 			
-			// Deflate data file with Zlib.
-			zlibFunc(data_file_vec, args.mode, isCompressedFile);
+			constexpr uint32_t 
+				MAX_SIZE_CONCEAL 		= 2ULL * 1024 * 1024 * 1024,  	
+				MAX_SIZE_REDDIT 		= 20 * 1024 * 1024,   
+				MAX_DATA_SIZE_BLUESKY 	= 2 * 1024 * 1024;
+				
+			const uintmax_t COMBINED_FILE_SIZE = data_file_size + image_file_size;
+
+			if (isBluesky && data_file_size > MAX_DATA_SIZE_BLUESKY) {
+				throw std::runtime_error("Data File Size Error: File exceeds maximum size limit for the Bluesky platform.");
+			}
+
+   			if (args.option == Option::Reddit && COMBINED_FILE_SIZE > MAX_SIZE_REDDIT) {
+   				throw std::runtime_error("File Size Error: Combined size of image and data file exceeds maximum size limit for the Reddit platform.");
+   			}
+
+			if (args.option == Option::None && COMBINED_FILE_SIZE > MAX_SIZE_CONCEAL) {
+				throw std::runtime_error("File Size Error: Combined size of image and data file exceeds maximum default size limit for jdvrif.");
+			}
 			
 			// Encrypt data file using the Libsodium cryptographic library
 			std::random_device rd;
  			std::mt19937 gen(rd());
 			std::uniform_int_distribution<unsigned short> dis(1, 255); 
 		
+			value_bit_length = 32;
+			
 			constexpr uint8_t XOR_KEY_LENGTH = 24;
 	
 			uint16_t
-				data_filename_xor_key_index = (args.option == Option::Bluesky) ? 0x175 : 0x2FB,
-				data_filename_index = (args.option == Option::Bluesky) ? 0x161: 0x2E7;
+				data_filename_xor_key_index = (isBluesky) ? 0x175 : 0x2FB,
+				data_filename_index = (isBluesky) ? 0x161: 0x2E7;
 		
 			uint8_t
-				value_bit_length = 32, 
 				data_filename_length = segment_vec[data_filename_index - 1],
 				data_filename_char_pos = 0;
 
@@ -784,8 +972,8 @@ int main(int argc, char** argv) {
 			constexpr uint16_t EXIF_SEGMENT_DATA_INSERT_INDEX = 0x1D1;
 
 			const uint16_t
-				SODIUM_KEY_INDEX = (args.option == Option::Bluesky) ? 0x18D : 0x313,     
-				NONCE_KEY_INDEX  = (args.option == Option::Bluesky) ? 0x1AD : 0x333;  
+				SODIUM_KEY_INDEX = (isBluesky) ? 0x18D : 0x313,     
+				NONCE_KEY_INDEX  = (isBluesky) ? 0x1AD : 0x333;  
 	
 			std::copy_n(key.begin(), crypto_secretbox_KEYBYTES, segment_vec.begin() + SODIUM_KEY_INDEX); 	
 			std::copy_n(nonce.begin(), crypto_secretbox_NONCEBYTES, segment_vec.begin() + NONCE_KEY_INDEX);
@@ -799,7 +987,7 @@ int main(int argc, char** argv) {
 				bluesky_xmp_vec,
 				bluesky_pshop_vec;
 			
-			if (args.option == Option::Bluesky) { 
+			if (isBluesky) { 
 				// User has selected the -b argument option for the Bluesky platform.
 				// + With EXIF overhead segment data (511) - four bytes we don't count (FFD8 FFE1),  
 				// = Max. segment size 65534 (0xFFFE). Can't have 65535 (0xFFFF) as Bluesky will strip the EXIF segment.
@@ -889,7 +1077,7 @@ int main(int argc, char** argv) {
     						}
     						tmp_xmp_vec.swap(temp_vec);
     						std::vector<uint8_t>().swap(temp_vec);
-							// ------------
+						// ------------
 			
 							constexpr uint16_t XMP_SEGMENT_DATA_INSERT_INDEX = 0x139;
 							
@@ -974,7 +1162,7 @@ int main(int argc, char** argv) {
 	
 			value_bit_length = 16;
 
-			if (args.option == Option::Bluesky) {	 // We can store binary data within the first (EXIF) segment, with a max compressed storage capacity close to ~64KB. See encryptFile.cpp
+			if (isBluesky) {	 // We can store binary data within the first (EXIF) segment, with a max compressed storage capacity close to ~64KB. See encryptFile.cpp
 				constexpr uint8_t 
 					MARKER_BYTES_VAL 				= 4, // FFD8, FFE1
 					EXIF_SIZE_FIELD_INDEX 			= 0x04,  
@@ -1052,8 +1240,14 @@ int main(int argc, char** argv) {
 					constexpr std::array<uint8_t, 12> PSHOP_SEGMENT_SIG { 0x50, 0x68, 0x6F, 0x74, 0x6F, 0x73, 0x68, 0x6F, 0x70, 0x20, 0x33, 0x2E };
 
 					constexpr uint8_t XMP_INSERT_INDEX_DIFF = 4;
-												
-					const uint32_t XMP_INSERT_INDEX = searchSig(segment_vec, PSHOP_SEGMENT_SIG) - XMP_INSERT_INDEX_DIFF;
+					
+					auto index_opt = searchSig(segment_vec, std::span<const uint8_t>(PSHOP_SEGMENT_SIG));
+					
+					if (!index_opt) {
+    						throw std::runtime_error("Expected Photoshop segment signature not found! File is probably corrupt.");
+					}
+					
+					const uint32_t XMP_INSERT_INDEX = static_cast<uint32_t>(*index_opt) - XMP_INSERT_INDEX_DIFF;
 						
 					segment_vec.insert(segment_vec.begin() + XMP_INSERT_INDEX, bluesky_xmp_vec.begin(), bluesky_xmp_vec.end());
 						
@@ -1246,7 +1440,7 @@ int main(int argc, char** argv) {
 			std::cout << "\nRecovery PIN: [***" << pin << "***]\n\nImportant: Keep your PIN safe, so that you can extract the hidden file.\n\nComplete!\n\n";
 			return 0;
         } else {
-			// Recover data file section code.
+			// Recover data file code section.
         	constexpr uint8_t 
 				SIG_LENGTH = 7,
 				INDEX_DIFF = 8;
@@ -1254,20 +1448,22 @@ int main(int argc, char** argv) {
 			constexpr std::array<uint8_t, SIG_LENGTH>
 				JDVRIF_SIG		{ 0xB4, 0x6A, 0x3E, 0xEA, 0x5E, 0x9D, 0xF9 },
 				ICC_PROFILE_SIG	{ 0x6D, 0x6E, 0x74, 0x72, 0x52, 0x47, 0x42 };
-		
-			const uint32_t 
-				JDVRIF_SIG_INDEX	= searchSig(image_file_vec, JDVRIF_SIG),
-				ICC_PROFILE_SIG_INDEX 	= searchSig(image_file_vec, ICC_PROFILE_SIG);
-
-			if (JDVRIF_SIG_INDEX == image_file_vec.size()) {
+			
+			auto index_opt = searchSig(image_file_vec, std::span<const uint8_t>(JDVRIF_SIG));
+			if (index_opt == image_file_vec.size()) {
 				throw std::runtime_error("Image File Error: Signature check failure. This is not a valid jdvrif \"file-embedded\" image.");
 			}
-	
+			
+			const uint32_t JDVRIF_SIG_INDEX = static_cast<uint32_t>(*index_opt);
+			
 			uint8_t pin_attempts_val = image_file_vec[JDVRIF_SIG_INDEX + INDEX_DIFF - 1];
-
+			
 			bool hasBlueskyOption = true;
-		
-			if (ICC_PROFILE_SIG_INDEX != image_file_vec.size()) {
+			
+			index_opt = searchSig(image_file_vec, std::span<const uint8_t>(ICC_PROFILE_SIG));
+			
+			if (index_opt) {
+				const uint32_t ICC_PROFILE_SIG_INDEX = static_cast<uint32_t>(*index_opt);
 				image_file_vec.erase(image_file_vec.begin(), image_file_vec.begin() + (ICC_PROFILE_SIG_INDEX - INDEX_DIFF));
 				hasBlueskyOption = false;
 			}
@@ -1278,9 +1474,9 @@ int main(int argc, char** argv) {
 					XMP_SIG 		{ 0x68, 0x74, 0x74, 0x70, 0x3A, 0x2F, 0x2F },
 					XMP_CREATOR_SIG { 0x3C, 0x72, 0x64, 0x66, 0x3A, 0x6C, 0x69 };
 
-				const uint32_t PSHOP_SIG_INDEX = searchSig(image_file_vec, PSHOP_SIG);
-					
-				if (PSHOP_SIG_INDEX != image_file_vec.size()) { // Found Photoshop segment.
+				index_opt = searchSig(image_file_vec, std::span<const uint8_t>(PSHOP_SIG));
+				
+				if (index_opt) { // Found Photoshop segment.
 					constexpr uint16_t MAX_SINGLE_DATASET_PSHOP_SEGMENT_SIZE = 32800; // If the photoshop segment size is greater than this size, we have two datasets.
 
 					constexpr uint8_t 
@@ -1289,6 +1485,7 @@ int main(int argc, char** argv) {
 						PSHOP_DATASET_FILE_INDEX_DIFF 		= 2;
 							
 					const uint32_t 
+						PSHOP_SIG_INDEX 				= static_cast<uint32_t>(*index_opt),
 						PSHOP_SEGMENT_SIZE_INDEX 		= PSHOP_SIG_INDEX - PSHOP_SEGMENT_SIZE_INDEX_DIFF,	
 						PSHOP_FIRST_DATASET_SIZE_INDEX 	= PSHOP_SIG_INDEX + PSHOP_FIRST_DATASET_SIZE_INDEX_DIFF,
 						PSHOP_FIRST_DATASET_FILE_INDEX 	= PSHOP_FIRST_DATASET_SIZE_INDEX + PSHOP_DATASET_FILE_INDEX_DIFF,
@@ -1319,16 +1516,23 @@ int main(int argc, char** argv) {
 						pshop_tmp_vec.reserve(pshop_tmp_vec.size() + PSHOP_LAST_DATASET_SIZE);
 								
 						std::copy_n(image_file_vec.begin() + PSHOP_LAST_DATASET_FILE_INDEX, PSHOP_LAST_DATASET_SIZE, std::back_inserter(pshop_tmp_vec));
-							
-						const uint32_t XMP_SIG_INDEX = searchSig(image_file_vec, XMP_SIG);
-							
-						if (XMP_SIG_INDEX == image_file_vec.size()) {
+						
+						index_opt = searchSig(image_file_vec, std::span<const uint8_t>(XMP_SIG));
+				
+						if (!index_opt){
 							std::copy_n(pshop_tmp_vec.begin(), pshop_tmp_vec.size(), image_file_vec.begin() + end_of_exif_data_index);
 							std::vector<uint8_t>().swap(pshop_tmp_vec);
 						} else { 
 							// Found XMP segment.
+							const uint32_t XMP_SIG_INDEX = static_cast<uint32_t>(*index_opt);
+							
+							index_opt = searchSig(image_file_vec, std::span<const uint8_t>(XMP_CREATOR_SIG));
+							if (!index_opt) {
+    							throw std::runtime_error("Expected XMP Creator tag signature not found! File is probably corrupt.");
+							}
+							
 							const uint32_t 
-								XMP_CREATOR_SIG_INDEX = searchSig(image_file_vec, XMP_CREATOR_SIG),
+								XMP_CREATOR_SIG_INDEX = static_cast<uint32_t>(*index_opt),
 								BEGIN_BASE64_DATA_INDEX = XMP_CREATOR_SIG_INDEX + SIG_LENGTH + 1;
 			
 							constexpr uint8_t END_BASE64_DATA_SIG = 0x3C;
@@ -1633,15 +1837,15 @@ int main(int argc, char** argv) {
     				pin_attempts_val++;
 				}
 
-			if (pin_attempts_val > 2) {
-				file.close();
-				std::ofstream file(args.image_file_path, std::ios::out | std::ios::trunc | std::ios::binary);
-			} else {
-				file.seekp(pin_attempts_index);
-				file.write(reinterpret_cast<char*>(&pin_attempts_val), sizeof(pin_attempts_val));
-			}
-				file.close();
-				throw std::runtime_error("File Decryption Error: Invalid recovery PIN or file is corrupt.");
+				if (pin_attempts_val > 2) {
+					file.close();
+					std::ofstream file(args.image_file_path, std::ios::out | std::ios::trunc | std::ios::binary);
+				} else {
+					file.seekp(pin_attempts_index);
+					file.write(reinterpret_cast<char*>(&pin_attempts_val), sizeof(pin_attempts_val));
+				}
+					file.close();
+					throw std::runtime_error("File Decryption Error: Invalid recovery PIN or file is corrupt.");
 			}
 	
 			// Inflate data file with Zlib
@@ -1684,7 +1888,3 @@ int main(int argc, char** argv) {
         return 1;
     }
 }
-
-
-
-
