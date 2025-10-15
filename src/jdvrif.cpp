@@ -1244,7 +1244,7 @@ int main(int argc, char** argv) {
 					auto index_opt = searchSig(segment_vec, std::span<const uint8_t>(PSHOP_SEGMENT_SIG));
 					
 					if (!index_opt) {
-    						throw std::runtime_error("Expected Photoshop segment signature not found! File is probably corrupt.");
+    					throw std::runtime_error("Expected Photoshop segment signature not found! File is probably corrupt.");
 					}
 					
 					const uint32_t XMP_INSERT_INDEX = static_cast<uint32_t>(*index_opt) - XMP_INSERT_INDEX_DIFF;
@@ -1888,3 +1888,4 @@ int main(int argc, char** argv) {
         return 1;
     }
 }
+
