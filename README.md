@@ -2,6 +2,8 @@
 
 A steganography command-line tool used for embedding and extracting any file type via a **JPG** cover image.  
 
+Any issues with configuring ***jdvrif***, then please just ask: [***@cleasbycode***](https://x.com/CleasbyCode).
+
 There is also a Web App version, which you can try [***here***](https://cleasbycode.co.uk/jdvrif/index/) as a convenient alternative to downloading and compiling the CLI source code. Web file uploads are limited to **20MB**.    
 
 ![Demo Image](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/jrif_73184.jpg)  
