@@ -1450,7 +1450,8 @@ int main(int argc, char** argv) {
 				ICC_PROFILE_SIG	{ 0x6D, 0x6E, 0x74, 0x72, 0x52, 0x47, 0x42 };
 			
 			auto index_opt = searchSig(image_file_vec, std::span<const uint8_t>(JDVRIF_SIG));
-			if (index_opt == image_file_vec.size()) {
+				
+			if (!index_opt) {
 				throw std::runtime_error("Image File Error: Signature check failure. This is not a valid jdvrif \"file-embedded\" image.");
 			}
 			
@@ -1888,4 +1889,5 @@ int main(int argc, char** argv) {
         return 1;
     }
 }
+
 
