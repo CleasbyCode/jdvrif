@@ -64,6 +64,7 @@ Platform compatibility for output image:-
   ✓ X-Twitter
   ✓ Tumblr
   ✓ Mastodon
+  ✓ Pixelfed
   ✓ PostImage
   ✓ ImgBB
   ✓ ImgPile
