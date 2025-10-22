@@ -22,18 +22,18 @@ https://github.com/user-attachments/assets/8d21cdbb-30f0-424c-aeb8-bcacca8c4255
 https://github.com/user-attachments/assets/a7830132-55eb-42d9-88b8-49e16427b39a
 
 ## Compatible Platforms
-*Posting size limit measured by the combined size of the cover image + compressed data file:*  
+*Posting size limit measured by the combined size of the ***cover image*** + ***compressed data file:****  
 
 ● ***Flickr*** (**200MB**), ***ImgPile*** (**100MB**), ***ImgBB*** (**32MB**),  
 ● ***PostImage*** (**32MB**), ***Reddit*** (**20MB** | ***-r option***), ***Pixelfed*** (**15MB**).
 
-*Size limit measured only by the compressed data file size:*  
+*Size limit measured ***only*** by the ***compressed data file size:****  
 
 ● ***Mastodon*** (**~6MB**), ***Tumblr*** (**~64KB**), ***X-Twitter*** (**~10KB**).  
 
 For example, with ***Mastodon***, if your cover image is **1MB** you can still embed a data file up to the **~6MB** size limit.
 
-**Other: The ***Bluesky*** platform has separate size limits for the cover image and the compressed data file:*  
+**Other: The ***Bluesky*** platform has ***separate*** size limits for the ***cover image*** and the ***compressed data file:****  
 
 ● ***Bluesky*** (***-b option***). Cover image size limit (**800KB**). Compressed data file size limit (**~171KB**).  
 ● "***bsky_post.py***" script is required to post images on ***Bluesky***. *More info on this further down the page.*
