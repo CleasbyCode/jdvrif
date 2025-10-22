@@ -748,8 +748,6 @@ int main(int argc, char** argv) {
 
 			image_file_size = image_file_vec.size();  // Get updated cover image size after image re-encode, removing superfluous segments & trailing data.
 			
-			std::cout << (int)image_file_size << '\n';
-			
 			if (image_file_size > MAX_IMAGE_SIZE_AFTER_ENCODE) {
 				throw std::runtime_error("Image File Error: Cover image file exceeds maximum size limit.");
 			}
@@ -1894,6 +1892,7 @@ int main(int argc, char** argv) {
         return 1;
     }
 }
+
 
 
 
