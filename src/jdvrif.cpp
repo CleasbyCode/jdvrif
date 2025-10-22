@@ -633,8 +633,8 @@ int main(int argc, char** argv) {
 			std::vector<std::string> platforms_vec { 
 				"X-Twitter", "Tumblr", 
 				"Bluesky. (Only share this \"file-embedded\" JPG image on Bluesky).\n\n You must use the Python script \"bsky_post.py\" (found in the repo src folder)\n to post the image to Bluesky.", 
-				"Mastodon", "Reddit. (Only share this \"file-embedded\" JPG image on Reddit).",
-				"PostImage", "ImgBB", "ImgPile",  "Flickr", 
+				"Mastodon", "Pixelfed", "Reddit. (Only share this \"file-embedded\" JPG image on Reddit).",
+				"PostImage", "ImgBB", "ImgPile",  "Flickr" 
 			};
 				
 			/*
@@ -1894,6 +1894,7 @@ int main(int argc, char** argv) {
         return 1;
     }
 }
+
 
 
 
