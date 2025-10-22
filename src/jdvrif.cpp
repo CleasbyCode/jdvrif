@@ -1355,10 +1355,10 @@ int main(int argc, char** argv) {
 					image_file_vec.insert(image_file_vec.begin(), IMAGE_START_SIG.begin(), IMAGE_START_SIG.end());
 					image_file_vec.insert(image_file_vec.end() - 2, 8000, 0x23);
 					image_file_vec.insert(image_file_vec.end() - 2, data_file_vec.begin() + 2, data_file_vec.end());
-					platforms_vec[0] = std::move(platforms_vec[4]);
+					platforms_vec[0] = std::move(platforms_vec[5]);
 					platforms_vec.resize(1);
 				} else {
-					platforms_vec.erase(platforms_vec.begin() + 4); 
+					platforms_vec.erase(platforms_vec.begin() + 5); 
 					platforms_vec.erase(platforms_vec.begin() + 2);
 					image_file_vec.insert(image_file_vec.begin(), data_file_vec.begin(), data_file_vec.end());
 				}
@@ -1894,6 +1894,7 @@ int main(int argc, char** argv) {
         return 1;
     }
 }
+
 
 
 
