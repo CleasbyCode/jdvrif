@@ -22,7 +22,7 @@ https://github.com/user-attachments/assets/8d21cdbb-30f0-424c-aeb8-bcacca8c4255
 https://github.com/user-attachments/assets/a7830132-55eb-42d9-88b8-49e16427b39a
 
 ## Compatible Platforms
-*Posting size limit measured by the combined size of the ***cover image*** + ***compressed data file:****  
+*Posting size limit measured by the ***combined*** size of the ***cover image*** + ***compressed data file:****  
 
 ● ***Flickr*** (**200MB**), ***ImgPile*** (**100MB**), ***ImgBB*** (**32MB**),  
 ● ***PostImage*** (**32MB**), ***Reddit*** (**20MB** | ***-r option***), ***Pixelfed*** (**15MB**).
@@ -38,8 +38,7 @@ For example, with ***Mastodon***, if your cover image is **1MB** you can still e
 ● ***Bluesky*** (***-b option***). Cover image size limit (**800KB**). Compressed data file size limit (**~171KB**).  
 ● "***bsky_post.py***" script is required to post images on ***Bluesky***. *More info on this further down the page.*
 
-For platforms such as ***X-Twitter*** & ***Tumblr***, which have small size limits, you may want to focus on data files  
-that compress well, such as .txt documents, etc.  
+For platforms such as ***X-Twitter*** & ***Tumblr***, which have small size limits, you may want to focus on data that compress well, such as text files, etc.  
   
 ## Usage (Linux)
 
