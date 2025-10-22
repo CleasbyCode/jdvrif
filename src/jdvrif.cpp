@@ -132,6 +132,7 @@ Platforms where size limit is measured by the combined size of cover image + com
 	• ImgBB     (32 MB)
 	• PostImage (32 MB)
 	• Reddit    (20 MB) — (use -r option).
+	• Pixelfed	(15 MB)
 
 Limit measured by compressed data file size only:
 
@@ -1383,13 +1384,14 @@ int main(int argc, char** argv) {
 				constexpr uint32_t 
 					FLICKR_MAX_IMAGE_SIZE 			= 200 * 1024 * 1024,
 					IMGPILE_MAX_IMAGE_SIZE 			= 100 * 1024 * 1024,
-					IMGBB_POSTIMAGE_MAX_IMAGE_SIZE 	= 32 * 1024 * 1024,
-					MASTODON_MAX_IMAGE_SIZE 		= 16 * 1024 * 1024,
-					TWITTER_MAX_IMAGE_SIZE 			= 5 * 1024 * 1024;
+					IMGBB_POSTIMAGE_MAX_IMAGE_SIZE 	= 32  * 1024 * 1024,
+					MASTODON_MAX_IMAGE_SIZE 		= 16  * 1024 * 1024,
+				    PIXELFED_MAX_IMAGE_SIZE 		= 15  * 1024 * 1024,
+					TWITTER_MAX_IMAGE_SIZE 			= 5   * 1024 * 1024;
 					
 				constexpr uint16_t 
 					TWITTER_MAX_DATA_SIZE 	= 10 * 1024,
-					TUMBLR_MAX_DATA_SIZE 	=  64 * 1024 - 2;
+					TUMBLR_MAX_DATA_SIZE 	= 64 * 1024 - 2;
 					
 				const uint16_t
 					FIRST_SEGMENT_SIZE	= (image_file_vec[0x04] << 8) | image_file_vec[0x05],
@@ -1409,6 +1411,9 @@ int main(int argc, char** argv) {
     				if (platform == "Mastodon" && (TOTAL_SEGMENTS > MASTODON_MAX_SEGMENTS || IMAGE_SIZE > MASTODON_MAX_IMAGE_SIZE)) {
         				continue;
     				}
+					if (platform == "Pixelfed" && IMAGE_SIZE > PIXELFED_MAX_IMAGE_SIZE) {
+						continue;
+					}
     				if ((platform == "ImgBB" || platform == "PostImage") && (IMAGE_SIZE > IMGBB_POSTIMAGE_MAX_IMAGE_SIZE)) {
         				continue;
     				}
@@ -1889,5 +1894,6 @@ int main(int argc, char** argv) {
         return 1;
     }
 }
+
 
 
