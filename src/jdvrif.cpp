@@ -1,4 +1,4 @@
-// JPG Data Vehicle (jdvrif v5.6) Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
+// JPG Data Vehicle (jdvrif v5.7) Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
 
 // Compile program (Linux):
 
@@ -90,7 +90,7 @@ namespace fs = std::filesystem;
 static void displayInfo() {
 	std::cout << R"(
 
-JPG Data Vehicle (jdvrif v5.6)
+JPG Data Vehicle (jdvrif v5.7)
 Created by Nicholas Cleasby (@CleasbyCode) 24/01/2023
 
 jdvrif is a metadata “steganography-like” command-line tool used for concealing and extracting
@@ -586,9 +586,9 @@ int main(int argc, char** argv) {
     	}
 			
 		constexpr uint32_t 
-			MAX_IMAGE_SIZE_BLUESKY 			= 805 * 1024,		// 805 KB.
-			MAX_IMAGE_SIZE_BEFORE_ENCODE  	= 8 * 1024 * 1024,	// 8 MB.
-			MAX_IMAGE_SIZE_AFTER_ENCODE		= 4 * 1024 * 1024,	// 4 MB.
+			MAX_IMAGE_SIZE_BLUESKY 			= 805  * 1024,					// 805 KB.
+			MAX_IMAGE_SIZE_BEFORE_ENCODE  	= 8    * 1024 * 1024,			// 8 MB.
+			MAX_IMAGE_SIZE_AFTER_ENCODE		= 4    * 1024 * 1024,			// 4 MB.
 			MAX_IMAGE_SIZE_RECOVER_MODE 	= 3ULL * 1024 * 1024 * 1024;	// 3 GB.
 	
 		if (args.mode == Mode::recover && image_file_size > MAX_IMAGE_SIZE_RECOVER_MODE) {
@@ -689,7 +689,7 @@ int main(int argc, char** argv) {
 	
 			auto ori = exif_orientation(image_file_vec);
 			if (ori && *ori != 1) {
-    			normalize_orientation(decoded_image_vec, width, height, *ori, BYTES_PER_PIXEL); // must handle 4 BPP
+    			normalize_orientation(decoded_image_vec, width, height, *ori, BYTES_PER_PIXEL); 
 			}
 
 			tjDestroy(decompressor);
@@ -933,9 +933,9 @@ int main(int argc, char** argv) {
 			}
 			
 			constexpr uint32_t 
-				MAX_SIZE_CONCEAL 		= 2ULL * 1024 * 1024 * 1024,  	
-				MAX_SIZE_REDDIT 		= 20 * 1024 * 1024,   
-				MAX_DATA_SIZE_BLUESKY 	= 2 * 1024 * 1024;
+				MAX_SIZE_CONCEAL 		= 2ULL * 1024 * 1024 * 1024,  	// 3 GB.
+				MAX_SIZE_REDDIT 		= 20   * 1024 * 1024,   		// 20 MB.
+				MAX_DATA_SIZE_BLUESKY 	= 2    * 1024 * 1024;			// 2 MB. 
 				
 			const uintmax_t COMBINED_FILE_SIZE = data_file_size + image_file_size;
 
@@ -1910,10 +1910,3 @@ int main(int argc, char** argv) {
         return 1;
     }
 }
-
-
-
-
-
-
-
