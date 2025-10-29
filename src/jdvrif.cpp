@@ -228,11 +228,11 @@ struct ProgramArgs {
 			return (i >= 0 && i < argc) ? string_view(argv[i]) : string_view{};
         };
 
-        const std::string prog = fs::path(argv[0]).filename().string();
-        const std::string USAGE =
-        	"Usage: " + prog + " conceal [-b|-r] <cover_image> <secret_file>\n\t\b"
-            + prog + " recover <cover_image>\n\t\b"
-            + prog + " --info";
+        const std::string
+			PROG = fs::path(argv[0]).filename().string(),
+        	USAGE = "Usage: " + PROG + " conceal [-b|-r] <cover_image> <secret_file>\n\t\b"
+            	+ PROG + " recover <cover_image>\n\t\b"
+            	+ PROG + " --info";
 
         auto die = [&]() -> void {
         	throw std::runtime_error(USAGE);
@@ -247,10 +247,10 @@ struct ProgramArgs {
 
         ProgramArgs out{};
 
-        const string_view cmd = arg(1);
+        const string_view MODE = arg(1);
 
-        if (cmd == "conceal") {
-        	int i = 2;
+        if (MODE == "conceal") {
+        	uint8_t i = 2;
             if (arg(i) == "-b" || arg(i) == "-r") {
         		out.option = (arg(i) == "-b") ? Option::Bluesky : Option::Reddit;
             	++i;
@@ -262,7 +262,7 @@ struct ProgramArgs {
             out.mode = Mode::conceal;
             return out;
         }
-        if (cmd == "recover") {
+        if (MODE == "recover") {
         	if (argc != 3) die();
         	out.image_file_path = fs::path(arg(2));
         	out.mode = Mode::recover;
@@ -288,36 +288,36 @@ static std::optional<size_t> searchSig(const std::vector<uint8_t>& v, std::span<
 // First search for an EXIF segment, if found search for an Orientation tag.
 // Returns 1..8 if found and passed to normalize_orientation, or std::nullopt if no EXIF/Orientation.
 static std::optional<uint16_t> exif_orientation(const std::vector<uint8_t>& jpg) {
-    const uint8_t APP1[] = {0xFF, 0xE1};
-    auto app1 = searchSig(jpg, std::span<const uint8_t>(APP1, 2));
-    if (!app1) return std::nullopt;
+    const uint8_t APP1_SIG[] = {0xFF, 0xE1};
+    auto app1_opt = searchSig(jpg, std::span<const uint8_t>(APP1_SIG, 2));
+    if (!app1_opt) return std::nullopt;
 
-    size_t p = *app1;
-    if (p + 4 > jpg.size()) return std::nullopt;
+    size_t app1_pos = *app1_opt;
+    if (app1_pos + 4 > jpg.size()) return std::nullopt;
 
-    uint16_t len = (static_cast<uint16_t>(jpg[p+2]) << 8) | jpg[p+3];
-    size_t exif_end = p + 2 + len;            
+    uint16_t length = (static_cast<uint16_t>(jpg[app1_pos+2]) << 8) | jpg[app1_pos+3];
+    size_t exif_end = app1_pos + 2 + length;            
     if (exif_end > jpg.size()) return std::nullopt;
 
-    size_t exif_start = p + 4;
+    size_t exif_start = app1_pos + 4;
     if (exif_start + 6 > exif_end) return std::nullopt;
     if (std::memcmp(&jpg[exif_start], "Exif\0\0", 6) != 0) return std::nullopt;
 
     size_t tiff = exif_start + 6;
     if (tiff + 8 > exif_end) return std::nullopt;
 
-    bool le = false;
-    if (jpg[tiff] == 'I' && jpg[tiff+1] == 'I') le = true;
-    else if (jpg[tiff] == 'M' && jpg[tiff+1] == 'M') le = false;
+    bool isLittleEndian = false;
+    if (jpg[tiff] == 'I' && jpg[tiff+1] == 'I') isLittleEndian = true;
+    else if (jpg[tiff] == 'M' && jpg[tiff+1] == 'M') isLittleEndian = false;
     else return std::nullopt;
 
     auto rd16 = [&](size_t off) -> uint16_t {
         if (off + 1 >= exif_end) return 0;
-        return le ? (uint16_t)(jpg[off] | (jpg[off+1] << 8)) : (uint16_t)((jpg[off] << 8) | jpg[off+1]);
+        return isLittleEndian ? (uint16_t)(jpg[off] | (jpg[off+1] << 8)) : (uint16_t)((jpg[off] << 8) | jpg[off+1]);
     };
     auto rd32 = [&](size_t off) -> uint32_t {
         if (off + 3 >= exif_end) return 0;
-        return le ? (uint32_t)(jpg[off] | (jpg[off+1] << 8) | (jpg[off+2] << 16) | (jpg[off+3] << 24)) : (uint32_t)((jpg[off] << 24) | (jpg[off+1] << 16) | (jpg[off+2] << 8) | jpg[off+3]);
+        return isLittleEndian ? (uint32_t)(jpg[off] | (jpg[off+1] << 8) | (jpg[off+2] << 16) | (jpg[off+3] << 24)) : (uint32_t)((jpg[off] << 24) | (jpg[off+1] << 16) | (jpg[off+2] << 8) | jpg[off+3]);
     };
 
     if (rd16(tiff + 2) != 0x002A) return std::nullopt;
@@ -340,53 +340,53 @@ static std::optional<uint16_t> exif_orientation(const std::vector<uint8_t>& jpg)
 
 // Generic rotate helpers for bpp = 3 or 4
 static void rotate_px_180(std::vector<uint8_t>& px, int w, int h, int bpp) {
-    const size_t stride = (size_t)w * bpp;
+    const size_t STRIDE = (size_t)w * bpp;
     for (int y = 0; y < h / 2; ++y) {
         int opp = h - 1 - y;
         for (int x = 0; x < w; ++x) {
-            size_t a = (size_t)y   * stride + (size_t)x        * bpp;
-            size_t b = (size_t)opp * stride + (size_t)(w-1-x)  * bpp;
+            size_t a = (size_t)y   * STRIDE + (size_t)x        * bpp;
+            size_t b = (size_t)opp * STRIDE + (size_t)(w-1-x)  * bpp;
             for (int c = 0; c < bpp; ++c) std::swap(px[a + c], px[b + c]);
         }
     }
     if (h & 1) { // middle row if odd height
         int y = h / 2;
         for (int x = 0; x < w / 2; ++x) {
-            size_t a = (size_t)y * stride + (size_t)x       * bpp;
-            size_t b = (size_t)y * stride + (size_t)(w-1-x) * bpp;
+            size_t a = (size_t)y * STRIDE + (size_t)x       * bpp;
+            size_t b = (size_t)y * STRIDE + (size_t)(w-1-x) * bpp;
             for (int c = 0; c < bpp; ++c) std::swap(px[a + c], px[b + c]);
         }
     }
 }
 
 static void rotate_px_90cw(std::vector<uint8_t>& px, int& w, int& h, int bpp) {
-    const int nw = h, nh = w;
-    std::vector<uint8_t> out((size_t)nw * nh * bpp);
+    const int NW = h, NH = w;	// Clockwise rotation swaps width/height.
+    std::vector<uint8_t> out((size_t)NW * NH * bpp);
     for (int y = 0; y < h; ++y) {
         for (int x = 0; x < w; ++x) {
             int nx = h - 1 - y, ny = x; // (x,y) -> (nx,ny)
-            size_t di = ((size_t)ny * nw + (size_t)nx) * bpp;
+            size_t di = ((size_t)ny * NW + (size_t)nx) * bpp;
             size_t si = ((size_t)y  * w  + (size_t)x ) * bpp;
             for (int c = 0; c < bpp; ++c) out[di + c] = px[si + c];
         }
     }
     px.swap(out);
-    w = nw; h = nh;
+    w = NW; h = NH;
 }
 
 static void rotate_px_270cw(std::vector<uint8_t>& px, int& w, int& h, int bpp) {
-    const int nw = h, nh = w;
-    std::vector<uint8_t> out((size_t)nw * nh * bpp);
+    const int NW = h, NH = w;	// Clockwise rotation swaps width/height.
+    std::vector<uint8_t> out((size_t)NW * NH * bpp);
     for (int y = 0; y < h; ++y) {
         for (int x = 0; x < w; ++x) {
             int nx = y, ny = w - 1 - x; // (x,y) -> (nx,ny)
-            size_t di = ((size_t)ny * nw + (size_t)nx) * bpp;
+            size_t di = ((size_t)ny * NW + (size_t)nx) * bpp;
             size_t si = ((size_t)y  * w  + (size_t)x ) * bpp;
             for (int c = 0; c < bpp; ++c) out[di + c] = px[si + c];
         }
     }
     px.swap(out);
-    w = nw; h = nh;
+    w = NW; h = NH;
 }
 
 // If exif_orientation found an Orientation tag, use normalize_orientation 
@@ -429,8 +429,8 @@ static bool hasValidFilename(const fs::path& p) {
 static bool hasFileExtension(const fs::path& p, std::initializer_list<const char*> exts) {
 	auto e = p.extension().string();
     std::transform(e.begin(), e.end(), e.begin(), [](unsigned char c){ return static_cast<char>(std::tolower(c)); });
-    for (const char* cand : exts) {
-    	std::string c = cand;
+    for (const char* CAND : exts) {
+    	std::string c = CAND;
         std::transform(c.begin(), c.end(), c.begin(), [](unsigned char x){ return static_cast<char>(std::tolower(x)); });
         if (e == c) return true;
     }
@@ -694,7 +694,7 @@ int main(int argc, char** argv) {
 
 			tjDestroy(decompressor);
 
-			const bool isBluesky = (args.option == Option::Bluesky);
+			bool isBluesky = (args.option == Option::Bluesky);
 
 			const int
    	 			JPG_QUALITY_VAL = isBluesky ? 85 : 97,
@@ -1910,3 +1910,4 @@ int main(int argc, char** argv) {
         return 1;
     }
 }
+
