@@ -805,7 +805,7 @@ int main(int argc, char** argv) {
 			data_file_ifs.close();
 								
 			// ICC color profile segment (FFE2). Default method for storing data file (in multiple segments, if required).
-			// Notes: 	Compression maker index = 0x80 (1 byte). If data file already compressed, insert byte X (0x58). Skips both Zlib deflate (conceal mode) & Zlib inflate (recover mode).
+			// Notes: 	Compression marker index = 0x80 (1 byte). If data file already compressed, insert byte X (0x58). Skips both Zlib deflate (conceal mode) & Zlib inflate (recover mode).
 			//			Total segments value index = 0x2E0 (2 bytes)
 			//			Compressed data file size index = 0x2E2	(4 bytes)
 			//			Data filename length index = 0x2E6 (1 byte)
@@ -856,7 +856,7 @@ int main(int argc, char** argv) {
 			};
 
 			// EXIF (FFE1) segment. This is the way we store the data file when user selects the -b option switch for Bluesky platform. 
-			// Notes: 	Compression maker index = 0x14B (1 byte). If data file already compressed, insert byte X (0x58). Skips both Zlib deflate (conceal mode) & Zlib inflate (recover mode).
+			// Notes: 	Compression marker index = 0x14B (1 byte). If data file already compressed, insert byte X (0x58). Skips both Zlib deflate (conceal mode) & Zlib inflate (recover mode).
 			//			Total segments value index = N/A
 			//			Compressed data file size index = 0x1CD	(4 bytes)
 			//			Data filename length index = 0x160 (1 byte)
@@ -1922,3 +1922,4 @@ int main(int argc, char** argv) {
         return 1;
     }
 }
+
