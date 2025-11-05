@@ -63,10 +63,12 @@
 	
 	#include <termios.h>
 	#include <unistd.h>
+	#include <sys/types.h>
 #endif
 
 #include <algorithm>
 #include <array>
+#include <cstdint>
 #include <cctype>
 #include <cstddef>
 #include <cstdlib>
@@ -74,6 +76,7 @@
 #include <filesystem>
 #include <fstream> 
 #include <iostream>
+#include <initializer_list>
 #include <iterator> 
 #include <optional>
 #include <random> 
@@ -1921,5 +1924,6 @@ int main(int argc, char** argv) {
         return 1;
     }
 }
+
 
 
