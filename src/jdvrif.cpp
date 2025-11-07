@@ -589,32 +589,7 @@ int main(int argc, char** argv) {
 	
 		image_file_ifs.read(reinterpret_cast<char*>(image_file_vec.data()), image_file_size);
 		image_file_ifs.close();
-
-		// Make sure JPG cover image has both "Start Of Image" & "End Of Image" markers.
-		// Also, remove any trailing data after EOI marker.
-		constexpr uint8_t 
-			SOI0 = 0xFF, 
-			SOI1 = 0xD8,
-   			EOI0 = 0xFF, 
-   			EOI1 = 0xD9;
-
-	    if (!(image_file_vec[0] == SOI0 && image_file_vec[1] == SOI1)) {
-        	throw std::runtime_error("Image File Error: Missing SOI marker.");
-    	}
-
-    	const std::array<uint8_t,2> EOI {EOI0, EOI1};
-
-    	auto last_eoi = std::find_end(image_file_vec.begin() + 2, image_file_vec.end(), EOI.begin(), EOI.end());
-    	if (last_eoi == image_file_vec.end()) {
-        	throw std::runtime_error("Image File Error: Missing EOI marker.");
-    	}
-
-    	auto after_eoi = last_eoi + 2;
-    	if (after_eoi != image_file_vec.end()) {
-        	image_file_vec.erase(after_eoi, image_file_vec.end());
-    	}
-		//---------
-		
+	
         constexpr uint32_t LARGE_FILE_SIZE = 300 * 1024 * 1024;
        	const std::string LARGE_FILE_MSG = "\nPlease wait. Larger files will take longer to complete this process.\n";
        
@@ -688,7 +663,7 @@ int main(int argc, char** argv) {
 
 			const int
    	 			JPG_QUALITY_VAL = hasNoOption ? 97 : 85,
-    				SUBSAMP         = hasNoOption ? jpegSubsamp : TJSAMP_420;
+    			SUBSAMP         = hasNoOption ? jpegSubsamp : TJSAMP_420;
 
 			int flags = (hasNoOption ? TJFLAG_PROGRESSIVE : 0) | (JPG_QUALITY_VAL >= 90 ? TJFLAG_ACCURATEDCT : TJFLAG_FASTDCT);
 
@@ -716,34 +691,13 @@ int main(int argc, char** argv) {
 			std::vector<uint8_t>().swap(decoded_image_vec);
 			
 			// ------------
-					
-			// Save some more space:
-			// Safely remove superfluous segments from cover image. (EXIF, ICC color profile, etc).
-			auto eraseAppSegment = [](std::vector<uint8_t>& v, std::span<const uint8_t> sig) {
-    			auto pos = searchSig(v, sig);
-    			if (!pos) return;
-    			if (*pos + 3 >= v.size()) return;
-
-    			uint16_t block_len = (static_cast<uint16_t>(v[*pos + 2]) << 8) | static_cast<uint16_t>(v[*pos + 3]);
-    			size_t erase_end = *pos + 2 + block_len;
-    			if (erase_end > v.size()) return;
-
-    			v.erase(v.begin() + *pos, v.begin() + erase_end);
-			};
-			
-			constexpr std::array<uint8_t, 2>
-				APP1_EXIF_SIG { 0xFF, 0xE1 }, 
-				APP2_ICC_SIG  { 0xFF, 0xE2 }; 
-
 			constexpr std::array<uint8_t, 4>
 				DQT1_SIG { 0xFF, 0xDB, 0x00, 0x43 },	// Define Quantization Tables SIG.
 				DQT2_SIG { 0xFF, 0xDB, 0x00, 0x84 };
 				
-			eraseAppSegment(image_file_vec, std::span<const uint8_t>(APP1_EXIF_SIG));
-			eraseAppSegment(image_file_vec, std::span<const uint8_t>(APP2_ICC_SIG));
-
-    		auto dqt1 = searchSig(image_file_vec, std::span<const uint8_t>(DQT1_SIG));
-    		auto dqt2 = searchSig(image_file_vec, std::span<const uint8_t>(DQT2_SIG));
+    		auto 
+				dqt1 = searchSig(image_file_vec, std::span<const uint8_t>(DQT1_SIG)),
+    			dqt2 = searchSig(image_file_vec, std::span<const uint8_t>(DQT2_SIG));
 
 			if (!dqt1 && !dqt2) {
     			throw std::runtime_error("Image File Error: No DQT segment found (corrupt or unsupported JPG).");
@@ -754,7 +708,7 @@ int main(int argc, char** argv) {
 			image_file_vec.erase(image_file_vec.begin(), image_file_vec.begin() + static_cast<std::ptrdiff_t>(dqt_pos));
 			// ------------
 
-			image_file_size = image_file_vec.size();  // Get updated cover image size after image re-encode, removing superfluous segments & trailing data.
+			image_file_size = image_file_vec.size();  // Get updated cover image size after image re-encode.
 			
 			bool isBluesky = (args.option == Option::Bluesky);
 			
@@ -1924,6 +1878,7 @@ int main(int argc, char** argv) {
         return 1;
     }
 }
+
 
 
 
