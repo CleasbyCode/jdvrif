@@ -1,6 +1,6 @@
 # jdvrif
 
-A steganography command-line tool used for embedding and extracting any file type via a **JPG** cover image.  
+A fast steganography command-line tool used for embedding and extracting any file type via a **JPG** cover image.  
 
 Any issues with configuring ***jdvrif***, then please just ask: [***@cleasbycode***](https://x.com/CleasbyCode).
 
