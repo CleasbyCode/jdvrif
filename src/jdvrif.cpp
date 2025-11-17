@@ -1486,10 +1486,10 @@ static int concealData(vBytes& jpg_vec, Mode mode, Option option, fs::path& data
 	};
 			
 	bool 
-		isCompressedFile = false,
-		hasNoOption = (option == Option::None),
-		hasBlueskyOption = (option == Option::Bluesky),
-		hasRedditOption = (option == Option::Reddit);
+		isCompressedFile 	= false,
+		hasNoOption 		= (option == Option::None),
+		hasBlueskyOption	= (option == Option::Bluesky),
+		hasRedditOption 	= (option == Option::Reddit);
 			
 	int width = 0, height = 0;	
 		
@@ -1534,7 +1534,6 @@ static int concealData(vBytes& jpg_vec, Mode mode, Option option, fs::path& data
 
 	std::string data_filename = data_file_path.filename().string();
 
-
 	if (data_filename.size() > DATA_FILENAME_MAX_LENGTH) {
     	throw std::runtime_error("Data File Error: For compatibility requirements, length of data filename must not exceed 20 characters.");
 	}
@@ -1548,14 +1547,14 @@ static int concealData(vBytes& jpg_vec, Mode mode, Option option, fs::path& data
     											
 	// ICC color profile segment (FFE2). Default method for storing data file (in multiple segments, if required).
 	// Notes: 	Total segments value index = 0x2E0 (2 bytes)
-	//		Compressed data file size index = 0x2E2	(4 bytes)
-	//		Data filename length index = 0x2E6 (1 byte)
-	//		Data filename index = 0x2E7 (20 bytes)
-	//		Data filename XOR key index = 0x2FB (24 bytes)
-	//		Sodium key index = 0x313 (32 bytes)
-	//		Nonce key index = 0x333 (24 bytes)
-	//		jdvrif sig index = 0x34B (7 bytes)
-	//		Data file start index = 0x353 (see index 0x2E2 (4 bytes) for compressed data file size).
+	//			Compressed data file size index = 0x2E2	(4 bytes)
+	//			Data filename length index = 0x2E6 (1 byte)
+	//			Data filename index = 0x2E7 (20 bytes)
+	//			Data filename XOR key index = 0x2FB (24 bytes)
+	//			Sodium key index = 0x313 (32 bytes)
+	//			Nonce key index = 0x333 (24 bytes)
+	//			jdvrif sig index = 0x34B (7 bytes)
+	//			Data file start index = 0x353 (see index 0x2E2 (4 bytes) for compressed data file size).
 
 	vBytes segment_vec {
 		0xFF, 0xD8, 0xFF, 0xE2, 0xFF, 0xFF, 0x49, 0x43, 0x43, 0x5F, 0x50, 0x52, 0x4F, 0x46, 0x49, 0x4C, 0x45, 0x00, 0x01, 0x01, 0x00, 0x00, 0xFF, 0xEF,
@@ -1598,14 +1597,14 @@ static int concealData(vBytes& jpg_vec, Mode mode, Option option, fs::path& data
 
 	// EXIF (FFE1) segment. This is the way we store the data file when user selects the -b option switch for Bluesky platform. 
 	// Notes: 	Total segments value index = N/A
-	//		Compressed data file size index = 0x1CD	(4 bytes)
-	//		Data filename length index = 0x160 (1 byte)
-	//		Data filename index = 0x161 (20 bytes)
-	//		Data filename XOR key index = 0x175 (24 bytes)
-	//		Sodium key index = 0x18D (32 bytes)
-	//		Nonce key index = 0x1AD (24 bytes)
-	//		jdvrif sig index = 0x1C5 (7 bytes)
-	//		Data file start index = 0x1D1 (see index 0x1CD (4 bytes) for compressed data file size).
+	//			Compressed data file size index = 0x1CD	(4 bytes)
+	//			Data filename length index = 0x160 (1 byte)
+	//			Data filename index = 0x161 (20 bytes)
+	//			Data filename XOR key index = 0x175 (24 bytes)
+	//			Sodium key index = 0x18D (32 bytes)
+	//			Nonce key index = 0x1AD (24 bytes)
+	//			jdvrif sig index = 0x1C5 (7 bytes)
+	//			Data file start index = 0x1D1 (see index 0x1CD (4 bytes) for compressed data file size).
 
 	vBytes bluesky_exif_vec {
 		0xFF, 0xD8, 0xFF, 0xE1, 0x00, 0x00, 0x45, 0x78, 0x69, 0x66, 0x00, 0x00, 0x4D, 0x4D, 0x00, 0x2A, 0x00, 0x00, 0x00, 0x08, 0x00, 0x06, 0x01, 0x12,
@@ -1807,8 +1806,8 @@ static int recoverData(vBytes& jpg_vec, Mode mode, fs::path& image_file_path) {
 
 	if (isBlueskyFile) { // EXIF segment (FFE1) is being used instead of ICC (FFE2). Also check for PHOTOSHOP & XMP segments and their index locations.
     	constexpr std::array<Byte, SIG_LENGTH>
-        	PSHOP_SIG{0x73, 0x68, 0x6F, 0x70, 0x20, 0x33, 0x2E},
-        	XMP_CREATOR_SIG{0x3C, 0x72, 0x64, 0x66, 0x3A, 0x6C, 0x69};
+        	PSHOP_SIG		{ 0x73, 0x68, 0x6F, 0x70, 0x20, 0x33, 0x2E },
+        	XMP_CREATOR_SIG	{ 0x3C, 0x72, 0x64, 0x66, 0x3A, 0x6C, 0x69 };
 
     	index_opt = searchSig(jpg_vec, std::span<const Byte>(PSHOP_SIG));
     		
@@ -1829,8 +1828,8 @@ static int recoverData(vBytes& jpg_vec, Mode mode, fs::path& image_file_path) {
             	PSHOP_FIRST_DATASET_FILE_INDEX 	= PSHOP_FIRST_DATASET_SIZE_INDEX + PSHOP_DATASET_FILE_INDEX_DIFF;
 
         	const uint16_t
-            	PSHOP_SEGMENT_SIZE 	 = static_cast<uint16_t>(getValue(jpg_vec, PSHOP_SEGMENT_SIZE_INDEX, BYTE_LENGTH)),
-            	PSHOP_FIRST_DATASET_SIZE = static_cast<uint16_t>(getValue(jpg_vec, PSHOP_FIRST_DATASET_SIZE_INDEX, BYTE_LENGTH));
+            	PSHOP_SEGMENT_SIZE 	 		= static_cast<uint16_t>(getValue(jpg_vec, PSHOP_SEGMENT_SIZE_INDEX, BYTE_LENGTH)),
+            	PSHOP_FIRST_DATASET_SIZE 	= static_cast<uint16_t>(getValue(jpg_vec, PSHOP_FIRST_DATASET_SIZE_INDEX, BYTE_LENGTH));
 
         	constexpr std::size_t END_EXIF_DATA_INDEX_DIFF = 55;
         		
@@ -1864,14 +1863,14 @@ static int recoverData(vBytes& jpg_vec, Mode mode, fs::path& image_file_path) {
             	} else {
 					// Found XMP segment.
                 	const std::size_t
-                    	XMP_CREATOR_SIG_INDEX = *index_opt,
+                    	XMP_CREATOR_SIG_INDEX 	= *index_opt,
                     	BEGIN_BASE64_DATA_INDEX = XMP_CREATOR_SIG_INDEX + SIG_LENGTH + 1;
 
                 	constexpr Byte END_BASE64_DATA_SIG = 0x3C;
                 			
                 	const std::size_t 
-                		END_BASE64_DATA_SIG_INDEX = static_cast<std::size_t>(std::find(jpg_vec.begin() + BEGIN_BASE64_DATA_INDEX, jpg_vec.end(), END_BASE64_DATA_SIG) - jpg_vec.begin()),
-                		BASE64_DATA_SIZE = END_BASE64_DATA_SIG_INDEX - BEGIN_BASE64_DATA_INDEX;
+                		END_BASE64_DATA_SIG_INDEX 	= static_cast<std::size_t>(std::find(jpg_vec.begin() + BEGIN_BASE64_DATA_INDEX, jpg_vec.end(), END_BASE64_DATA_SIG) - jpg_vec.begin()),
+                		BASE64_DATA_SIZE 			= END_BASE64_DATA_SIG_INDEX - BEGIN_BASE64_DATA_INDEX;
                 			
   					vBytes base64_data_vec(BASE64_DATA_SIZE);
                 	std::copy_n(jpg_vec.begin() + BEGIN_BASE64_DATA_INDEX, BASE64_DATA_SIZE, base64_data_vec.begin());
@@ -1977,3 +1976,4 @@ int main(int argc, char** argv) {
     	return 1;
     }
 }
+
