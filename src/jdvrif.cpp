@@ -757,10 +757,10 @@ static void segmentDataFile(vBytes& segment_vec, vBytes& data_vec, vBytes& jpg_v
 		auto segment_end = start;  // Will be updated each iteration
 		
 		while (segments_required--) {
-    		isLastSegment = (segments_required == 0);
-    		data_size = isLastSegment ? segment_remainder_size : segment_data_size;
-			segment_length = isLastSegment ? last_segment_length : default_segment_length;
-			segment_end = start + data_size;
+	    	isLastSegment 	= (segments_required == 0);
+    		data_size 		= isLastSegment ? segment_remainder_size : segment_data_size;
+			segment_length 	= isLastSegment ? last_segment_length : default_segment_length;
+			segment_end		= start + data_size;
 			
 			// Profile header for each segment...
     		data_vec.push_back(0xFF);
@@ -1048,8 +1048,8 @@ static const std::size_t encryptDataFile(vBytes& segment_vec, vBytes& data_vec, 
 					constexpr std::size_t XMP_SEGMENT_DATA_INSERT_INDEX = 0x139;
 							
 					// XMP (FFE1) segment.
-					// Notes: Data file index = 0x139 (Remainder part of data file stored here if too big for Photoshop segment (bluesky_pshop_vec).
-					//	  Data file content stored here as BASE64).
+					// Notes: 	Data file index = 0x139 (Remainder part of data file stored here if too big for Photoshop segment (bluesky_pshop_vec).
+					//	  		Data file content stored here as BASE64).
 							
 					bluesky_xmp_vec = { 
 						0xFF, 0xE1, 0x01, 0x93, 0x68, 0x74, 0x74, 0x70, 0x3A, 0x2F, 0x2F, 0x6E, 0x73, 0x2E, 0x61, 0x64, 0x6F, 0x62, 0x65, 0x2E, 0x63,
@@ -1090,9 +1090,9 @@ static const std::size_t encryptDataFile(vBytes& segment_vec, vBytes& data_vec, 
 	constexpr Byte SODIUM_XOR_KEY_LENGTH = 8;
 	
 	std::size_t 
-		pin = getValue(segment_vec, SODIUM_KEY_INDEX, SODIUM_XOR_KEY_LENGTH),
-		sodium_xor_key_pos = SODIUM_KEY_INDEX,
-		sodium_key_pos 	   = SODIUM_KEY_INDEX;
+		pin 				= getValue(segment_vec, SODIUM_KEY_INDEX, SODIUM_XOR_KEY_LENGTH),
+		sodium_xor_key_pos 	= SODIUM_KEY_INDEX,
+		sodium_key_pos 	   	= SODIUM_KEY_INDEX;
 
 	Byte sodium_keys_length = 48;
 	
@@ -1183,8 +1183,8 @@ static const std::size_t getPin() {
 // Decrypt embedded data file using the Libsodium cryptographic library.
 static std::string decryptDataFile(vBytes& jpg_vec, bool isBlueskyFile, bool& hasDecryptionFailed) {
 	const std::size_t 
-		SODIUM_KEY_INDEX = isBlueskyFile ? 0x18D : 0x2FB,
-		NONCE_KEY_INDEX =  isBlueskyFile ? 0x1AD : 0x31B;
+		SODIUM_KEY_INDEX	= isBlueskyFile ? 0x18D : 0x2FB,
+		NONCE_KEY_INDEX 	= isBlueskyFile ? 0x1AD : 0x31B;
 
 	Byte 
 		sodium_keys_length = 48,
@@ -1976,4 +1976,3 @@ int main(int argc, char** argv) {
     	return 1;
     }
 }
-
