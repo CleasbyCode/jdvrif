@@ -1,4 +1,4 @@
-// JPG Data Vehicle (jdvrif v6.1) Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
+// JPG Data Vehicle (jdvrif v6.2) Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
 
 // Compile program (Linux):
 
@@ -102,7 +102,7 @@ constexpr std::size_t TAG_BYTES = std::tuple_size<Tag>::value;
 static void displayInfo() {
 	std::cout << R"(
 
-JPG Data Vehicle (jdvrif v6.1)
+JPG Data Vehicle (jdvrif v6.2)
 Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
 
 jdvrif is a metadata “steganography-like” command-line tool used for concealing and extracting
@@ -708,7 +708,7 @@ static void segmentDataFile(vBytes& segment_vec, vBytes& data_vec, vBytes& jpg_v
 		SEGMENT_SIG_LENGTH		= 2,
 		SEGMENT_HEADER_LENGTH 	= 16,
 		LIBSODIUM_MACBYTES 		= 16, // 16 byte authentication tag used by libsodium. Don't count these bytes as part of the data file, they are removed during decryption.
-		ICC_PROFILE_SIG_LEN 	= 12;
+		ICC_PROFILE_SIG_LEN 	= 11;
 
 	Byte value_bit_length = 16;
 	
@@ -729,9 +729,9 @@ static void segmentDataFile(vBytes& segment_vec, vBytes& data_vec, vBytes& jpg_v
 			segment_remainder_size  = (remainder_data > header_overhead) ? remainder_data - header_overhead : 0,
 			// Calculate total segments. +1 if (usually) there is remainder data, unless perfect fit.
 			total_segments		= profile_with_data_vec_size / segment_data_size,
-			segments_required	= total_segments + (segment_remainder_size > 0),
-			// ICC Profile count value.
-			segments_sequence_val   = 1;
+			segments_required	= total_segments + (segment_remainder_size > 0);
+			
+		uint16_t segments_sequence_val  = 1; // ICC Profile count value.
 			
 		constexpr uint16_t SEGMENTS_TOTAL_VAL_INDEX = 0x2E0;  // The value stored here is used by jdvout when extracting the data file.
 		updateValue(segment_vec, SEGMENTS_TOTAL_VAL_INDEX, segments_required, value_bit_length);
@@ -769,8 +769,13 @@ static void segmentDataFile(vBytes& segment_vec, vBytes& data_vec, vBytes& jpg_v
         	data_vec.push_back(static_cast<Byte>(segment_length >> 8));
         	data_vec.push_back(static_cast<Byte>(segment_length & 0xFF));
 
-    		data_vec.insert(data_vec.end(), "ICC_PROFILE\0", "ICC_PROFILE\0" + ICC_PROFILE_SIG_LEN);
-    		data_vec.push_back(segments_sequence_val++);
+    		data_vec.insert(data_vec.end(), "ICC_PROFILE", "ICC_PROFILE" + ICC_PROFILE_SIG_LEN);
+
+			// Update ICC Profile sequence value (2-bytes).
+			data_vec.push_back(static_cast<std::uint8_t>(segments_sequence_val >> 8)); 
+    		data_vec.push_back(static_cast<std::uint8_t>(segments_sequence_val & 0xFF));        
+			++segments_sequence_val;
+			
     		data_vec.push_back(0x01);  // Keep the icc total segments value at 1 for all segments.
 			
 			// Segment Data...
@@ -1420,19 +1425,21 @@ static void zlibFunc(vBytes& data_vec, Mode mode) {
     data_vec.swap(output_vec);
 }
 
-static vBytes readFile(const std::string& path, Byte file_type_and_mode = 3) {	
-	if (!fs::exists(path) || !fs::is_regular_file(path)) {
-        throw std::runtime_error("Error: File \"" + path + "\" not found or not a regular file.");
+static vBytes readFile(const fs::path& path, Byte file_type_and_mode = 3) {	
+	if (!fs::exists(path.string()) || !fs::is_regular_file(path.string())) {
+        throw std::runtime_error("Error: File \"" + path.string() + "\" not found or not a regular file.");
     }
 
-	std::size_t file_size = fs::file_size(path);
+	std::size_t file_size = fs::file_size(path.string());
 
 	if (!file_size) {
 		throw std::runtime_error("Error: File is empty.");
     }
     	
     if (file_type_and_mode != 3) {
-    	if (!hasFileExtension(path, {".png", ".jpg", ".jpeg", ".jfif"})) {
+    	// Some platform apps, such as Bluesky mobile and X-Twitter mobile, will often save .jpg images with a .png extension, even though the content/file type is still JPEG.
+    	// That is why I allow for the .png extension here, although the content must still be JPEG, as the file will be checked for the correct format later.
+    	if (!hasFileExtension(path.string(), {".png", ".jpg", ".jpeg", ".jfif"})) {
         	throw std::runtime_error("File Type Error: Invalid image extension. Only expecting \".jpg\", \".jpeg\", \".jfif\" or \".png\".");
     	}
     		
@@ -1459,13 +1466,13 @@ static vBytes readFile(const std::string& path, Byte file_type_and_mode = 3) {
     	throw std::runtime_error("Error: File exceeds program size limit.");
     }
 
-	if (!hasValidFilename(path)) {
+	if (!hasValidFilename(path.string())) {
 		throw std::runtime_error("Invalid Input Error: Unsupported characters in filename arguments.");
     }
 
-	std::ifstream file(path, std::ios::binary);
+	std::ifstream file(path.string(), std::ios::binary);
     if (!file) {
-        throw std::runtime_error("Failed to open file: " + path);
+        throw std::runtime_error("Failed to open file: " + path.string());
     }
     vBytes vec(file_size);
 
@@ -1976,3 +1983,4 @@ int main(int argc, char** argv) {
     	return 1;
     }
 }
+
