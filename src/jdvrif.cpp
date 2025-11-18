@@ -1,4 +1,4 @@
-// JPG Data Vehicle (jdvrif v6.2) Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
+// JPG Data Vehicle (jdvrif v6.3) Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
 
 // Compile program (Linux):
 
@@ -102,7 +102,7 @@ constexpr std::size_t TAG_BYTES = std::tuple_size<Tag>::value;
 static void displayInfo() {
 	std::cout << R"(
 
-JPG Data Vehicle (jdvrif v6.2)
+JPG Data Vehicle (jdvrif v6.3)
 Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
 
 jdvrif is a metadata “steganography-like” command-line tool used for concealing and extracting
@@ -673,8 +673,8 @@ static void updateBlueskySegmentValues(vBytes& segment_vec, vBytes& pshop_vec, v
 		}
 
 		constexpr Byte 
-			SIG_LENGTH = 2, // FFE1
-			XMP_SIZE_FIELD_INDEX = 0x02;
+			SIG_LENGTH 				= 2, // FFE1
+			XMP_SIZE_FIELD_INDEX 	= 0x02;
 						
 		updateValue(xmp_vec, XMP_SIZE_FIELD_INDEX, XMP_VEC_SIZE - SIG_LENGTH, value_bit_length);
 			
@@ -723,15 +723,15 @@ static void segmentDataFile(vBytes& segment_vec, vBytes& data_vec, vBytes& jpg_v
 
 		std::size_t 
 			// Calculate raw remainder.
-			remainder_data  	= profile_with_data_vec_size % segment_data_size,
+			remainder_data  		= profile_with_data_vec_size % segment_data_size,
 			// Subtract header overhead, only if we have enough data to do so.
-			header_overhead 	= IMAGE_START_SIG_LENGTH + SEGMENT_SIG_LENGTH, // 4.
+			header_overhead 		= IMAGE_START_SIG_LENGTH + SEGMENT_SIG_LENGTH, // 4.
 			segment_remainder_size  = (remainder_data > header_overhead) ? remainder_data - header_overhead : 0,
 			// Calculate total segments. +1 if (usually) there is remainder data, unless perfect fit.
-			total_segments		= profile_with_data_vec_size / segment_data_size,
-			segments_required	= total_segments + (segment_remainder_size > 0);
+			total_segments			= profile_with_data_vec_size / segment_data_size,
+			segments_required		= total_segments + (segment_remainder_size > 0);
 			
-		uint16_t segments_sequence_val  = 1; // ICC Profile count value.
+		uint16_t segments_sequence_val = 1;
 			
 		constexpr uint16_t SEGMENTS_TOTAL_VAL_INDEX = 0x2E0;  // The value stored here is used by jdvout when extracting the data file.
 		updateValue(segment_vec, SEGMENTS_TOTAL_VAL_INDEX, segments_required, value_bit_length);
@@ -753,8 +753,9 @@ static void segmentDataFile(vBytes& segment_vec, vBytes& data_vec, vBytes& jpg_v
 			data_size  = 0,
 			byte_index = 0;
 		
-		auto start = segment_vec.cbegin();
-		auto segment_end = start;  // Will be updated each iteration
+		auto 
+			start 		= segment_vec.cbegin(),
+			segment_end = start;  // Will be updated each iteration
 		
 		while (segments_required--) {
 	    	isLastSegment 	= (segments_required == 0);
@@ -770,12 +771,12 @@ static void segmentDataFile(vBytes& segment_vec, vBytes& data_vec, vBytes& jpg_v
         	data_vec.push_back(static_cast<Byte>(segment_length & 0xFF));
 
     		data_vec.insert(data_vec.end(), "ICC_PROFILE", "ICC_PROFILE" + ICC_PROFILE_SIG_LEN);
-
-			// Update ICC Profile sequence value (2-bytes).
-			data_vec.push_back(static_cast<std::uint8_t>(segments_sequence_val >> 8)); 
+    		
+    		data_vec.push_back(static_cast<std::uint8_t>(segments_sequence_val >> 8)); 
     		data_vec.push_back(static_cast<std::uint8_t>(segments_sequence_val & 0xFF));        
-			++segments_sequence_val;
 			
+			++segments_sequence_val;
+		
     		data_vec.push_back(0x01);  // Keep the icc total segments value at 1 for all segments.
 			
 			// Segment Data...
@@ -838,8 +839,8 @@ static void binaryToBase64(vBytes& tmp_xmp_vec) {
 	static constexpr char base64_table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
     std::size_t 
-	input_size = tmp_xmp_vec.size(),
-    output_size = ((input_size + 2) / 3) * 4; 
+		input_size  = tmp_xmp_vec.size(),
+    	output_size = ((input_size + 2) / 3) * 4; 
 
     vBytes temp_vec(output_size); 
 
@@ -887,7 +888,7 @@ static void base64ToBinary(vBytes& base64_data_vec, vBytes& pshop_tmp_vec) {
        	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
 	};
 	
-    auto decode_val = [&](Byte c) -> int {
+    auto decode_val = [](unsigned char c) -> int {
         return base64_table[c];
     };
 
@@ -895,8 +896,8 @@ static void base64ToBinary(vBytes& base64_data_vec, vBytes& pshop_tmp_vec) {
     binary_vec.reserve((input_size / 4) * 3);  
 
     for (std::size_t i = 0; i < input_size; i += 4) {
-    	const Byte 
-        	c0 = base64_data_vec[i + 0],
+    	const unsigned char 
+        	c0 = base64_data_vec[i],
         	c1 = base64_data_vec[i + 1],
         	c2 = base64_data_vec[i + 2],
         	c3 = base64_data_vec[i + 3];
@@ -934,11 +935,11 @@ static void base64ToBinary(vBytes& base64_data_vec, vBytes& pshop_tmp_vec) {
 
     // Append to output
     pshop_tmp_vec.reserve(pshop_tmp_vec.size() + binary_vec.size());
-    std::copy_n(binary_vec.begin(), binary_vec.size(), std::back_inserter(pshop_tmp_vec));
+    pshop_tmp_vec.insert(pshop_tmp_vec.end(), binary_vec.begin(), binary_vec.end());
 }
 								
 // Encrypt data file using the Libsodium cryptographic library
-static const std::size_t encryptDataFile(vBytes& segment_vec, vBytes& data_vec, vBytes& jpg_vec, vString& platforms_vec, std::string& data_filename, bool hasBlueskyOption, bool hasRedditOption) {
+static std::size_t encryptDataFile(vBytes& segment_vec, vBytes& data_vec, vBytes& jpg_vec, vString& platforms_vec, std::string& data_filename, bool hasBlueskyOption, bool hasRedditOption) {
 	const std::size_t
 		DATA_FILENAME_XOR_KEY_INDEX 	= hasBlueskyOption ? 0x175 : 0x2FB,
 		DATA_FILENAME_INDEX	   			= hasBlueskyOption ? 0x161 : 0x2E7,
@@ -958,8 +959,8 @@ static const std::size_t encryptDataFile(vBytes& segment_vec, vBytes& data_vec, 
 			[](char a, Byte b) { return static_cast<Byte>(a) ^ b; }
     );	
 	
-	Key key{};
-	Nonce nonce{};
+	Key 	key{};
+	Nonce 	nonce{};
 			
     crypto_secretbox_keygen(key.data());
    	randombytes_buf(nonce.data(), nonce.size());
@@ -1022,7 +1023,7 @@ static const std::size_t encryptDataFile(vBytes& segment_vec, vBytes& data_vec, 
 			const std::size_t first_copy_size = std::min(FIRST_DATASET_SIZE_LIMIT, remaining_data_size);
 			
         	updateValue(bluesky_pshop_vec, FIRST_DATASET_SIZE_INDEX, first_copy_size, value_bit_length);
-        	std::copy_n(data_vec.begin() + data_file_index, first_copy_size, std::back_inserter(bluesky_pshop_vec));
+        	bluesky_pshop_vec.insert(bluesky_pshop_vec.end(), data_vec.begin() + data_file_index, data_vec.begin() + data_file_index + first_copy_size);
 						
 			if (remaining_data_size > FIRST_DATASET_SIZE_LIMIT) {	
 				remaining_data_size -= FIRST_DATASET_SIZE_LIMIT;
@@ -1035,9 +1036,9 @@ static const std::size_t encryptDataFile(vBytes& segment_vec, vBytes& data_vec, 
 							
 				const std::size_t last_copy_size = std::min(LAST_DATASET_SIZE_LIMIT, remaining_data_size);
             	updateValue(dataset_marker_vec, DATASET_SIZE_INDEX, last_copy_size, value_bit_length);
-            			
-            	std::copy_n(dataset_marker_vec.begin(), dataset_marker_vec.size(), std::back_inserter(bluesky_pshop_vec));
-            	std::copy_n(data_vec.begin() + data_file_index, last_copy_size, std::back_inserter(bluesky_pshop_vec));
+            	
+            	bluesky_pshop_vec.insert(bluesky_pshop_vec.end(), dataset_marker_vec.begin(), dataset_marker_vec.end());
+            	bluesky_pshop_vec.insert(bluesky_pshop_vec.end(), data_vec.begin() + data_file_index, data_vec.begin() + data_file_index + last_copy_size);
 							
 				if (remaining_data_size > LAST_DATASET_SIZE_LIMIT) {	
 					remaining_data_size -= LAST_DATASET_SIZE_LIMIT;
@@ -1088,7 +1089,7 @@ static const std::size_t encryptDataFile(vBytes& segment_vec, vBytes& data_vec, 
 		}	
 	} else { 
 		// No option selected so used the default color profile segment for data storage instead of exif (bluesky -b).
-		std::copy_n(data_vec.begin(), data_vec.size(), std::back_inserter(segment_vec));
+		segment_vec.insert(segment_vec.end(), data_vec.begin(), data_vec.end());
 	}	
 	
 	vBytes().swap(data_vec);
@@ -1128,10 +1129,8 @@ static const std::size_t encryptDataFile(vBytes& segment_vec, vBytes& data_vec, 
    	return pin;
 }
 
-static const std::size_t getPin() {
+static std::size_t getPin() {
 	const std::string MAX_UINT64_STR = "18446744073709551615";
-	
-	std::size_t pin = 0;
 	
 	std::cout << "\nPIN: ";
     std::string input;
@@ -1141,16 +1140,16 @@ static const std::size_t getPin() {
 	#ifdef _WIN32
 		while (input.length() < 20) { 
 	 		ch = _getch();
-        		if (ch >= '0' && ch <= '9') {
-            		input.push_back(ch);
-            		std::cout << '*' << std::flush;  
-        		} else if (ch == '\b' && !input.empty()) {  
-            		std::cout << "\b \b" << std::flush;  
-            		input.pop_back();
-        		} else if (ch == '\r') {
-            		break;
-        		}
-    		}
+        	if (ch >= '0' && ch <= '9') {
+            	input.push_back(ch);
+            	std::cout << '*' << std::flush;  
+        	} else if (ch == '\b' && !input.empty()) {  
+            	std::cout << "\b \b" << std::flush;  
+            	input.pop_back();
+        	} else if (ch == '\r') {
+            	break;
+        	}
+    	}
 	#else
 		struct termios oldt, newt;
     	tcgetattr(STDIN_FILENO, &oldt);
@@ -1179,9 +1178,9 @@ static const std::size_t getPin() {
    	std::cout.sync_with_stdio(sync_status);
 		
     if (input.empty() || (input.length() == 20 && input > MAX_UINT64_STR)) {
-        return pin = 0; 
+        return 0; 
     } else {
-        return pin = std::stoull(input); 
+        return std::stoull(input);
     }
 }
 
@@ -1195,9 +1194,9 @@ static std::string decryptDataFile(vBytes& jpg_vec, bool isBlueskyFile, bool& ha
 		sodium_keys_length = 48,
 		value_bit_length   = 64;
 			
-	const std::size_t PIN = getPin();
+	std::size_t recovery_pin = getPin();
 			
-	updateValue(jpg_vec, SODIUM_KEY_INDEX, PIN, value_bit_length);
+	updateValue(jpg_vec, SODIUM_KEY_INDEX, recovery_pin, value_bit_length);
 			
 	constexpr Byte SODIUM_XOR_KEY_LENGTH = 8; 
 			
@@ -1234,10 +1233,10 @@ static std::string decryptDataFile(vBytes& jpg_vec, bool isBlueskyFile, bool& ha
     	decrypted_filename[i] = static_cast<char>(jpg_vec[ENCRYPTED_FILENAME_INDEX + i] ^ jpg_vec[FILENAME_XOR_KEY_INDEX + i]);
     }
 			
-	constexpr uint16_t TOTAL_PROFILE_HEADER_SEGMENTS_INDEX 	= 0x2C8;
+	constexpr uint16_t TOTAL_PROFILE_HEADER_SEGMENTS_INDEX = 0x2C8;
 	Byte byte_length = 2;
 	
-	const std::size_t ENCRYPTED_FILE_START_INDEX	= isBlueskyFile ? 0x1D1 : 0x33B;
+	const std::size_t ENCRYPTED_FILE_START_INDEX = isBlueskyFile ? 0x1D1 : 0x33B;
 	
 	const uint16_t TOTAL_PROFILE_HEADER_SEGMENTS = static_cast<uint16_t>(getValue(jpg_vec, TOTAL_PROFILE_HEADER_SEGMENTS_INDEX, byte_length));		
 	
@@ -1421,7 +1420,6 @@ static void zlibFunc(vBytes& data_vec, Mode mode) {
         }
         inflateEnd(&strm);
     }
-
     data_vec.swap(output_vec);
 }
 
@@ -1498,7 +1496,9 @@ static int concealData(vBytes& jpg_vec, Mode mode, Option option, fs::path& data
 		hasBlueskyOption	= (option == Option::Bluesky),
 		hasRedditOption 	= (option == Option::Reddit);
 			
-	int width = 0, height = 0;	
+	int 
+		width = 0, 
+		height = 0;	
 		
 	optimizeImage(jpg_vec, width, height, hasNoOption);
 			
@@ -1524,7 +1524,7 @@ static int concealData(vBytes& jpg_vec, Mode mode, Option option, fs::path& data
 	
 	constexpr std::size_t
 		MAX_OPTIMIZED_IMAGE_SIZE	= 4ULL * 1024 * 1024,	// 4 MB.
-		MAX_OPTIMIZED_BLUESKY_IMAGE	= 805  * 1024;		// 805 KB.
+		MAX_OPTIMIZED_BLUESKY_IMAGE	= 805  * 1024;			// 805 KB.
 		
 	if (jpg_size > MAX_OPTIMIZED_IMAGE_SIZE) {
 		throw std::runtime_error("Image File Error: Cover image file exceeds maximum size limit.");
@@ -1694,7 +1694,7 @@ static int concealData(vBytes& jpg_vec, Mode mode, Option option, fs::path& data
 		throw std::runtime_error("File Size Error: Combined size of image and data file exceeds maximum default size limit for jdvrif.");
 	}
 
-	const std::size_t PIN = encryptDataFile(segment_vec, data_vec, jpg_vec, platforms_vec, data_filename, hasBlueskyOption, hasRedditOption);
+	std::size_t recovery_pin = encryptDataFile(segment_vec, data_vec, jpg_vec, platforms_vec, data_filename, hasBlueskyOption, hasRedditOption);
 		
 	std::random_device rd;
  	std::mt19937 gen(rd());
@@ -1773,7 +1773,7 @@ static int concealData(vBytes& jpg_vec, Mode mode, Option option, fs::path& data
    	}	
    		 	
 	std::cout << "\nSaved \"file-embedded\" JPG image: " << OUTPUT_FILENAME << " (" << EMBEDDED_JPG_SIZE << " bytes).\n";
-	std::cout << "\nRecovery PIN: [***" << PIN << "***]\n\nImportant: Keep your PIN safe, so that you can extract the hidden file.\n\nComplete!\n\n";
+	std::cout << "\nRecovery PIN: [***" << recovery_pin << "***]\n\nImportant: Keep your PIN safe, so that you can extract the hidden file.\n\nComplete!\n\n";
 	return 0;
 }
 
@@ -1849,7 +1849,8 @@ static int recoverData(vBytes& jpg_vec, Mode mode, fs::path& image_file_path) {
 				// We have a second dataset for the photoshop segment...
             	vBytes pshop_tmp_vec;
             	pshop_tmp_vec.reserve(PSHOP_FIRST_DATASET_SIZE);
-            	std::copy_n(jpg_vec.begin() + PSHOP_FIRST_DATASET_FILE_INDEX, PSHOP_FIRST_DATASET_SIZE, std::back_inserter(pshop_tmp_vec));
+            	
+            	pshop_tmp_vec.insert(pshop_tmp_vec.end(), jpg_vec.begin() + PSHOP_FIRST_DATASET_FILE_INDEX, jpg_vec.begin() + PSHOP_FIRST_DATASET_FILE_INDEX + PSHOP_FIRST_DATASET_SIZE);
 
             	constexpr std::size_t PSHOP_LAST_DATASET_SIZE_INDEX_DIFF = 3;
             			
@@ -1860,7 +1861,8 @@ static int recoverData(vBytes& jpg_vec, Mode mode, fs::path& image_file_path) {
             	const uint16_t PSHOP_LAST_DATASET_SIZE = static_cast<uint16_t>(getValue(jpg_vec, PSHOP_LAST_DATASET_SIZE_INDEX, BYTE_LENGTH));
 
             	pshop_tmp_vec.reserve(pshop_tmp_vec.size() + PSHOP_LAST_DATASET_SIZE);
-            	std::copy_n(jpg_vec.begin() + PSHOP_LAST_DATASET_FILE_INDEX, PSHOP_LAST_DATASET_SIZE, std::back_inserter(pshop_tmp_vec));
+            	
+            	pshop_tmp_vec.insert(pshop_tmp_vec.end(), jpg_vec.begin() + PSHOP_LAST_DATASET_FILE_INDEX, jpg_vec.begin() + PSHOP_LAST_DATASET_FILE_INDEX + PSHOP_LAST_DATASET_SIZE);
 
 				// Now check to see if we have an XMP segment. (Always base64 data).
             	index_opt = searchSig(jpg_vec, std::span<const Byte>(XMP_CREATOR_SIG));
@@ -1957,8 +1959,12 @@ static int recoverData(vBytes& jpg_vec, Mode mode, fs::path& image_file_path) {
 
 int main(int argc, char** argv) {
 	try {
+		if (sodium_init() < 0) {             
+       			throw std::runtime_error("Libsodium initialization failed!");
+    	}
+    		
 		#ifdef _WIN32
-    		SetConsoleOutputCP(CP_UTF8);  
+    			SetConsoleOutputCP(CP_UTF8);  
 		#endif
 		
 		auto args_opt = ProgramArgs::parse(argc, argv);
@@ -1983,4 +1989,3 @@ int main(int argc, char** argv) {
     	return 1;
     }
 }
-
