@@ -537,7 +537,7 @@ static void optimizeImage(vBytes& jpg_vec, int& width, int& height, bool hasNoOp
 	int 
 		quality = isHighQuality ? 97 : 85,
 		subsamp = isHighQuality ? jpegSubsamp : TJSAMP_420,
-		flags = TJFLAG_FASTUPSAMPLE;
+		flags 	= TJFLAG_FASTUPSAMPLE;
 		
 	if (isHighQuality) flags |= TJFLAG_PROGRESSIVE;
 	if (quality >= 90) flags |= TJFLAG_ACCURATEDCT;
@@ -1989,3 +1989,4 @@ int main(int argc, char** argv) {
     	return 1;
     }
 }
+
