@@ -432,7 +432,7 @@ static void optimizeImage(vBytes& jpg_vec, int& width, int& height, bool hasNoOp
     }
 
     int jpegSubsamp = 0, jpegColorspace = 0;
-    if (tjDecompressHeader3(transformer.get(), jpg_vec.data(), jpg_vec.size(), &width, &height, &jpegSubsamp, &jpegColorspace) != 0) {
+    if (tjDecompressHeader3(transformer.get(), jpg_vec.data(), static_cast<unsigned long>(jpg_vec.size()), &width, &height, &jpegSubsamp, &jpegColorspace) != 0) {
     	throw std::runtime_error(std::string("Image Error: ") + tjGetErrorStr2(transformer.get()));
     }
 
@@ -459,7 +459,7 @@ static void optimizeImage(vBytes& jpg_vec, int& width, int& height, bool hasNoOp
     unsigned char* dstBuf = nullptr; 
     unsigned long dstSize = 0;
 
-    if (tjTransform(transformer.get(), jpg_vec.data(), jpg_vec.size(), 1, &dstBuf, &dstSize, &xform, 0) != 0) {
+    if (tjTransform(transformer.get(), jpg_vec.data(), static_cast<unsigned long>(jpg_vec.size()), 1, &dstBuf, &dstSize, &xform, 0) != 0) {
          throw std::runtime_error(std::string("tjTransform: ") + tjGetErrorStr2(transformer.get()));
     }
 
@@ -1928,3 +1928,4 @@ int main(int argc, char** argv) {
     	return 1;
     }
 }
+
