@@ -4,7 +4,7 @@ A fast steganography command-line tool used for embedding and extracting any fil
 
 Any issues with configuring ***jdvrif***, then please just ask: [***@cleasbycode***](https://x.com/CleasbyCode).
 
-There is also a Web App version, which you can try [***here***](https://cleasbycode.co.uk/jdvrif/index/) as a convenient alternative to downloading and compiling the CLI source code. Web file uploads are limited to **20MB**.    
+There is also a [***Web edition***](https://cleasbycode.co.uk/jdvrif/index/), which you can try immediately, as a convenient alternative to downloading and compiling the CLI source code. Web file uploads are limited to **20MB**.    
 
 ![Demo Image](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/jrif_73184.jpg)  
 *Demo Image: **"A place of concealment"** / ***PIN: 17129461748195490639****
