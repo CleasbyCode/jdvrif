@@ -1,4 +1,4 @@
-// JPG Data Vehicle (jdvrif v6.3) Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
+// JPG Data Vehicle (jdvrif v6.4) Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
 
 // Compile program (Linux):
 
@@ -102,7 +102,7 @@ constexpr std::size_t TAG_BYTES = std::tuple_size<Tag>::value;
 static void displayInfo() {
 	std::cout << R"(
 
-JPG Data Vehicle (jdvrif v6.3)
+JPG Data Vehicle (jdvrif v6.4)
 Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
 
 jdvrif is a metadata “steganography-like” command-line tool used for concealing and extracting
@@ -280,21 +280,33 @@ struct ProgramArgs {
         return out; // Keeps compiler happy.
     }
 };
-
-// searchSig function searches a byte vector (uint8_t) for a fixed byte pattern and returns the offset of the first match, or std::nullopt if there’s no match.
-// It uses std::search on v.begin().. v.end() with the pattern given by sig.begin().. sig.end(). 
-	
-// The std::span<const uint8_t> parameter lets you pass anything contiguous - std::array, C-array, another std::vector, or a subrange, without copying. 
-// If std::search returns v.end(), the function maps that to std::nullopt; otherwise it converts the iterator difference to a size_t index.
-// I often then convert the size_t index result to uint32_t for compatibiblty reasons for other parts of the program.
+// Search vectors, return index location of found signature.
 static std::optional<std::size_t> searchSig(const vBytes& v, std::span<const Byte> sig) {
-	auto it = std::search(v.begin(), v.end(), sig.begin(), sig.end());
+    constexpr std::size_t SCAN_LIMIT = 125380; 
+
+    // 1. Optimization: Try searching just the SCAN_LIMIT first.
+    // Most signatures live in that range.
+    if (v.size() > SCAN_LIMIT) {
+        auto it = std::search(v.begin(), v.begin() + SCAN_LIMIT, sig.begin(), sig.end());
+        
+        // If found within the limit, return immediately.
+        if (it != v.begin() + SCAN_LIMIT) {
+            return static_cast<std::size_t>(it - v.begin());
+        }
+    }
+
+    // 2. Fallback: Search the whole file.
+    // We reach here if the file is small or if the fast search failed.
+    // We scan from the beginning again to ensure we catch signatures that might 
+    // straddle the limit byte boundary (overlapping the cut-off).
+    auto it = std::search(v.begin(), v.end(), sig.begin(), sig.end());
+    
     if (it == v.end()) return std::nullopt;
     return static_cast<std::size_t>(it - v.begin());
 }
 
 // First search for an EXIF segment, if found search for an Orientation tag.
-// Returns 1..8 if found and passed to normalize_orientation, or std::nullopt if no EXIF/Orientation.
+// Returns 1..8 or std::nullopt if no EXIF/Orientation.
 [[nodiscard]] static std::optional<uint16_t> exifOrientation(const vBytes& jpg) {
 	constexpr const Byte APP1_SIG[] = {0xFF, 0xE1};
     auto app1_opt = searchSig(jpg, std::span<const Byte>(APP1_SIG, 2));
@@ -356,92 +368,20 @@ static std::optional<std::size_t> searchSig(const vBytes& v, std::span<const Byt
     return std::nullopt;
 }
 
-// Generic rotate helpers for bpp = 3 or 4
-static void rotate180(vBytes& px, int w, int h, int bpp) {
-	const std::size_t STRIDE = (std::size_t)w * bpp;
-    for (int y = 0; y < h / 2; ++y) {
-    	int opp = h - 1 - y;
-        for (int x = 0; x < w; ++x) {
-        	std::size_t a = (std::size_t)y   * STRIDE + (std::size_t)x        * bpp;
-            std::size_t b = (std::size_t)opp * STRIDE + (std::size_t)(w-1-x)  * bpp;
-            for (int c = 0; c < bpp; ++c) std::swap(px[a + c], px[b + c]);
-        }
-    }
-    if (h & 1) { // middle row if odd height
-    	int y = h / 2;
-        for (int x = 0; x < w / 2; ++x) {
-        	std::size_t a = (std::size_t)y * STRIDE + (std::size_t)x       * bpp;
-            std::size_t b = (std::size_t)y * STRIDE + (std::size_t)(w-1-x) * bpp;
-            for (int c = 0; c < bpp; ++c) std::swap(px[a + c], px[b + c]);
-        }
+// Helper: Map EXIF orientation (1-8) to TurboJPEG Transform Operations
+static int getTransformOp(uint16_t orientation) {
+	switch (orientation) {
+    	case 2: return TJXOP_HFLIP;
+        case 3: return TJXOP_ROT180;
+        case 4: return TJXOP_VFLIP;
+        case 5: return TJXOP_TRANSPOSE;
+        case 6: return TJXOP_ROT90;
+        case 7: return TJXOP_TRANSVERSE;
+        case 8: return TJXOP_ROT270;
+        default: return TJXOP_NONE;
     }
 }
 
-static void rotate90cw(vBytes& px, int& w, int& h, int bpp) {
-	const int NW = h, NH = w;	// Clockwise rotation swaps width/height.
-    vBytes out((std::size_t)NW * NH * bpp);
-    for (int y = 0; y < h; ++y) {
-    	for (int x = 0; x < w; ++x) {
-        	int nx = h - 1 - y, ny = x; // (x,y) -> (nx,ny)
-            std::size_t di = ((std::size_t)ny * NW + (std::size_t)nx) * bpp;
-            std::size_t si = ((std::size_t)y  * w  + (std::size_t)x ) * bpp;
-            for (int c = 0; c < bpp; ++c) out[di + c] = px[si + c];
-        }
-    }	
-    px.swap(out);
-    w = NW; h = NH;
-}
-
-static void rotate270cw(vBytes& px, int& w, int& h, int bpp) {
-	const int NW = h, NH = w;	// Clockwise rotation swaps width/height.
-    vBytes out((std::size_t)NW * NH * bpp);
-    for (int y = 0; y < h; ++y) {
-    	for (int x = 0; x < w; ++x) {
-        	int nx = y, ny = w - 1 - x; // (x,y) -> (nx,ny)
-            std::size_t di = ((std::size_t)ny * NW + (std::size_t)nx) * bpp;
-            std::size_t si = ((std::size_t)y  * w  + (std::size_t)x ) * bpp;
-            for (int c = 0; c < bpp; ++c) out[di + c] = px[si + c];
-        }
-    }
-    px.swap(out);
-    w = NW; h = NH;
-}
-
-static void flipHorizontal(vBytes& px, int w, int h, int bpp) {
-	const std::size_t STRIDE = (std::size_t)w * bpp;
-    for (int y = 0; y < h; ++y) {
-    	for (int x = 0; x < w / 2; ++x) {  // < w/2 to avoid double-swap
-        	std::size_t a = (std::size_t)y * STRIDE + (std::size_t)x * bpp;
-            std::size_t b = (std::size_t)y * STRIDE + (std::size_t)(w - 1 - x) * bpp;
-            for (int c = 0; c < bpp; ++c) std::swap(px[a + c], px[b + c]);
-        }	
-    }
-}
-
-static void flipVertical(vBytes& px, int w, int h, int bpp) {
-	const std::size_t STRIDE = (std::size_t)w * bpp;
-    for (int y = 0; y < h / 2; ++y) {
-    	std::size_t a = (std::size_t)y * STRIDE;
-        std::size_t b = (std::size_t)(h - 1 - y) * STRIDE;
-    	for (int x = 0; x < w; ++x) {
-        	for (int c = 0; c < bpp; ++c) std::swap(px[a + x*bpp + c], px[b + x*bpp + c]);
-        }
-    }
-}
-
-static void normalizeOrientation(vBytes& px, int& w, int& h, int ori, int bpp) {
-	switch (ori) {
-		case 1: break;
-	    	case 2: flipHorizontal(px, w, h, bpp); break;
-	        case 3: rotate180(px, w, h, bpp); break;
-	        case 4: flipVertical(px, w, h, bpp); break;
-	        case 5: flipHorizontal(px, w, h, bpp); rotate90cw(px, w, h, bpp); break;  // hflip then 90° CW
-	        case 6: rotate90cw(px, w, h, bpp); break;
-	        case 7: flipVertical(px, w, h, bpp); rotate90cw(px, w, h, bpp); break;    // vflip then 90° CW
-	        case 8: rotate270cw(px, w, h, bpp); break;
-	        default: break;  // invalid, treat as 1
-    	}
-}
 // TurboJPEG. RAII wrapper for tjhandle (decompressor or compressor)
 struct TJHandle {
 	tjhandle handle = nullptr;
@@ -480,82 +420,55 @@ struct TJHandle {
     explicit operator bool() const { return handle != nullptr; }
 };
 
-static TJHandle make_decompressor() {
-	TJHandle h;
-    h.handle = tjInitDecompress();
-    if (!h.handle) throw std::runtime_error("tjInitDecompress() failed");
-    return h;
-}
-
-static TJHandle make_compressor() {
-	TJHandle h;
-    h.handle = tjInitCompress();
-    if (!h.handle) throw std::runtime_error("tjInitCompress() failed");
-    return h;
-}
-
 static void optimizeImage(vBytes& jpg_vec, int& width, int& height, bool hasNoOption) {
-	if (jpg_vec.empty()) {
-    	throw std::runtime_error("JPG image is empty!");
-	}
-	
-	auto decompressor = make_decompressor();
-	
-	int jpegSubsamp = 0, jpegColorspace = 0;
-
-	const unsigned char* JPG_IN = reinterpret_cast<const unsigned char*>(jpg_vec.data());
-
-	if (tjDecompressHeader3(decompressor.get(), JPG_IN, static_cast<unsigned long>(jpg_vec.size()), &width, &height, &jpegSubsamp, &jpegColorspace) != 0) {
-    	throw std::runtime_error(std::string("Image Error: ") + tjGetErrorStr2(decompressor.get()));
-	}
-			
-	if (width <= 0 || height <= 0) {
-    	throw std::runtime_error("Image Error: Invalid image dimensions.");
+    if (jpg_vec.empty()) {
+        throw std::runtime_error("JPG image is empty!");
     }
-    	
-  	std::size_t pixel_count = static_cast<std::size_t>(width) * height;
-    constexpr int BYTES_PER_PIXEL = 4;
-    	
-    if (pixel_count > std::numeric_limits<std::size_t>::max() / BYTES_PER_PIXEL) {
-    	throw std::runtime_error("Image Error: JPG image too large to decode!");
+
+    TJHandle transformer;
+    transformer.handle = tjInitTransform();
+    if (!transformer.handle) {
+        throw std::runtime_error("tjInitTransform() failed");
     }
-    	
-	const int PIXEL_FORMAT = TJPF_BGRX;		
-	vBytes decoded_vec(pixel_count * BYTES_PER_PIXEL);
 
-	if (tjDecompress2(decompressor.get(), JPG_IN, static_cast<unsigned long>(jpg_vec.size()), reinterpret_cast<unsigned char*>(decoded_vec.data()), width, 0, height, PIXEL_FORMAT, 0) != 0) {
-    	throw std::runtime_error(std::string("Image Error: ") + tjGetErrorStr2(decompressor.get()));
-	}
+    int jpegSubsamp = 0, jpegColorspace = 0;
+    if (tjDecompressHeader3(transformer.get(), jpg_vec.data(), jpg_vec.size(), &width, &height, &jpegSubsamp, &jpegColorspace) != 0) {
+    	throw std::runtime_error(std::string("Image Error: ") + tjGetErrorStr2(transformer.get()));
+    }
+
+    // Determine Rotation Operation from EXIF
+    auto ori_opt = exifOrientation(jpg_vec);
+    int xop = TJXOP_NONE;
+    
+    if (ori_opt) {
+        xop = getTransformOp(*ori_opt);
+    }
+
+    tjtransform xform;
+    std::memset(&xform, 0, sizeof(tjtransform));
+    xform.op = xop;
+   
+    xform.options = TJXOPT_COPYNONE | TJXOPT_TRIM;
+
+    // Toggle Progressive vs Baseline based on the flag
+    if (hasNoOption) {
+        xform.options |= TJXOPT_PROGRESSIVE;
+    }
+    // Else defaults to Baseline (Bluesky/Reddit)
 	
-	auto ori = exifOrientation(jpg_vec);
-	if (ori && *ori != 1) {
-    	normalizeOrientation(decoded_vec, width, height, *ori, BYTES_PER_PIXEL); 
-	}
+    unsigned char* dstBuf = nullptr; 
+    unsigned long dstSize = 0;
 
-	bool isHighQuality = hasNoOption;
-	
-	int 
-		quality = isHighQuality ? 97 : 85,
-		subsamp = isHighQuality ? jpegSubsamp : TJSAMP_420,
-		flags 	= TJFLAG_FASTUPSAMPLE;
-		
-	if (isHighQuality) flags |= TJFLAG_PROGRESSIVE;
-	if (quality >= 90) flags |= TJFLAG_ACCURATEDCT;
-	else flags |= TJFLAG_FASTDCT;
+    if (tjTransform(transformer.get(), jpg_vec.data(), jpg_vec.size(), 1, &dstBuf, &dstSize, &xform, 0) != 0) {
+         throw std::runtime_error(std::string("tjTransform: ") + tjGetErrorStr2(transformer.get()));
+    }
 
-	unsigned char* jpegBuf = nullptr;
-	unsigned long  jpegSize = 0;
-	
-	auto compressor = make_compressor();
-	
-	if (tjCompress2(compressor.get(), reinterpret_cast<unsigned char*>(decoded_vec.data()), width, 0, height, PIXEL_FORMAT, &jpegBuf, &jpegSize, subsamp, quality, flags) != 0) {
-		throw std::runtime_error(std::string("tjCompress2: ") + tjGetErrorStr2(compressor.get()));
-	}
+    if (xop == TJXOP_ROT90 || xop == TJXOP_ROT270 || xop == TJXOP_TRANSPOSE || xop == TJXOP_TRANSVERSE) {
+        std::swap(width, height);
+    }
 
-	vBytes output_vec(jpegBuf, jpegBuf + jpegSize);
-	tjFree(jpegBuf);
-
-	jpg_vec.swap(output_vec);
+    jpg_vec.assign(dstBuf, dstBuf + dstSize);
+    tjFree(dstBuf);
 }
 
 // Writes updated values (2, 4 or 8 bytes), such as segments lengths, index/offsets values, PIN, etc. into the relevant vector index location.	
@@ -609,7 +522,32 @@ static bool hasFileExtension(const fs::path& p, std::initializer_list<const char
    	}
     return false;
 }
-static void updateBlueskySegmentValues(vBytes& segment_vec, vBytes& pshop_vec, vBytes& xmp_vec, vBytes& jpg_vec, vString& platforms_vec) {
+
+static void writeEmbeddedImage(vBytes& jpg_vec, vBytes& data_vec, std::string& out_name) {
+	std::random_device rd;
+ 	std::mt19937 gen(rd());
+   	std::uniform_int_distribution<> dist(10000, 99999);  
+
+	out_name = "jrif_" + std::to_string(dist(gen)) + ".jpg";
+
+	std::ofstream file_ofs(out_name, std::ios::binary);
+	
+	if (!file_ofs) {
+		throw std::runtime_error("Write File Error: Unable to write to file. Make sure you have WRITE permissions for this location.");
+	}
+	
+	if (data_vec.size()) {
+		file_ofs.write(reinterpret_cast<const char*>(data_vec.data()), data_vec.size());
+		vBytes().swap(data_vec);
+	}
+	
+	file_ofs.write(reinterpret_cast<const char*>(jpg_vec.data()), jpg_vec.size());
+	vBytes().swap(data_vec);
+	
+	file_ofs.close();
+}
+
+static void updateBlueskySegmentValues(vBytes& segment_vec, vBytes& pshop_vec, vBytes& xmp_vec, vBytes& jpg_vec, vString& platforms_vec, std::string& out_name) {
 	constexpr Byte 
 		MARKER_BYTES_SIZE 			= 4, // FFD8, FFE1
 		SIZE_FIELD_INDEX 			= 0x04,  
@@ -693,15 +631,17 @@ static void updateBlueskySegmentValues(vBytes& segment_vec, vBytes& pshop_vec, v
 		}
 					
 		const std::size_t XMP_INSERT_INDEX = *index_opt - XMP_INSERT_INDEX_DIFF;
-						
+		
+		segment_vec.reserve(segment_vec.size() + xmp_vec.size());				
 		segment_vec.insert(segment_vec.begin() + XMP_INSERT_INDEX, xmp_vec.begin(), xmp_vec.end());
 	}				
-	jpg_vec.insert(jpg_vec.begin(), segment_vec.begin(), segment_vec.end());
 	platforms_vec[0] = std::move(platforms_vec[2]);
 	platforms_vec.resize(1);
+	
+	writeEmbeddedImage(jpg_vec, segment_vec, out_name);
 }
 
-static void segmentDataFile(vBytes& segment_vec, vBytes& data_vec, vBytes& jpg_vec, vString& platforms_vec, bool hasRedditOption) {
+static void segmentDataFile(vBytes& segment_vec, vBytes& data_vec, vBytes& jpg_vec, vString& platforms_vec, std::string& out_name, bool hasRedditOption) {
 	// Default segment_vec uses color profile segment (FFE2) to store data file. If required, split data file and use multiple segments for these larger files.
 	constexpr std::size_t
 		IMAGE_START_SIG_LENGTH	= 2,
@@ -817,22 +757,26 @@ static void segmentDataFile(vBytes& segment_vec, vBytes& data_vec, vBytes& jpg_v
 	value_bit_length = 32; 
 		
 	updateValue(data_vec, DEFLATED_DATA_FILE_SIZE_INDEX, data_vec.size() - PROFILE_DATA_SIZE, value_bit_length);
-		
-	jpg_vec.reserve(jpg_vec.size() + data_vec.size());	
 					
 	if (hasRedditOption) {
 		constexpr std::array<Byte, 2> IMAGE_START_SIG { 0xFF, 0xD8 };
 		jpg_vec.insert(jpg_vec.begin(), IMAGE_START_SIG.begin(), IMAGE_START_SIG.end());
-		jpg_vec.insert(jpg_vec.end() - 2, 8000, 0x23);
+		
+		constexpr std::size_t PADDING_DATA = 8000;
+		
+		jpg_vec.reserve(jpg_vec.size() + PADDING_DATA + data_vec.size());
+		jpg_vec.insert(jpg_vec.end() - 2, PADDING_DATA, 0x23);
+			
 		jpg_vec.insert(jpg_vec.end() - 2, data_vec.begin() + 2, data_vec.end());
+		vBytes().swap(data_vec);
+		
 		platforms_vec[0] = std::move(platforms_vec[5]);
 		platforms_vec.resize(1);
 	} else {
 		platforms_vec.erase(platforms_vec.begin() + 5); 
 		platforms_vec.erase(platforms_vec.begin() + 2);
-		jpg_vec.insert(jpg_vec.begin(), data_vec.begin(), data_vec.end());
 	}
-	vBytes().swap(data_vec);
+	writeEmbeddedImage(jpg_vec, data_vec, out_name);
 }	
 
 static void binaryToBase64(vBytes& tmp_xmp_vec) {
@@ -939,7 +883,7 @@ static void base64ToBinary(vBytes& base64_data_vec, vBytes& pshop_tmp_vec) {
 }
 								
 // Encrypt data file using the Libsodium cryptographic library
-static std::size_t encryptDataFile(vBytes& segment_vec, vBytes& data_vec, vBytes& jpg_vec, vString& platforms_vec, std::string& data_filename, bool hasBlueskyOption, bool hasRedditOption) {
+static std::size_t encryptDataFile(vBytes& segment_vec, vBytes& data_vec, vBytes& jpg_vec, vString& platforms_vec, std::string& data_filename, std::string& out_name, bool hasBlueskyOption, bool hasRedditOption) {
 	const std::size_t
 		DATA_FILENAME_XOR_KEY_INDEX 	= hasBlueskyOption ? 0x175 : 0x2FB,
 		DATA_FILENAME_INDEX	   			= hasBlueskyOption ? 0x161 : 0x2E7,
@@ -949,15 +893,12 @@ static std::size_t encryptDataFile(vBytes& segment_vec, vBytes& data_vec, vBytes
 	constexpr std::size_t EXIF_SEGMENT_DATA_INSERT_INDEX = 0x1D1;
 				
 	Byte 
-		data_filename_length = segment_vec[DATA_FILENAME_INDEX - 1],
-		value_bit_length = 32;
+		data_filename_length 	= segment_vec[DATA_FILENAME_INDEX - 1],
+		value_bit_length 		= 32;
 		
 	randombytes_buf(segment_vec.data() + DATA_FILENAME_XOR_KEY_INDEX, data_filename_length);
 
-	std::transform(data_filename.begin(), data_filename.begin() + data_filename_length, 
-		segment_vec.begin() + DATA_FILENAME_XOR_KEY_INDEX, segment_vec.begin() + DATA_FILENAME_INDEX, 
-			[](char a, Byte b) { return static_cast<Byte>(a) ^ b; }
-    );	
+	std::transform(data_filename.begin(), data_filename.begin() + data_filename_length, segment_vec.begin() + DATA_FILENAME_XOR_KEY_INDEX, segment_vec.begin() + DATA_FILENAME_INDEX, [](char a, Byte b) { return static_cast<Byte>(a) ^ b; });	
 	
 	Key 	key{};
 	Nonce 	nonce{};
@@ -1005,7 +946,7 @@ static std::size_t encryptDataFile(vBytes& segment_vec, vBytes& data_vec, vBytes
 
 			std::size_t 
 				remaining_data_size = ENCRYPTED_VEC_SIZE - EXIF_SEGMENT_DATA_SIZE_LIMIT,
-				data_file_index = EXIF_SEGMENT_DATA_SIZE_LIMIT;
+				data_file_index 	= EXIF_SEGMENT_DATA_SIZE_LIMIT;
 						
 			constexpr std::size_t
 				FIRST_DATASET_SIZE_LIMIT = 32767, // 0x7FFF
@@ -1122,9 +1063,9 @@ static std::size_t encryptDataFile(vBytes& segment_vec, vBytes& data_vec, vBytes
    	sodium_memzero(nonce.data(), nonce.size());
    	
    	if (hasBlueskyOption) {
-   		updateBlueskySegmentValues(segment_vec, bluesky_pshop_vec, bluesky_xmp_vec, jpg_vec, platforms_vec);
+   		updateBlueskySegmentValues(segment_vec, bluesky_pshop_vec, bluesky_xmp_vec, jpg_vec, platforms_vec, out_name);
    	} else {
-   		segmentDataFile(segment_vec, data_vec, jpg_vec, platforms_vec, hasRedditOption);
+   		segmentDataFile(segment_vec, data_vec, jpg_vec, platforms_vec, out_name, hasRedditOption);
    	}		 
    	return pin;
 }
@@ -1254,11 +1195,8 @@ static std::string decryptDataFile(vBytes& jpg_vec, bool isBlueskyFile, bool& ha
 	// Also, general corruption could cause this.
 	
 	if (TOTAL_PROFILE_HEADER_SEGMENTS && !isBlueskyFile) {
-		if (LAST_SEGMENT_INDEX >= jpg_vec.size() || 
-			jpg_vec[LAST_SEGMENT_INDEX] != 0xFF || 
-			jpg_vec[LAST_SEGMENT_INDEX + 1] != 0xE2) {
-			throw std::runtime_error(
-				"File Extraction Error: Missing segments detected. Embedded data file is corrupt!");
+		if (LAST_SEGMENT_INDEX >= jpg_vec.size() || jpg_vec[LAST_SEGMENT_INDEX] != 0xFF || jpg_vec[LAST_SEGMENT_INDEX + 1] != 0xE2) {
+			throw std::runtime_error("File Extraction Error: Missing segments detected. Embedded data file is corrupt!");
 		}
 	}
 	
@@ -1270,7 +1208,7 @@ static std::string decryptDataFile(vBytes& jpg_vec, bool isBlueskyFile, bool& ha
 	
 	bool hasNoProfileHeaders = (isBlueskyFile || !TOTAL_PROFILE_HEADER_SEGMENTS);
 			
-	if (hasNoProfileHeaders) {		
+	if (hasNoProfileHeaders) {
 		if (crypto_secretbox_open_easy(jpg_vec.data(), jpg_vec.data(), jpg_vec.size(), nonce.data(), key.data()) !=0 ) {
         	std::cerr << "\nDecryption failed!\n";
         	hasDecryptionFailed = true;
@@ -1497,7 +1435,7 @@ static int concealData(vBytes& jpg_vec, Mode mode, Option option, fs::path& data
 		hasRedditOption 	= (option == Option::Reddit);
 			
 	int 
-		width = 0, 
+		width  = 0, 
 		height = 0;	
 		
 	optimizeImage(jpg_vec, width, height, hasNoOption);
@@ -1693,26 +1631,12 @@ static int concealData(vBytes& jpg_vec, Mode mode, Option option, fs::path& data
 	if (hasNoOption && COMBINED_FILE_SIZE > MAX_SIZE_CONCEAL) {
 		throw std::runtime_error("File Size Error: Combined size of image and data file exceeds maximum default size limit for jdvrif.");
 	}
-
-	std::size_t recovery_pin = encryptDataFile(segment_vec, data_vec, jpg_vec, platforms_vec, data_filename, hasBlueskyOption, hasRedditOption);
-		
-	std::random_device rd;
- 	std::mt19937 gen(rd());
-    std::uniform_int_distribution<> dist(10000, 99999);  
-
-	const std::string OUTPUT_FILENAME = "jrif_" + std::to_string(dist(gen)) + ".jpg";
-
-	std::ofstream file_ofs(OUTPUT_FILENAME, std::ios::binary);
-
-	if (!file_ofs) {
-		throw std::runtime_error("Write File Error: Unable to write to file. Make sure you have WRITE permissions for this location.");
-	}
+	std::string out_name;
 	
-	const std::size_t EMBEDDED_JPG_SIZE = jpg_vec.size();
-
-	file_ofs.write(reinterpret_cast<const char*>(jpg_vec.data()), EMBEDDED_JPG_SIZE);
-	file_ofs.close();
-			
+	std::size_t recovery_pin = encryptDataFile(segment_vec, data_vec, jpg_vec, platforms_vec, data_filename, out_name, hasBlueskyOption, hasRedditOption);
+	
+	const std::size_t EMBEDDED_JPG_SIZE = fs::file_size(out_name);
+	
 	if (hasNoOption) {
 		constexpr std::size_t 
 			FLICKR_MAX_IMAGE_SIZE 			= 200ULL * 1024 * 1024,
@@ -1727,14 +1651,29 @@ static int concealData(vBytes& jpg_vec, Mode mode, Option option, fs::path& data
 			
 		constexpr uint16_t TOTAL_SEGMENTS_INDEX = 0x2E0;
 			
-		constexpr Byte 
-			FIRST_SEGMENT_SIZE_INDEX	= 0x04,
-			BYTE_LENGTH  		 		= 2;
-					
-		const uint16_t
-			FIRST_SEGMENT_SIZE	= static_cast<uint16_t>(getValue(jpg_vec, FIRST_SEGMENT_SIZE_INDEX, BYTE_LENGTH)),
-			TOTAL_SEGMENTS 		= static_cast<uint16_t>(getValue(jpg_vec, TOTAL_SEGMENTS_INDEX, BYTE_LENGTH));
+		constexpr Byte FIRST_SEGMENT_SIZE_INDEX	= 0x04;
 		
+		std::ifstream file(out_name, std::ios::binary);
+
+		// Bodge. Should be using the getValue function, but the required vectors have already been cleared. Do this instead, for now.
+		auto read_bytes = [&file](std::streamoff offset) -> uint16_t {
+    		file.seekg(offset, std::ios::beg);
+    		if (!file) {
+        		throw std::runtime_error("seekg failed");
+    		}
+
+    		Byte bytes[2];
+    		file.read(reinterpret_cast<char*>(bytes), 2);
+    		if (!file) {
+        		throw std::runtime_error("read failed");
+   	 		}
+    		return (static_cast<std::uint16_t>(bytes[0]) << 8) | static_cast<std::uint16_t>(bytes[1]);
+		};
+		
+		const uint16_t
+			FIRST_SEGMENT_SIZE	= read_bytes(FIRST_SEGMENT_SIZE_INDEX),
+			TOTAL_SEGMENTS 		= read_bytes(TOTAL_SEGMENTS_INDEX);
+	
 		std::vector<std::string> filtered_platforms;
 
 		for (const std::string& platform : platforms_vec) {
@@ -1772,7 +1711,7 @@ static int concealData(vBytes& jpg_vec, Mode mode, Option option, fs::path& data
         std::cout << " ✓ "<< s << '\n' ;
    	}	
    		 	
-	std::cout << "\nSaved \"file-embedded\" JPG image: " << OUTPUT_FILENAME << " (" << EMBEDDED_JPG_SIZE << " bytes).\n";
+	std::cout << "\nSaved \"file-embedded\" JPG image: " << out_name << " (" << EMBEDDED_JPG_SIZE << " bytes).\n";
 	std::cout << "\nRecovery PIN: [***" << recovery_pin << "***]\n\nImportant: Keep your PIN safe, so that you can extract the hidden file.\n\nComplete!\n\n";
 	return 0;
 }
@@ -1797,7 +1736,7 @@ static int recoverData(vBytes& jpg_vec, Mode mode, fs::path& image_file_path) {
 	Byte pin_attempts_val = jpg_vec[JDVRIF_SIG_INDEX + INDEX_DIFF - 1];
 			
 	bool 
-		isBlueskyFile = true,
+		isBlueskyFile 	 = true,
 		isDataCompressed = true;
 			
 	index_opt = searchSig(jpg_vec, std::span<const Byte>(ICC_PROFILE_SIG));
@@ -1882,7 +1821,7 @@ static int recoverData(vBytes& jpg_vec, Mode mode, fs::path& image_file_path) {
                 		BASE64_DATA_SIZE 			= END_BASE64_DATA_SIG_INDEX - BEGIN_BASE64_DATA_INDEX;
                 			
   					vBytes base64_data_vec(BASE64_DATA_SIZE);
-                	std::copy_n(jpg_vec.begin() + BEGIN_BASE64_DATA_INDEX, BASE64_DATA_SIZE, base64_data_vec.begin());
+            		std::copy_n(jpg_vec.begin() + BEGIN_BASE64_DATA_INDEX, BASE64_DATA_SIZE, base64_data_vec.begin());
                 			
 					// Convert the XMP base64 data segment back to binary.
                 	base64ToBinary(base64_data_vec, pshop_tmp_vec);
@@ -1960,11 +1899,11 @@ static int recoverData(vBytes& jpg_vec, Mode mode, fs::path& image_file_path) {
 int main(int argc, char** argv) {
 	try {
 		if (sodium_init() < 0) {             
-       			throw std::runtime_error("Libsodium initialization failed!");
+       		throw std::runtime_error("Libsodium initialization failed!");
     	}
     		
 		#ifdef _WIN32
-    			SetConsoleOutputCP(CP_UTF8);  
+    		SetConsoleOutputCP(CP_UTF8);  
 		#endif
 		
 		auto args_opt = ProgramArgs::parse(argc, argv);
@@ -1989,4 +1928,3 @@ int main(int argc, char** argv) {
     	return 1;
     }
 }
-
