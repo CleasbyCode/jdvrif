@@ -1653,8 +1653,8 @@ static int concealData(vBytes& jpg_vec, Mode mode, Option option, fs::path& data
 			VALUE_LENGTH			 = 2;
 		
 		const uint16_t
-			FIRST_SEGMENT_SIZE = getValue(jpg_vec, FIRST_SEGMENT_SIZE_INDEX, VALUE_LENGTH),
-			TOTAL_SEGMENTS 	   = getValue(jpg_vec, TOTAL_SEGMENTS_INDEX, VALUE_LENGTH);
+			FIRST_SEGMENT_SIZE = static_cast<uint16_t>(getValue(jpg_vec, FIRST_SEGMENT_SIZE_INDEX, VALUE_LENGTH)),
+			TOTAL_SEGMENTS 	   = static_cast<uint16_t>(getValue(jpg_vec, TOTAL_SEGMENTS_INDEX, VALUE_LENGTH));
 		
 		std::vector<std::string> filtered_platforms;
 
@@ -1911,4 +1911,5 @@ int main(int argc, char** argv) {
     	return 1;
     }
 }
+
 
