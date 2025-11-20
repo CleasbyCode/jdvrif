@@ -1649,8 +1649,8 @@ static int concealData(vBytes& jpg_vec, Mode mode, Option option, fs::path& data
 		constexpr uint16_t TOTAL_SEGMENTS_INDEX = 0x2E0;
 			
 		constexpr Byte 
-			FIRST_SEGMENT_SIZE_INDEX	= 0x04,
-			VALUE_LENGTH				= 2;
+			FIRST_SEGMENT_SIZE_INDEX = 0x04,
+			VALUE_LENGTH			 = 2;
 		
 		const uint16_t
 			FIRST_SEGMENT_SIZE = getValue(jpg_vec, FIRST_SEGMENT_SIZE_INDEX, VALUE_LENGTH),
@@ -1911,3 +1911,4 @@ int main(int argc, char** argv) {
     	return 1;
     }
 }
+
