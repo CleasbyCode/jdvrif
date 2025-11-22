@@ -92,9 +92,9 @@ using Byte    = std::uint8_t;
 using vBytes  = std::vector<Byte>;
 using vString = std::vector<std::string>;
 
-using Key     = std::array<Byte, crypto_secretbox_KEYBYTES>;
-using Nonce   = std::array<Byte, crypto_secretbox_NONCEBYTES>;
-using Tag     = std::array<Byte, crypto_secretbox_MACBYTES>;
+using Key   = std::array<Byte, crypto_secretbox_KEYBYTES>;
+using Nonce = std::array<Byte, crypto_secretbox_NONCEBYTES>;
+using Tag   = std::array<Byte, crypto_secretbox_MACBYTES>;
 
 constexpr std::size_t TAG_BYTES = std::tuple_size<Tag>::value;
 
@@ -102,9 +102,9 @@ enum class Mode   : unsigned char { conceal, recover };
 enum class Option : unsigned char { None, Bluesky, Reddit };
 
 enum class FileTypeCheck : uint8_t {
-	cover_image = 1,    // Conceal mode...
+	cover_image    = 1, // Conceal mode...
     embedded_image = 2, // Recover mode...
-    data_file = 3       // Conceal mode...
+    data_file 	   = 3  // Conceal mode...
 };
 
 static constexpr auto view = [](const auto& container) -> std::span<const Byte> {
@@ -1954,3 +1954,4 @@ int main(int argc, char** argv) {
     	return 1;
     }
 }
+
