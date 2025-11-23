@@ -1701,42 +1701,39 @@ static int concealData(vBytes& jpg_vec, Mode mode, Option option, fs::path& data
         vBytes().swap(segment_vec);
         vBytes().swap(jpg_vec);
         
-        std::vector<std::string> filtered_platforms;
-	
-        for (const std::string& platform : platforms_vec) {
-            if (platform == "X-Twitter" && (FIRST_SEGMENT_SIZE > TWITTER_MAX_DATA_SIZE || EMBEDDED_JPG_SIZE > TWITTER_MAX_IMAGE_SIZE)) {
-                continue;
-            }
-            if (platform == "Tumblr" && (FIRST_SEGMENT_SIZE > TUMBLR_MAX_DATA_SIZE)) {
-                continue;
-            }
-            if (platform == "Mastodon" && (TOTAL_SEGMENTS > MASTODON_MAX_SEGMENTS || EMBEDDED_JPG_SIZE > MASTODON_MAX_IMAGE_SIZE)) {
-                continue;
-            }
-            if (platform == "Pixelfed" && EMBEDDED_JPG_SIZE > PIXELFED_MAX_IMAGE_SIZE) {
-                continue;
-            }
-            if ((platform == "ImgBB" || platform == "PostImage") && (EMBEDDED_JPG_SIZE > IMGBB_POSTIMAGE_MAX_IMAGE_SIZE)) {
-                continue;
-            }
-            if (platform == "ImgPile" && EMBEDDED_JPG_SIZE > IMGPILE_MAX_IMAGE_SIZE) {
-                continue;
-            }
-            if (platform == "Flickr" && EMBEDDED_JPG_SIZE > FLICKR_MAX_IMAGE_SIZE) {
-                continue;
-            }
-            filtered_platforms.emplace_back(platform);
-        }
-        if (filtered_platforms.empty()) {
-            filtered_platforms.emplace_back("\b\bUnknown!\n\n Due to the large file size of the output JPG image, I'm unaware of any\n compatible platforms that this image can be posted on. Local use only?");
-        }
-        platforms_vec.swap(filtered_platforms);
-    }
-    std::cout << "\nPlatform compatibility for output image:-\n\n";
-            
-    for (const auto& s : platforms_vec) {
-        std::cout << " ✓ "<< s << '\n' ;
-    }    
+        std::erase_if(platforms_vec, [&](const std::string& platform) {
+    		if (platform == "X-Twitter" && (FIRST_SEGMENT_SIZE > TWITTER_MAX_DATA_SIZE || EMBEDDED_JPG_SIZE > TWITTER_MAX_IMAGE_SIZE)) {
+        		return true; 
+    		}
+    		if (platform == "Tumblr" && FIRST_SEGMENT_SIZE > TUMBLR_MAX_DATA_SIZE) {
+        		return true; 
+    		}
+    		if (platform == "Mastodon" && (TOTAL_SEGMENTS > MASTODON_MAX_SEGMENTS || EMBEDDED_JPG_SIZE > MASTODON_MAX_IMAGE_SIZE)) {
+        		return true;
+    		}
+    		if (platform == "Pixelfed" && EMBEDDED_JPG_SIZE > PIXELFED_MAX_IMAGE_SIZE) {
+        		return true;
+    		}
+    		if ((platform == "ImgBB" || platform == "PostImage") && EMBEDDED_JPG_SIZE > IMGBB_POSTIMAGE_MAX_IMAGE_SIZE) {
+        		return true;
+    		}
+    		if (platform == "ImgPile" && EMBEDDED_JPG_SIZE > IMGPILE_MAX_IMAGE_SIZE) {
+        		return true;
+    		}
+    		if (platform == "Flickr" && EMBEDDED_JPG_SIZE > FLICKR_MAX_IMAGE_SIZE) {
+       			return true;
+    		}	
+    		return false; 
+		});
+
+		if (platforms_vec.empty()) {
+    		platforms_vec.emplace_back("\b\bUnknown!\n\n Due to the large file size of the output JPG image, I'm unaware of any\n compatible platforms that this image can be posted on. Local use only?");
+		}
+	}
+	std::cout << "\nPlatform compatibility for output image:-\n\n";
+	for (const auto& s : platforms_vec) {
+    		std::cout << " ✓ " << s << '\n';
+	}
                 
     std::cout << "\nSaved \"file-embedded\" JPG image: " << OUTPUT_FILENAME  << " (" << EMBEDDED_JPG_SIZE << " bytes).\n";
     std::cout << "\nRecovery PIN: [***" << recovery_pin << "***]\n\nImportant: Keep your PIN safe, so that you can extract the hidden file.\n\nComplete!\n\n";
@@ -1955,5 +1952,6 @@ int main(int argc, char** argv) {
     	return 1;
     }
 }
+
 
 
