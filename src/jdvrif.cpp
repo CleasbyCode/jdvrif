@@ -639,7 +639,6 @@ static void updateBlueskySegmentValues(vBytes& segment_vec, vBytes& pshop_vec, v
         std::vector<uint8_t>().swap(xmp_vec);
     }
     
-    // RESTORED: Merge into jpg_vec and clear segment_vec.
     jpg_vec.reserve(jpg_vec.size() + segment_vec.size());    
     jpg_vec.insert(jpg_vec.begin(), std::move_iterator(segment_vec.begin()), std::move_iterator(segment_vec.end()));
     
@@ -1777,7 +1776,7 @@ static int recoverData(vBytes& jpg_vec, Mode mode, fs::path& image_file_path) {
 	const std::size_t COMPRESSION_MARKER_INDEX = isBlueskyFile ? 0x14BULL : 0x68ULL;
 	if (jpg_vec[COMPRESSION_MARKER_INDEX] == 0x58ULL) isDataCompressed = false;
 
-	if (isBlueskyFile) { // EXIF segment (FFE1) is being used instead of ICC (FFE2). Also check for PHOTOSHOP & XMP segments and their index locations.
+	if (isBlueskyFile) { // EXIF segment (FFE1) for data file storage is used instead of ICC Profile (FFE2) segment. Also check for PHOTOSHOP & XMP segments and their index locations.
     	constexpr auto 
 			PSHOP_SIG       = std::to_array<Byte>({ 0x73, 0x68, 0x6F, 0x70, 0x20, 0x33, 0x2E }),
 			XMP_CREATOR_SIG = std::to_array<Byte>({ 0x3C, 0x72, 0x64, 0x66, 0x3A, 0x6C, 0x69 });
@@ -1954,4 +1953,3 @@ int main(int argc, char** argv) {
     	return 1;
     }
 }
-
