@@ -1788,10 +1788,10 @@ static int recoverData(vBytes& jpg_vec, Mode mode, fs::path& image_file_path) {
     	if (index_opt) {
     		// Found Photoshop segment.
         	constexpr std::size_t 
-        		MAX_SINGLE_DATASET_PSHOP_SEGMENT_SIZE = 32800ULL, // If the photoshop segment size is greater than this size, we have two datasets (max).
-            	PSHOP_SEGMENT_SIZE_INDEX_DIFF 		  = 7ULL,
-            	PSHOP_FIRST_DATASET_SIZE_INDEX_DIFF   = 24ULL,
-            	PSHOP_DATASET_FILE_INDEX_DIFF 		  = 2ULL;
+        		PSHOP_DATASET_MAX_SEGMENT_SIZE 		= 32800ULL, // If the photoshop segment size is greater than this size, we have two datasets (max).
+            	PSHOP_SEGMENT_SIZE_INDEX_DIFF 		= 7ULL,
+            	PSHOP_FIRST_DATASET_SIZE_INDEX_DIFF = 24ULL,
+            	PSHOP_DATASET_FILE_INDEX_DIFF 		= 2ULL;
         
         	constexpr Byte BYTE_LENGTH = 2;
 
@@ -1805,62 +1805,62 @@ static int recoverData(vBytes& jpg_vec, Mode mode, fs::path& image_file_path) {
             	PSHOP_SEGMENT_SIZE 	 	 = static_cast<uint16_t>(getValue(view(jpg_vec), PSHOP_SEGMENT_SIZE_INDEX, BYTE_LENGTH)),
             	PSHOP_FIRST_DATASET_SIZE = static_cast<uint16_t>(getValue(view(jpg_vec), PSHOP_FIRST_DATASET_SIZE_INDEX, BYTE_LENGTH));
 
-        	constexpr std::size_t END_EXIF_DATA_INDEX_DIFF = 55ULL;
+        	constexpr std::size_t EXIF_DATA_END_INDEX_DIFF = 55ULL;
         		
-        	const std::size_t END_EXIF_DATA_INDEX = PSHOP_SIG_INDEX - END_EXIF_DATA_INDEX_DIFF;
+        	const std::size_t EXIF_DATA_END_INDEX = PSHOP_SIG_INDEX - EXIF_DATA_END_INDEX_DIFF;
 
-        	if (MAX_SINGLE_DATASET_PSHOP_SEGMENT_SIZE >= PSHOP_SEGMENT_SIZE) {
+        	if (PSHOP_DATASET_MAX_SEGMENT_SIZE >= PSHOP_SEGMENT_SIZE) {
         		// Just a single dataset. Copy it and finish here...
-        		std::copy_n(jpg_vec.begin() + PSHOP_FIRST_DATASET_FILE_INDEX, PSHOP_FIRST_DATASET_SIZE, jpg_vec.begin() + END_EXIF_DATA_INDEX);
+        		std::copy_n(jpg_vec.begin() + PSHOP_FIRST_DATASET_FILE_INDEX, PSHOP_FIRST_DATASET_SIZE, jpg_vec.begin() + EXIF_DATA_END_INDEX);
         	} else {
-				// We have a second dataset for the photoshop segment...
+				// We have a second (final) dataset for the photoshop segment...
             	vBytes pshop_tmp_vec;
             	pshop_tmp_vec.reserve(PSHOP_FIRST_DATASET_SIZE);
             	
             	pshop_tmp_vec.insert(pshop_tmp_vec.end(), jpg_vec.begin() + PSHOP_FIRST_DATASET_FILE_INDEX, jpg_vec.begin() + PSHOP_FIRST_DATASET_FILE_INDEX + PSHOP_FIRST_DATASET_SIZE);
 
-            	constexpr std::size_t PSHOP_LAST_DATASET_SIZE_INDEX_DIFF = 3ULL;
+            	constexpr std::size_t PSHOP_SECOND_DATASET_SIZE_INDEX_DIFF = 3ULL;
             			
             	const std::size_t
-                	PSHOP_LAST_DATASET_SIZE_INDEX = PSHOP_FIRST_DATASET_FILE_INDEX + PSHOP_FIRST_DATASET_SIZE + PSHOP_LAST_DATASET_SIZE_INDEX_DIFF,
-                	PSHOP_LAST_DATASET_FILE_INDEX = PSHOP_LAST_DATASET_SIZE_INDEX + PSHOP_DATASET_FILE_INDEX_DIFF;
+                	PSHOP_SECOND_DATASET_SIZE_INDEX = PSHOP_FIRST_DATASET_FILE_INDEX + PSHOP_FIRST_DATASET_SIZE + PSHOP_SECOND_DATASET_SIZE_INDEX_DIFF,
+                	PSHOP_SECOND_DATASET_FILE_INDEX = PSHOP_SECOND_DATASET_SIZE_INDEX + PSHOP_DATASET_FILE_INDEX_DIFF;
 
-            	const uint16_t PSHOP_LAST_DATASET_SIZE = static_cast<uint16_t>(getValue(view(jpg_vec), PSHOP_LAST_DATASET_SIZE_INDEX, BYTE_LENGTH));
+            	const uint16_t PSHOP_SECOND_DATASET_SIZE = static_cast<uint16_t>(getValue(view(jpg_vec), PSHOP_SECOND_DATASET_SIZE_INDEX, BYTE_LENGTH));
 
-            	pshop_tmp_vec.reserve(pshop_tmp_vec.size() + PSHOP_LAST_DATASET_SIZE);
+            	pshop_tmp_vec.reserve(pshop_tmp_vec.size() + PSHOP_SECOND_DATASET_SIZE);
             	
-            	pshop_tmp_vec.insert(pshop_tmp_vec.end(), jpg_vec.begin() + PSHOP_LAST_DATASET_FILE_INDEX, jpg_vec.begin() + PSHOP_LAST_DATASET_FILE_INDEX + PSHOP_LAST_DATASET_SIZE);
+            	pshop_tmp_vec.insert(pshop_tmp_vec.end(), jpg_vec.begin() + PSHOP_SECOND_DATASET_FILE_INDEX, jpg_vec.begin() + PSHOP_SECOND_DATASET_FILE_INDEX + PSHOP_SECOND_DATASET_SIZE);
 
 				// Now check to see if we have an XMP segment. (Always base64 data).
             	index_opt = searchSig(jpg_vec, std::span<const Byte>(XMP_CREATOR_SIG), PSHOP_XMP_SEARCH_LIMIT);
             			
             	if (!index_opt) {
-                	std::copy_n(pshop_tmp_vec.begin(), pshop_tmp_vec.size(), jpg_vec.begin() + END_EXIF_DATA_INDEX);
+                	std::copy_n(pshop_tmp_vec.begin(), pshop_tmp_vec.size(), jpg_vec.begin() + EXIF_DATA_END_INDEX);
             	} else {
 					// Found XMP segment.
                 	const std::size_t
                     	XMP_CREATOR_SIG_INDEX 	= *index_opt,
-                    	BEGIN_BASE64_DATA_INDEX = XMP_CREATOR_SIG_INDEX + SIG_LENGTH + 1ULL;
+                    	BASE64_DATA_BEGIN_INDEX = XMP_CREATOR_SIG_INDEX + SIG_LENGTH + 1ULL;
 
-                	constexpr Byte END_BASE64_DATA_SIG = 0x3C;
+                	constexpr Byte BASE64_DATA_END_SIG = 0x3C;
                 			
                 	const std::size_t 
-                		END_BASE64_DATA_SIG_INDEX = static_cast<std::size_t>(std::find(jpg_vec.begin() + BEGIN_BASE64_DATA_INDEX, jpg_vec.end(), END_BASE64_DATA_SIG) - jpg_vec.begin()),
-                		BASE64_DATA_SIZE 		  = END_BASE64_DATA_SIG_INDEX - BEGIN_BASE64_DATA_INDEX;
+                		BASE64_DATA_END_SIG_INDEX = static_cast<std::size_t>(std::find(jpg_vec.begin() + BASE64_DATA_BEGIN_INDEX, jpg_vec.end(), BASE64_DATA_END_SIG) - jpg_vec.begin()),
+                		BASE64_DATA_SIZE 		  = BASE64_DATA_END_SIG_INDEX - BASE64_DATA_BEGIN_INDEX;
                 			
-  			vBytes base64_data_vec(BASE64_DATA_SIZE);
-                	std::copy_n(jpg_vec.begin() + BEGIN_BASE64_DATA_INDEX, BASE64_DATA_SIZE, base64_data_vec.begin());
+  					vBytes base64_data_vec(BASE64_DATA_SIZE);
+                	std::copy_n(jpg_vec.begin() + BASE64_DATA_BEGIN_INDEX, BASE64_DATA_SIZE, base64_data_vec.begin());
                 			
 					// Convert the XMP base64 data segment back to binary.
                 	base64ToBinary(base64_data_vec, pshop_tmp_vec);
 
-                	constexpr std::size_t END_EXIF_DATA_INDEX_DIFF = 351ULL;
+                	constexpr std::size_t EXIF_DATA_END_INDEX_DIFF = 351ULL;
                 			
-                	const std::size_t END_EXIF_DATA_INDEX = XMP_CREATOR_SIG_INDEX - END_EXIF_DATA_INDEX_DIFF;
+                	const std::size_t EXIF_DATA_END_INDEX = XMP_CREATOR_SIG_INDEX - EXIF_DATA_END_INDEX_DIFF;
                 			
 					// Append the binary data from multiple segments (pshop (2x datasets) + xmp) to the EXIF binary segment data. We now have the complete data file.
                 	// std::copy_n(pshop_tmp_vec.begin(), pshop_tmp_vec.size(), jpg_vec.begin() + END_EXIF_DATA_INDEX);
-                	jpg_vec.insert(jpg_vec.begin() + END_EXIF_DATA_INDEX, std::move_iterator(pshop_tmp_vec.begin()), std::move_iterator(pshop_tmp_vec.end()));
+                	jpg_vec.insert(jpg_vec.begin() + EXIF_DATA_END_INDEX, std::move_iterator(pshop_tmp_vec.begin()), std::move_iterator(pshop_tmp_vec.end()));
             	}
         	}
     	}
@@ -1955,4 +1955,5 @@ int main(int argc, char** argv) {
     	return 1;
     }
 }
+
 
