@@ -290,38 +290,24 @@ struct ProgramArgs {
     }
 };
 
-// searchSig function searches a byte vector (uint8_t) for a fixed byte pattern and returns the offset of the first match, or std::nullopt if there’s no match.
-// It uses std::search on v.begin().. v.end() with the pattern given by sig.begin().. sig.end(). 
-	
-// The std::span<const uint8_t> parameter lets you pass anything contiguous - std::array, C-array, another std::vector, or a subrange, without copying. 
-// If std::search returns v.end(), the function maps that to std::nullopt; otherwise it converts the iterator difference to a size_t index.
-static std::optional<std::size_t> searchSig(const vBytes& v, std::span<const Byte> sig) {
-    constexpr std::size_t SCAN_LIMIT = 125380ULL; 
+// Default limit of 0 means "Search Whole File". 
+// Any other value means "Search ONLY up to this limit".
+static std::optional<std::size_t> searchSig(const vBytes& v, std::span<const Byte> sig, std::size_t limit = 0) {   
+	auto end_it = (limit == 0 || limit > v.size()) 
+    	? v.end() 
+    	: v.begin() + limit;
 
-    // 1. Optimization: If the file is large, try searching just the SCAN_LIMIT first.
-    // Most signatures live here in that range.
-    if (v.size() > SCAN_LIMIT) {
-        auto it = std::search(v.begin(), v.begin() + SCAN_LIMIT, sig.begin(), sig.end());
-        
-        // If found within the limit, return immediately.
-        if (it != v.begin() + SCAN_LIMIT) {
-            return static_cast<std::size_t>(it - v.begin());
-        }
-    }
-
-    // 2. Fallback: Search the whole file.
-    // We reach here if the file is small or if the fast search failed.
-    // We scan from the beginning again to ensure we catch signatures that might 
-    // straddle the byte boundary (overlapping the cut-off).
-    auto it = std::search(v.begin(), v.end(), sig.begin(), sig.end());
+    auto it = std::search(v.begin(), end_it, sig.begin(), sig.end());
     
-    if (it == v.end()) return std::nullopt;
+    if (it == end_it) return std::nullopt;
     return static_cast<std::size_t>(it - v.begin());
 }
 
 [[nodiscard]] static std::optional<uint16_t> exifOrientation(const vBytes& jpg) {
+	constexpr size_t EXIF_SEARCH_LIMIT = 4096ULL;
 	constexpr auto APP1_SIG = std::to_array<Byte>({0xFF, 0xE1});
-    auto app1_pos_opt = searchSig(jpg, APP1_SIG);
+
+	auto app1_pos_opt = searchSig(jpg, std::span<const Byte>(APP1_SIG), EXIF_SEARCH_LIMIT);
 
     if (!app1_pos_opt) return std::nullopt;
     std::size_t pos = *app1_pos_opt;
@@ -504,25 +490,39 @@ static void optimizeImage(vBytes& jpg_vec, int& width, int& height, bool hasNoOp
 
 // Writes updated values (2, 4 or 8 bytes), such as segments lengths, index/offsets values, PIN, etc. into the relevant vector index location.	
 static void updateValue(vBytes& vec, std::size_t index, std::size_t value, Byte bits) {
-	while (bits > 0) {
-		bits -= 8;
-    	vec[index++] = static_cast<uint8_t>((value >> bits) & 0xFF);
+    // Allow only 16, 32, or 64 bits.
+    if (bits != 16 && bits != 32 && bits != 64) {
+        throw std::invalid_argument("updateValue: Invalid bit length. Must be 16, 32, or 64.");
+    }
+
+    std::size_t bytes_needed = bits / 8;
+    
+    if (index + bytes_needed > vec.size()) {
+        throw std::out_of_range("updateValue: Index out of bounds.");
+    }
+
+    // Write new value to vector index location (Big Endian).
+    while (bits > 0) {
+        bits -= 8;
+        vec[index++] = static_cast<uint8_t>((value >> bits) & 0xFF);
     }
 }
 
 static std::size_t getValue(std::span<const Byte> data, std::size_t index, std::size_t length) {
-	if (length > 8 || 2 > length) {
-    	throw std::out_of_range("getValue: Invalid bytes value. 2, 4 or 8 only.");
+    // Allow only byte length of: 2, 4, or 8.
+    if (length != 2 && length != 4 && length != 8) {
+        throw std::out_of_range("getValue: Invalid bytes value. 2, 4 or 8 only.");
     }
-    	
-    if (index > data.size() || data.size() - index < length) {
-    	throw std::out_of_range("getValue: Index out of bounds");
+    
+    if (index + length > data.size()) {
+        throw std::out_of_range("getValue: Index out of bounds");
     }
-    	
+        
     std::size_t value = 0;
-    	
-    for (Byte i = 0; i < length; ++i) {
-    	value = (value << 8) | static_cast<std::size_t>(data[index + i]);
+        
+    // Reconstruct value (Big-Endian).
+    for (std::size_t i = 0; i < length; ++i) {
+        value = (value << 8) | static_cast<std::size_t>(data[index + i]);
     }
     return value; 
 }
@@ -620,12 +620,12 @@ static void updateBlueskySegmentValues(vBytes& segment_vec, vBytes& pshop_vec, v
         updateValue(xmp_vec, XMP_SIZE_FIELD_INDEX, XMP_VEC_SIZE - SIG_LENGTH, value_bit_length);
             
         // Segment order (if required, depending on data file size): EXIF --> PHOTOSHOP --> XMP.
-                        
+        constexpr size_t PSHOP_SEARCH_LIMIT =  125480ULL;             
         constexpr auto PSHOP_SEGMENT_SIG = std::to_array<Byte>({ 0x50, 0x68, 0x6F, 0x74, 0x6F, 0x73, 0x68, 0x6F, 0x70, 0x20, 0x33, 0x2E });
 
         constexpr Byte XMP_INSERT_INDEX_DIFF = 4;
                     
-        auto index_opt = searchSig(segment_vec, std::span<const Byte>(PSHOP_SEGMENT_SIG));
+        auto index_opt = searchSig(segment_vec, std::span<const Byte>(PSHOP_SEGMENT_SIG), PSHOP_SEARCH_LIMIT);
                     
         if (!index_opt) {
             throw std::runtime_error("Expected Photoshop segment signature not found! File is probably corrupt.");
@@ -1458,14 +1458,15 @@ static int concealData(vBytes& jpg_vec, Mode mode, Option option, fs::path& data
     int width = 0, height = 0;    
     
     optimizeImage(jpg_vec, width, height, hasNoOption);
-            
+	
+    constexpr size_t DQT_SEARCH_LIMIT = 100ULL;         
     constexpr auto 
         DQT1_SIG = std::to_array<Byte>({ 0xFF, 0xDB, 0x00, 0x43 }),    
         DQT2_SIG = std::to_array<Byte>({ 0xFF, 0xDB, 0x00, 0x84 });
                 
     auto 
-        dqt1 = searchSig(jpg_vec, std::span<const Byte>(DQT1_SIG)),
-        dqt2 = searchSig(jpg_vec, std::span<const Byte>(DQT2_SIG));
+        dqt1 = searchSig(jpg_vec, std::span<const Byte>(DQT1_SIG), DQT_SEARCH_LIMIT),
+        dqt2 = searchSig(jpg_vec, std::span<const Byte>(DQT2_SIG), DQT_SEARCH_LIMIT);
 
     if (!dqt1 && !dqt2) {
     	throw std::runtime_error("Image File Error: No DQT segment found (corrupt or unsupported JPG).");
@@ -1777,11 +1778,12 @@ static int recoverData(vBytes& jpg_vec, Mode mode, fs::path& image_file_path) {
 	if (jpg_vec[COMPRESSION_MARKER_INDEX] == 0x58ULL) isDataCompressed = false;
 
 	if (isBlueskyFile) { // EXIF segment (FFE1) for data file storage is used instead of ICC Profile (FFE2) segment. Also check for PHOTOSHOP & XMP segments and their index locations.
+		constexpr size_t PSHOP_XMP_SEARCH_LIMIT =  125480ULL; 
     	constexpr auto 
 			PSHOP_SIG       = std::to_array<Byte>({ 0x73, 0x68, 0x6F, 0x70, 0x20, 0x33, 0x2E }),
 			XMP_CREATOR_SIG = std::to_array<Byte>({ 0x3C, 0x72, 0x64, 0x66, 0x3A, 0x6C, 0x69 });
 
-    	index_opt = searchSig(jpg_vec, std::span<const Byte>(PSHOP_SIG));
+    	index_opt = searchSig(jpg_vec, std::span<const Byte>(PSHOP_SIG), PSHOP_XMP_SEARCH_LIMIT);
     		
     	if (index_opt) {
     		// Found Photoshop segment.
@@ -1830,7 +1832,7 @@ static int recoverData(vBytes& jpg_vec, Mode mode, fs::path& image_file_path) {
             	pshop_tmp_vec.insert(pshop_tmp_vec.end(), jpg_vec.begin() + PSHOP_LAST_DATASET_FILE_INDEX, jpg_vec.begin() + PSHOP_LAST_DATASET_FILE_INDEX + PSHOP_LAST_DATASET_SIZE);
 
 				// Now check to see if we have an XMP segment. (Always base64 data).
-            	index_opt = searchSig(jpg_vec, std::span<const Byte>(XMP_CREATOR_SIG));
+            	index_opt = searchSig(jpg_vec, std::span<const Byte>(XMP_CREATOR_SIG), PSHOP_XMP_SEARCH_LIMIT);
             			
             	if (!index_opt) {
                 	std::copy_n(pshop_tmp_vec.begin(), pshop_tmp_vec.size(), jpg_vec.begin() + END_EXIF_DATA_INDEX);
@@ -1953,3 +1955,4 @@ int main(int argc, char** argv) {
     	return 1;
     }
 }
+
