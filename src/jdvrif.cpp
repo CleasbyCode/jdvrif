@@ -1,4 +1,4 @@
-// JPG Data Vehicle (jdvrif v6.6) Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
+// JPG Data Vehicle (jdvrif v6.7) Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
 
 // Compile program (Linux):
 
@@ -71,13 +71,13 @@
 #include <cstdint>
 #include <cctype>
 #include <cstddef>
-#include <cstdlib>
 #include <cstring>
 #include <filesystem>
 #include <fstream> 
 #include <iostream>
 #include <initializer_list>
 #include <iterator> 
+#include <limits>
 #include <optional>
 #include <span>
 #include <stdexcept>
@@ -101,7 +101,7 @@ constexpr std::size_t TAG_BYTES = std::tuple_size<Tag>::value;
 enum class Mode   : unsigned char { conceal, recover };
 enum class Option : unsigned char { None, Bluesky, Reddit };
 
-enum class FileTypeCheck : uint8_t {
+enum class FileTypeCheck : Byte {
 	cover_image    = 1, // Conceal mode...
     embedded_image = 2, // Recover mode...
     data_file 	   = 3  // Conceal mode...
@@ -114,7 +114,7 @@ static constexpr auto view = [](const auto& container) -> std::span<const Byte> 
 static void displayInfo() {
 	std::cout << R"(
 
-JPG Data Vehicle (jdvrif v6.6)
+JPG Data Vehicle (jdvrif v6.7)
 Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
 
 jdvrif is a metadata “steganography-like” command-line tool used for concealing and extracting
@@ -183,10 +183,13 @@ compress especially well, such as text files.
 Modes
 ──────────────────────────
 
-conceal - Compresses, encrypts and embeds your secret data file within a JPG cover image.
+conceal - *Compresses, encrypts and embeds your secret data file within a JPG cover image.
 recover - Decrypts, uncompresses and extracts the concealed data file from a JPG cover image
           (recovery PIN required).
 
+(*Compression: If data file is already a compressed file type (based on file extension: e.g. ".zip") 
+ and the file is greater than 10MB, skip compression). 
+		
 ──────────────────────────
 Platform options for conceal mode
 ──────────────────────────
@@ -249,7 +252,9 @@ struct ProgramArgs {
 			return (i >= 0 && i < argc) ? string_view(argv[i]) : string_view{};
         };
 
-        const std::string PROG = fs::path(argv[0]).filename().string(), USAGE = "Usage: " + PROG + " conceal [-b|-r] <cover_image> <secret_file>\n\t\b" + PROG + " recover <cover_image>\n\t\b" + PROG + " --info";
+        const std::string PROG = fs::path(argv[0]).filename().string(), USAGE = "Usage: " + PROG + " conceal [-b|-r] <cover_image> <secret_file>\n\t\b" + 
+        	PROG + " recover <cover_image>\n\t\b" + 
+        	PROG + " --info";
 		
         auto die = [&]() -> void {
         	throw std::runtime_error(USAGE);
@@ -267,7 +272,7 @@ struct ProgramArgs {
         const string_view MODE = arg(1);
 
         if (MODE == "conceal") {
-        	Byte i = 2;
+        	int i = 2;
             if (arg(i) == "-b" || arg(i) == "-r") {
         		out.option = (arg(i) == "-b") ? Option::Bluesky : Option::Reddit;
             	++i;
@@ -442,7 +447,7 @@ struct TJBuffer {
 	~TJBuffer() { if (data) tjFree(data); }
 };
 
-static void optimizeImage(vBytes& jpg_vec, int& width, int& height, bool hasNoOption) {
+static void optimizeImage(vBytes& jpg_vec, int& width, int& height) {
 	if (jpg_vec.empty()) {
         throw std::runtime_error("JPG image is empty!");
     }
@@ -470,10 +475,6 @@ static void optimizeImage(vBytes& jpg_vec, int& width, int& height, bool hasNoOp
     xform.op = xop;
    
     xform.options = TJXOPT_COPYNONE | TJXOPT_TRIM;
-
-    if (hasNoOption) {
-        xform.options |= TJXOPT_PROGRESSIVE;
-    }
 	
     TJBuffer dstBuffer; 
     unsigned long dstSize = 0;
@@ -504,7 +505,7 @@ static void updateValue(vBytes& vec, std::size_t index, std::size_t value, Byte 
     // Write new value to vector index location (Big Endian).
     while (bits > 0) {
         bits -= 8;
-        vec[index++] = static_cast<uint8_t>((value >> bits) & 0xFF);
+        vec[index++] = static_cast<Byte>((value >> bits) & 0xFF);
     }
 }
 
@@ -634,15 +635,15 @@ static void updateBlueskySegmentValues(vBytes& segment_vec, vBytes& pshop_vec, v
         const std::size_t XMP_INSERT_INDEX = *index_opt - XMP_INSERT_INDEX_DIFF;
         
         segment_vec.reserve(segment_vec.size() + xmp_vec.size());                
-
-        segment_vec.insert(segment_vec.begin() + XMP_INSERT_INDEX, std::move_iterator(xmp_vec.begin()), std::move_iterator(xmp_vec.end()));
-        std::vector<uint8_t>().swap(xmp_vec);
+        segment_vec.insert(segment_vec.begin() + XMP_INSERT_INDEX, xmp_vec.begin(), xmp_vec.end());
+        
+        std::vector<Byte>().swap(xmp_vec);
     }
     
     jpg_vec.reserve(jpg_vec.size() + segment_vec.size());    
-    jpg_vec.insert(jpg_vec.begin(), std::move_iterator(segment_vec.begin()), std::move_iterator(segment_vec.end()));
+    jpg_vec.insert(jpg_vec.begin(), segment_vec.begin(), segment_vec.end());
     
-    std::vector<uint8_t>().swap(segment_vec);
+    std::vector<Byte>().swap(segment_vec);
     
     platforms_vec[0] = std::move(platforms_vec[2]);
     platforms_vec.resize(1);
@@ -663,7 +664,7 @@ static void segmentDataFile(vBytes& segment_vec, vBytes& data_vec, vBytes& jpg_v
         profile_with_data_vec_size = segment_vec.size(),
         max_first_segment_size = segment_data_size + SOI_SIG_LENGTH + SEGMENT_SIG_LENGTH + SEGMENT_HEADER_LENGTH;
         
-    // Save these two start_of_image bytes, to be restored later.
+    // Store the two start_of_image bytes, to be restored later.
     vBytes soi_bytes(segment_vec.begin(), segment_vec.begin() + SOI_SIG_LENGTH);
     
     if (profile_with_data_vec_size > max_first_segment_size) { 
@@ -682,10 +683,10 @@ static void segmentDataFile(vBytes& segment_vec, vBytes& data_vec, vBytes& jpg_v
         constexpr uint16_t SEGMENTS_TOTAL_VAL_INDEX = 0x2E0; 
         updateValue(segment_vec, SEGMENTS_TOTAL_VAL_INDEX, segments_required, value_bit_length);
 
-        // Erase the first 20 bytes of segment_vec...
+        // Erase the first 20 bytes of segment_vec. Prevents copying duplicate data...
         segment_vec.erase(segment_vec.begin(), segment_vec.begin() + (SOI_SIG_LENGTH + SEGMENT_SIG_LENGTH + SEGMENT_HEADER_LENGTH));
 
-        data_vec.reserve(profile_with_data_vec_size + (segments_required * (SEGMENT_SIG_LENGTH + SEGMENT_HEADER_LENGTH)));
+        data_vec.reserve(profile_with_data_vec_size + (segments_required * (SEGMENT_SIG_LENGTH + SEGMENT_HEADER_LENGTH)));  
         
         // ICC Profile Header...
         constexpr auto ICC_HEADER_TEMPLATE = std::to_array<Byte>({
@@ -743,8 +744,7 @@ static void segmentDataFile(vBytes& segment_vec, vBytes& data_vec, vBytes& jpg_v
         updateValue(segment_vec, SEGMENT_HEADER_SIZE_INDEX, SEGMENT_SIZE, value_bit_length);
         updateValue(segment_vec, PROFILE_SIZE_INDEX, PROFILE_SEGMENT_SIZE, value_bit_length);
                     
-        data_vec.swap(segment_vec);
-        vBytes().swap(segment_vec);
+        data_vec = std::move(segment_vec);
     }   
     constexpr uint16_t
         DEFLATED_DATA_FILE_SIZE_INDEX = 0x2E2,
@@ -757,7 +757,7 @@ static void segmentDataFile(vBytes& segment_vec, vBytes& data_vec, vBytes& jpg_v
     if (hasRedditOption) {  
         jpg_vec.insert(jpg_vec.begin(), soi_bytes.begin(), soi_bytes.begin() + SOI_SIG_LENGTH); 
 
-		// Important for Reddit. Downloading an embedded image from Reddit will result in a truncated, corrupt data file.
+		// Important for Reddit. Downloading an embedded image from Reddit can result in a truncated, corrupt data file.
 		// Add these padding bytes to prevent the data file from being truncated. The padding bytes will be reduced instead.
         constexpr std::size_t PADDING_SIZE = 8000ULL;
         vBytes padding_vec(PADDING_SIZE);
@@ -776,9 +776,9 @@ static void segmentDataFile(vBytes& segment_vec, vBytes& data_vec, vBytes& jpg_v
         
         vBytes().swap(padding_vec);
         
-        jpg_vec.insert(jpg_vec.end() - EOI_SIG_LENGTH, std::move_iterator(data_vec.begin() + EOI_SIG_LENGTH), std::move_iterator(data_vec.end()));
+        jpg_vec.insert(jpg_vec.end() - EOI_SIG_LENGTH, data_vec.begin() + EOI_SIG_LENGTH, data_vec.end());
         
-        // Just keep the Reddit compatibilty report information.
+        // Just keep the Reddit compatibilty report information from the string vector.
         platforms_vec[0] = std::move(platforms_vec[5]);
         platforms_vec.resize(1);    
     } else {     
@@ -799,10 +799,9 @@ static void segmentDataFile(vBytes& segment_vec, vBytes& data_vec, vBytes& jpg_v
             // Segment_vec has the headers + data_file. jpg_vec has the DQT + image body.
             
             segment_vec.reserve(segment_vec.size() + jpg_vec.size());
-            segment_vec.insert(segment_vec.end(), std::move_iterator(jpg_vec.begin()), std::move_iterator(jpg_vec.end()));
+            segment_vec.insert(segment_vec.end(), jpg_vec.begin(), jpg_vec.end());
            
             jpg_vec = std::move(segment_vec);
-            vBytes().swap(segment_vec);
         }
         // Else: Larger file. (>20MB). Leave it in segment_vec for spilt file writing before we write out jpg_vec.
     }
@@ -833,7 +832,7 @@ static void binaryToBase64(vBytes& tmp_xmp_vec) {
         temp_vec[j++] = (i + 1 < input_size) ? base64_table[(triple >> 6) & 0x3F] : '=';
         temp_vec[j++] = (i + 2 < input_size) ? base64_table[triple & 0x3F] : '=';
     }
-	tmp_xmp_vec.swap(temp_vec);
+    	tmp_xmp_vec = std::move(temp_vec);
 }
 
 static void base64ToBinary(vBytes& base64_data_vec, vBytes& pshop_tmp_vec) {
@@ -905,7 +904,7 @@ static void base64ToBinary(vBytes& base64_data_vec, vBytes& pshop_tmp_vec) {
     }
     // Append to output
     pshop_tmp_vec.reserve(pshop_tmp_vec.size() + binary_vec.size());
-    pshop_tmp_vec.insert(pshop_tmp_vec.end(), std::move_iterator(binary_vec.begin()), std::move_iterator(binary_vec.end()));
+    pshop_tmp_vec.insert(pshop_tmp_vec.end(), binary_vec.begin(), binary_vec.end());
 }
 								
 // Encrypt data file using the Libsodium cryptographic library
@@ -1035,14 +1034,14 @@ static std::size_t encryptDataFile(vBytes& segment_vec, vBytes& data_vec, vBytes
                         0x6D, 0x70, 0x6D, 0x65, 0x74, 0x61, 0x3E, 0x0A, 0x3C, 0x3F, 0x78, 0x70, 0x61, 0x63, 0x6B, 0x65, 0x74, 0x20, 0x65, 0x6E, 0x64,
                         0x3D, 0x22, 0x77, 0x22, 0x3F, 0x3E
                     };
-                    bluesky_xmp_vec.insert(bluesky_xmp_vec.begin() + XMP_SEGMENT_DATA_INSERT_INDEX, std::move_iterator(tmp_xmp_vec.begin()), std::move_iterator(tmp_xmp_vec.end()));
+                    bluesky_xmp_vec.insert(bluesky_xmp_vec.begin() + XMP_SEGMENT_DATA_INSERT_INDEX, tmp_xmp_vec.begin(), tmp_xmp_vec.end());
                 }
             }        
-        } else { 
-            segment_vec.insert(segment_vec.begin() + EXIF_SEGMENT_DATA_INSERT_INDEX, std::move_iterator(data_vec.begin()), std::move_iterator(data_vec.end()));
+        } else {
+			segment_vec.insert(segment_vec.begin() + EXIF_SEGMENT_DATA_INSERT_INDEX, data_vec.begin(), data_vec.end());
         }    
     } else { 
-        segment_vec.insert(segment_vec.end(), std::move_iterator(data_vec.begin()), std::move_iterator(data_vec.end()));
+       segment_vec.insert(segment_vec.end(), data_vec.begin(), data_vec.end());
     }    
     vBytes().swap(data_vec);
     constexpr Byte SODIUM_XOR_KEY_LENGTH = 8;
@@ -1379,7 +1378,7 @@ static void zlibFunc(vBytes& data_vec, Mode mode) {
         }
         inflateEnd(&strm);
     }
-    data_vec.swap(output_vec);
+    data_vec = std::move(output_vec);
 }
 
 static vBytes readFile(const fs::path& path, FileTypeCheck FileType = FileTypeCheck::data_file) {	
@@ -1457,7 +1456,7 @@ static int concealData(vBytes& jpg_vec, Mode mode, Option option, fs::path& data
             
     int width = 0, height = 0;    
     
-    optimizeImage(jpg_vec, width, height, hasNoOption);
+    optimizeImage(jpg_vec, width, height);
 	
     constexpr size_t DQT_SEARCH_LIMIT = 100ULL;         
     constexpr auto 
@@ -1484,7 +1483,7 @@ static int concealData(vBytes& jpg_vec, Mode mode, Option option, fs::path& data
     std::size_t jpg_size = jpg_vec.size(); 
     
     constexpr std::size_t
-        MAX_OPTIMIZED_IMAGE_SIZE    = 4ULL * 1024 * 1024,    
+        MAX_OPTIMIZED_IMAGE_SIZE    = 4ULL 	  * 1024 * 1024,    
         MAX_OPTIMIZED_BLUESKY_IMAGE = 805ULL  * 1024;            
         
     if (jpg_size > MAX_OPTIMIZED_IMAGE_SIZE) {
@@ -1599,7 +1598,7 @@ static int concealData(vBytes& jpg_vec, Mode mode, Option option, fs::path& data
 	if (hasBlueskyOption) {
 		// Use the EXIF segment instead of the default color profile segment to store user data.
 		// The color profile segment (FFE2) is removed by Bluesky, so we use EXIF.
-		segment_vec.swap(bluesky_exif_vec);	
+		segment_vec = std::move(bluesky_exif_vec);
 				
 		constexpr uint16_t
 			BLUESKY_VEC_HEIGHT_INDEX = 0x1F9,
@@ -1658,7 +1657,7 @@ static int concealData(vBytes& jpg_vec, Mode mode, Option option, fs::path& data
         throw std::runtime_error("Write File Error: Unable to write to file. Make sure you have WRITE permissions for this location.");
     }
     
-    // Better performance to write seperatly a vector containing a large data file, 
+    // Better performance to write separately a vector containing a large data file, 
     // instead of inserting content of one vector into the large file vector, followed by writing out the vector/file.
     // If segment_vec is large (>10MB), write it first, followed by writing jpg_vec.
     // If segment_vec is empty (Bluesky/Reddit) or small, this seperate write is skipped, as everthing 
@@ -1701,7 +1700,7 @@ static int concealData(vBytes& jpg_vec, Mode mode, Option option, fs::path& data
         vBytes().swap(segment_vec);
         vBytes().swap(jpg_vec);
         
-        std::erase_if(platforms_vec, [&](const std::string& platform) {
+		std::erase_if(platforms_vec, [&](const std::string& platform) {
     		if (platform == "X-Twitter" && (FIRST_SEGMENT_SIZE > TWITTER_MAX_DATA_SIZE || EMBEDDED_JPG_SIZE > TWITTER_MAX_IMAGE_SIZE)) {
         		return true; 
     		}
@@ -1732,9 +1731,8 @@ static int concealData(vBytes& jpg_vec, Mode mode, Option option, fs::path& data
 	}
 	std::cout << "\nPlatform compatibility for output image:-\n\n";
 	for (const auto& s : platforms_vec) {
-    		std::cout << " ✓ " << s << '\n';
-	}
-                
+    	std::cout << " ✓ " << s << '\n';
+	}        
     std::cout << "\nSaved \"file-embedded\" JPG image: " << OUTPUT_FILENAME  << " (" << EMBEDDED_JPG_SIZE << " bytes).\n";
     std::cout << "\nRecovery PIN: [***" << recovery_pin << "***]\n\nImportant: Keep your PIN safe, so that you can extract the hidden file.\n\nComplete!\n\n";
     return 0;
@@ -1756,7 +1754,6 @@ static int recoverData(vBytes& jpg_vec, Mode mode, fs::path& image_file_path) {
 	}
 			
 	const std::size_t JDVRIF_SIG_INDEX = *index_opt;
-			
 	Byte pin_attempts_val = jpg_vec[JDVRIF_SIG_INDEX + INDEX_DIFF - 1];
 			
 	bool 
@@ -1856,8 +1853,7 @@ static int recoverData(vBytes& jpg_vec, Mode mode, fs::path& image_file_path) {
                 	const std::size_t EXIF_DATA_END_INDEX = XMP_CREATOR_SIG_INDEX - EXIF_DATA_END_INDEX_DIFF;
                 			
 					// Append the binary data from multiple segments (pshop (2x datasets) + xmp) to the EXIF binary segment data. We now have the complete data file.
-                	// std::copy_n(pshop_tmp_vec.begin(), pshop_tmp_vec.size(), jpg_vec.begin() + END_EXIF_DATA_INDEX);
-                	jpg_vec.insert(jpg_vec.begin() + EXIF_DATA_END_INDEX, std::move_iterator(pshop_tmp_vec.begin()), std::move_iterator(pshop_tmp_vec.end()));
+                	jpg_vec.insert(jpg_vec.begin() + EXIF_DATA_END_INDEX, pshop_tmp_vec.begin(), pshop_tmp_vec.end());
             	}
         	}
     	}
@@ -1952,6 +1948,3 @@ int main(int argc, char** argv) {
     	return 1;
     }
 }
-
-
-
