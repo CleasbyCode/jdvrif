@@ -160,9 +160,9 @@ Platforms where size limit is measured by the combined size of cover image + com
 
 Limit measured by compressed data file size only:
 
-	• Mastodon   (~6 MB)
-	• Tumblr     (~64 KB)
-	• X-Twitter  (~10 KB)
+	• Mastodon  (~6 MB)
+	• Tumblr    (~64 KB)
+	• X-Twitter (~10 KB)
 
 For example, on Mastodon, even if your cover image is 1 MB, you can still embed a data file
 up to the ~6 MB Mastodon size limit.
@@ -1948,4 +1948,5 @@ int main(int argc, char** argv) {
     	return 1;
     }
 }
+
 
