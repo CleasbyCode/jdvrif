@@ -156,7 +156,7 @@ Platforms where size limit is measured by the combined size of cover image + com
 	• ImgBB     (32 MB)
 	• PostImage (32 MB)
 	• Reddit    (20 MB) — (use -r option).
-	• Pixelfed	(15 MB)
+	• Pixelfed  (15 MB)
 
 Limit measured by compressed data file size only:
 
@@ -1948,3 +1948,4 @@ int main(int argc, char** argv) {
     	return 1;
     }
 }
+
