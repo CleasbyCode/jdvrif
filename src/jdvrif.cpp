@@ -447,6 +447,67 @@ struct TJBuffer {
 	~TJBuffer() { if (data) tjFree(data); }
 };
 
+// Standard JPEG Luminance Quantization Table (Quality 50) in ZigZag order
+static constexpr auto STD_LUMA_QTABLE = std::to_array<Byte>({
+	16, 11, 12, 14, 12, 10, 16, 14, 13, 14, 18, 17, 16, 19, 24, 40, 
+    26, 24, 22, 22, 24, 49, 35, 37, 29, 40, 58, 51, 61, 60, 57, 51, 
+    56, 55, 64, 72, 92, 78, 64, 68, 87, 69, 55, 56, 80, 109, 81, 87, 
+    95, 98, 103, 104, 103, 62, 77, 113, 121, 112, 100, 120, 92, 101, 103, 99
+});
+
+static int estimateImageQuality(const vBytes& jpg) {
+	constexpr auto DQT_SIG = std::to_array<Byte>({0xFF, 0xDB});
+    
+    constexpr size_t DQT_SEARCH_LIMIT = 32768;
+
+    auto dqt_pos_opt = searchSig(jpg, std::span<const Byte>(DQT_SIG), DQT_SEARCH_LIMIT);
+    if (!dqt_pos_opt) return 80; 
+
+    std::size_t pos = *dqt_pos_opt;
+
+    if (pos + 4 > jpg.size()) return 80;
+
+    std::size_t 
+		length = (static_cast<std::size_t>(jpg[pos + 2]) << 8) | jpg[pos + 3],
+    	end    = pos + 2 + length;
+    
+    if (end > jpg.size()) return 80;
+
+    pos += 4; 
+
+    while (pos < end) {
+    	if (pos + 65 > end) break; 
+        Byte 
+			header 	  = jpg[pos++],
+        	precision = (header >> 4) & 0x0F,
+        	table_id  = header & 0x0F;
+		
+        if (precision == 0 && table_id == 0) {
+            double total_scale = 0.0;
+            
+            for (size_t i = 0; i < 64; ++i) {
+				double 
+					val = static_cast<double>(jpg[pos + i]),
+                	std = static_cast<double>(STD_LUMA_QTABLE[i]);
+				
+                total_scale += (val * 100.0) / std;
+            }
+        
+            total_scale /= 64.0;
+
+            if (total_scale <= 0.0) return 100;
+            
+            if (total_scale <= 100.0) {
+            	return static_cast<int>(200.0 - total_scale) / 2;
+            } else {
+            	return static_cast<int>(5000.0 / total_scale);
+            }
+        }   
+        pos += 64; 
+    }
+    return 80; 
+}
+
 static void optimizeImage(vBytes& jpg_vec, int& width, int& height) {
 	if (jpg_vec.empty()) {
         throw std::runtime_error("JPG image is empty!");
@@ -463,6 +524,15 @@ static void optimizeImage(vBytes& jpg_vec, int& width, int& height) {
         throw std::runtime_error(std::string("Image Error: ") + tjGetErrorStr2(transformer.get()));
     }
 
+	if (width < 300 && height < 300) {
+        throw std::runtime_error("Image Error: Dimensions are too small.\nFor platform compatibility, cover image must be at least 300px for both width and height.");
+    }
+
+    int estimated_quality = estimateImageQuality(jpg_vec);
+    if (estimated_quality > 97) {
+        throw std::runtime_error("Image Error: Quality too high. For platform compatibility, cover image quality must be 97 or lower.");
+    }
+	
     auto ori_opt = exifOrientation(jpg_vec);
     int xop = TJXOP_NONE;
     
@@ -1948,5 +2018,6 @@ int main(int argc, char** argv) {
     	return 1;
     }
 }
+
 
 
