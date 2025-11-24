@@ -2,7 +2,7 @@
 
 # compile_jdvrif.sh
 
-g++ -std=c++23 -O2 -march=native -pipe -Wall -Wextra -Wpedantic -DNDEBUG -s -flto=auto -fuse-linker-plugin jdvrif.cpp -lturbojpeg -lz -lsodium -o jdvrif
+g++ -std=c++23 -O3 -march=native -pipe -Wall -Wextra -Wpedantic -DNDEBUG -s -flto=auto -fuse-linker-plugin jdvrif.cpp -lturbojpeg -lz -lsodium -o jdvrif
 
 if [ $? -eq 0 ]; then
     echo "Compilation successful. Executable 'jdvrif' created."
