@@ -242,59 +242,53 @@ To correctly download images from X-Twitter or Reddit, click image within the po
 }
 
 struct ProgramArgs {
-	Mode mode{Mode::conceal};
-	Option option{Option::None};
+    Mode mode{Mode::conceal};
+    Option option{Option::None};
+    fs::path image_file_path;
+    fs::path data_file_path;
 
-	fs::path image_file_path;
-	fs::path data_file_path;
-    
-	static std::optional<ProgramArgs> parse(int argc, char** argv) {
-		using std::string_view;
+private:
+    [[noreturn]] static void die(const std::string& usage) {
+        throw std::runtime_error(usage);
+    }
 
+public:
+    static std::optional<ProgramArgs> parse(int argc, char** argv) {
+        using std::string_view;
         auto arg = [&](int i) -> string_view {
-			return (i >= 0 && i < argc) ? string_view(argv[i]) : string_view{};
+            return (i >= 0 && i < argc) ? string_view(argv[i]) : string_view{};
         };
+        const std::string PROG = fs::path(argv[0]).filename().string(), 
+            USAGE = "Usage: " + PROG + " conceal [-b|-r] <cover_image> <secret_file>\n\t\b" + 
+                PROG + " recover <cover_image>\n\t\b" + 
+                PROG + " --info";
 
-        const std::string PROG = fs::path(argv[0]).filename().string(), USAGE = "Usage: " + PROG + " conceal [-b|-r] <cover_image> <secret_file>\n\t\b" + 
-        	PROG + " recover <cover_image>\n\t\b" + 
-        	PROG + " --info";
-		
-        auto die = [&]() -> void {
-        	throw std::runtime_error(USAGE);
-        };
-
-        if (argc < 2) die();
-
+        if (argc < 2) die(USAGE);
         if (argc == 2 && arg(1) == "--info") {
-        	displayInfo();
-        	return std::nullopt;
+            displayInfo();
+            return std::nullopt;
         }
-
         ProgramArgs out{};
-
         const string_view MODE = arg(1);
-
         if (MODE == "conceal") {
-        	int i = 2;
+            int i = 2;
             if (arg(i) == "-b" || arg(i) == "-r") {
-        		out.option = (arg(i) == "-b") ? Option::Bluesky : Option::Reddit;
-            	++i;
+                out.option = (arg(i) == "-b") ? Option::Bluesky : Option::Reddit;
+                ++i;
             }
-            if (i + 1 >= argc || (i + 2) != argc) die();
-
+            if (i + 1 >= argc || (i + 2) != argc) die(USAGE);
             out.image_file_path = fs::path(arg(i));
             out.data_file_path  = fs::path(arg(i + 1));
             out.mode = Mode::conceal;
             return out;
         }
         if (MODE == "recover") {
-        	if (argc != 3) die();
-        	out.image_file_path = fs::path(arg(2));
-        	out.mode = Mode::recover;
-        	return out;
+            if (argc != 3) die(USAGE);
+            out.image_file_path = fs::path(arg(2));
+            out.mode = Mode::recover;
+            return out;
         }
-        die();
-        return out; 
+        die(USAGE);
     }
 };
 
@@ -2020,4 +2014,5 @@ int main(int argc, char** argv) {
     	return 1;
     }
 }
+
 
