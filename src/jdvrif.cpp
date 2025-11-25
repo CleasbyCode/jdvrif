@@ -1,4 +1,4 @@
-// JPG Data Vehicle (jdvrif v6.7) Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
+// JPG Data Vehicle (jdvrif v6.8) Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
 
 // Compile program (Linux):
 
@@ -96,7 +96,10 @@ using Key   = std::array<Byte, crypto_secretbox_KEYBYTES>;
 using Nonce = std::array<Byte, crypto_secretbox_NONCEBYTES>;
 using Tag   = std::array<Byte, crypto_secretbox_MACBYTES>;
 
-constexpr std::size_t TAG_BYTES = std::tuple_size<Tag>::value;
+constexpr std::size_t 
+	NO_ZLIB_COMPRESSION_ID_INDEX = 0x80ULL,
+	NO_ZLIB_COMPRESSION_ID 		 = 0x58ULL,
+	TAG_BYTES 					 = std::tuple_size<Tag>::value;
 
 enum class Mode   : unsigned char { conceal, recover };
 enum class Option : unsigned char { None, Bluesky, Reddit };
@@ -114,7 +117,7 @@ static constexpr auto view = [](const auto& container) -> std::span<const Byte> 
 static void displayInfo() {
 	std::cout << R"(
 
-JPG Data Vehicle (jdvrif v6.7)
+JPG Data Vehicle (jdvrif v6.8)
 Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
 
 jdvrif is a metadata “steganography-like” command-line tool used for concealing and extracting
@@ -194,7 +197,7 @@ recover - Decrypts, uncompresses and extracts the concealed data file from a JPG
 Platform options for conceal mode
 ──────────────────────────
 
--b (Bluesky) : Createa compatible “file-embedded” JPG images for posting on Bluesky.
+-b (Bluesky) : Creates compatible “file-embedded” JPG images for posting on Bluesky.
 
 $ jdvrif conceal -b my_image.jpg hidden.doc
 
@@ -936,7 +939,7 @@ static void base64ToBinary(vBytes& base64_data_vec, vBytes& pshop_tmp_vec) {
     };
 
     vBytes binary_vec;
-    binary_vec.reserve((input_size / 4) * 3);  
+    binary_vec.reserve(pshop_tmp_vec.size());  
 
     for (std::size_t i = 0; i < input_size; i += 4) {
     	const unsigned char 
@@ -972,8 +975,7 @@ static void base64ToBinary(vBytes& base64_data_vec, vBytes& pshop_tmp_vec) {
         if (!p2) binary_vec.emplace_back(static_cast<Byte>((triple >> 8) & 0xFF));
         if (!p3) binary_vec.emplace_back(static_cast<Byte>(triple & 0xFF));
     }
-    // Append to output
-    pshop_tmp_vec.reserve(pshop_tmp_vec.size() + binary_vec.size());
+    // Append binary data to the other recovered segments of the data file. This should now be the complete file.
     pshop_tmp_vec.insert(pshop_tmp_vec.end(), binary_vec.begin(), binary_vec.end());
 }
 								
@@ -1574,7 +1576,8 @@ static int concealData(vBytes& jpg_vec, Mode mode, Option option, fs::path& data
     if (data_filename.size() > DATA_FILENAME_MAX_LENGTH) {
         throw std::runtime_error("Data File Error: For compatibility requirements, length of data filename must not exceed 20 characters.");
     }
-  
+	
+  	// Is data file greater than 10MB and matches one of these file extensions?
     isCompressedFile = data_size > 10ULL * 1024 * 1024 && hasFileExtension(data_file_path, {".zip",".jar",".rar",".7z",".bz2",".gz",".xz",".tar",".lz",".lz4",".cab",".rpm",".deb", ".mp4",".mp3",".exe",".jpg",".jpeg",".jfif",".png",".webp",".bmp",".gif",".ogg",".flac"});
                                                 
   	// ICC color profile segment (FFE2). Default method for storing data file (in multiple segments, if required).
@@ -1690,11 +1693,11 @@ static int concealData(vBytes& jpg_vec, Mode mode, Option option, fs::path& data
     }
             
     if (isCompressedFile) {
-        std::size_t no_compression_marker_index = (hasBlueskyOption) ? 0x14BULL : 0x80ULL;
-        segment_vec[no_compression_marker_index] = 0x58ULL; 
+    	// Data file meets criteria for "already compressed", so skip zlib function and mark cover image so zlib will also be skipped during recovery.
+    	segment_vec[NO_ZLIB_COMPRESSION_ID_INDEX] = NO_ZLIB_COMPRESSION_ID; 
     } else {
-        zlibFunc(data_vec, mode);
-        data_size = data_vec.size(); 
+    	zlibFunc(data_vec, mode);
+    	data_size = data_vec.size(); 
     }
    
     constexpr std::size_t 
@@ -1833,14 +1836,14 @@ static int recoverData(vBytes& jpg_vec, Mode mode, fs::path& image_file_path) {
 	index_opt = searchSig(jpg_vec, std::span<const Byte>(ICC_PROFILE_SIG));
 	
 	if (index_opt) {
-		const std::size_t ICC_PROFILE_SIG_INDEX = *index_opt;			
-		jpg_vec.erase(jpg_vec.begin(), jpg_vec.begin() + (ICC_PROFILE_SIG_INDEX - INDEX_DIFF));		
+		constexpr std::size_t NO_ZLIB_COMPRESSION_ID_INDEX_DIFF = 0x18ULL;
+		const std::size_t ICC_PROFILE_SIG_INDEX = *index_opt;	
+				
+		jpg_vec.erase(jpg_vec.begin(), jpg_vec.begin() + (ICC_PROFILE_SIG_INDEX - INDEX_DIFF));	
+		isDataCompressed = (jpg_vec[NO_ZLIB_COMPRESSION_ID_INDEX - NO_ZLIB_COMPRESSION_ID_INDEX_DIFF] != NO_ZLIB_COMPRESSION_ID);	
 		isBlueskyFile = false;
 	}
-		
-	const std::size_t COMPRESSION_MARKER_INDEX = isBlueskyFile ? 0x14BULL : 0x68ULL;
-	if (jpg_vec[COMPRESSION_MARKER_INDEX] == 0x58ULL) isDataCompressed = false;
-
+	
 	if (isBlueskyFile) { // EXIF segment (FFE1) for data file storage is used instead of ICC Profile (FFE2) segment. Also check for PHOTOSHOP & XMP segments and their index locations.
 		constexpr size_t PSHOP_XMP_SEARCH_LIMIT =  125480ULL; 
     	constexpr auto 
@@ -1878,8 +1881,8 @@ static int recoverData(vBytes& jpg_vec, Mode mode, fs::path& image_file_path) {
         		std::copy_n(jpg_vec.begin() + PSHOP_FIRST_DATASET_FILE_INDEX, PSHOP_FIRST_DATASET_SIZE, jpg_vec.begin() + EXIF_DATA_END_INDEX);
         	} else {
 				// We have a second (final) dataset for the photoshop segment...
-            	vBytes pshop_tmp_vec;
-            	pshop_tmp_vec.reserve(PSHOP_FIRST_DATASET_SIZE);
+            	vBytes pshop_tmp_vec; // To store second pshop dataset and (if found) the xmp segment...
+            	pshop_tmp_vec.reserve(PSHOP_FIRST_DATASET_SIZE * 4ULL);
             	
             	pshop_tmp_vec.insert(pshop_tmp_vec.end(), jpg_vec.begin() + PSHOP_FIRST_DATASET_FILE_INDEX, jpg_vec.begin() + PSHOP_FIRST_DATASET_FILE_INDEX + PSHOP_FIRST_DATASET_SIZE);
 
@@ -1890,8 +1893,6 @@ static int recoverData(vBytes& jpg_vec, Mode mode, fs::path& image_file_path) {
                 	PSHOP_SECOND_DATASET_FILE_INDEX = PSHOP_SECOND_DATASET_SIZE_INDEX + PSHOP_DATASET_FILE_INDEX_DIFF;
 
             	const uint16_t PSHOP_SECOND_DATASET_SIZE = static_cast<uint16_t>(getValue(view(jpg_vec), PSHOP_SECOND_DATASET_SIZE_INDEX, BYTE_LENGTH));
-
-            	pshop_tmp_vec.reserve(pshop_tmp_vec.size() + PSHOP_SECOND_DATASET_SIZE);
             	
             	pshop_tmp_vec.insert(pshop_tmp_vec.end(), jpg_vec.begin() + PSHOP_SECOND_DATASET_FILE_INDEX, jpg_vec.begin() + PSHOP_SECOND_DATASET_FILE_INDEX + PSHOP_SECOND_DATASET_SIZE);
 
@@ -1921,8 +1922,9 @@ static int recoverData(vBytes& jpg_vec, Mode mode, fs::path& image_file_path) {
                 	constexpr std::size_t EXIF_DATA_END_INDEX_DIFF = 351ULL;
                 			
                 	const std::size_t EXIF_DATA_END_INDEX = XMP_CREATOR_SIG_INDEX - EXIF_DATA_END_INDEX_DIFF;
-                			
+					
 					// Append the binary data from multiple segments (pshop (2x datasets) + xmp) to the EXIF binary segment data. We now have the complete data file.
+                	jpg_vec.reserve(jpg_vec.size() + pshop_tmp_vec.size());			
                 	jpg_vec.insert(jpg_vec.begin() + EXIF_DATA_END_INDEX, pshop_tmp_vec.begin(), pshop_tmp_vec.end());
             	}
         	}
@@ -2018,6 +2020,4 @@ int main(int argc, char** argv) {
     	return 1;
     }
 }
-
-
 
