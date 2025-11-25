@@ -101,8 +101,8 @@ constexpr std::size_t
 	NO_ZLIB_COMPRESSION_ID 		 = 0x58ULL,
 	TAG_BYTES 					 = std::tuple_size<Tag>::value;
 
-enum class Mode   : unsigned char { conceal, recover };
-enum class Option : unsigned char { None, Bluesky, Reddit };
+enum class Mode   : Byte { conceal, recover };
+enum class Option : Byte { None, Bluesky, Reddit };
 
 enum class FileTypeCheck : Byte {
 	cover_image    = 1, // Conceal mode...
@@ -2014,5 +2014,6 @@ int main(int argc, char** argv) {
     	return 1;
     }
 }
+
 
 
