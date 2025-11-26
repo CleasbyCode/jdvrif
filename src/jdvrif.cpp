@@ -1295,10 +1295,8 @@ static std::string decryptDataFile(vBytes& jpg_vec, bool isBlueskyFile, bool& ha
 	}
 	
     // Copy the wanted bytes to the front, then resize.
-	std::copy(jpg_vec.begin() + ENCRYPTED_FILE_START_INDEX, jpg_vec.begin() + ENCRYPTED_FILE_START_INDEX + EMBEDDED_FILE_SIZE, jpg_vec.begin());
-	
+	std::memmove(jpg_vec.data(), jpg_vec.data() + ENCRYPTED_FILE_START_INDEX, EMBEDDED_FILE_SIZE);
 	jpg_vec.resize(EMBEDDED_FILE_SIZE);
-	jpg_vec.shrink_to_fit();
 	
 	bool hasNoProfileHeaders = (isBlueskyFile || !TOTAL_PROFILE_HEADER_SEGMENTS);
 			
@@ -2012,3 +2010,4 @@ int main(int argc, char** argv) {
     	return 1;
     }
 }
+
