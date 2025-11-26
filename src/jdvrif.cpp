@@ -1,4 +1,4 @@
-// JPG Data Vehicle (jdvrif v6.8) Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
+// JPG Data Vehicle (jdvrif v6.9) Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
 
 // Compile program (Linux):
 
@@ -117,7 +117,7 @@ static constexpr auto view = [](const auto& container) -> std::span<const Byte> 
 static void displayInfo() {
 	std::cout << R"(
 
-JPG Data Vehicle (jdvrif v6.8)
+JPG Data Vehicle (jdvrif v6.9)
 Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
 
 jdvrif is a metadata “steganography-like” command-line tool used for concealing and extracting
@@ -875,108 +875,105 @@ static void segmentDataFile(vBytes& segment_vec, vBytes& data_vec, vBytes& jpg_v
     vBytes().swap(data_vec);
 }
 
-static void binaryToBase64(vBytes& tmp_xmp_vec) {
-	static constexpr char base64_table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+static void binaryToBase64(std::span<const Byte> BINARY_DATA, vBytes& output_vec) {
+    const std::size_t
+		INPUT_SIZE = BINARY_DATA.size(),
+    	OUTPUT_SIZE = ((INPUT_SIZE + 2) / 3) * 4;
 
-    std::size_t 
-		input_size  = tmp_xmp_vec.size(),
-    	output_size = ((input_size + 2) / 3) * 4; 
+    static constexpr char BASE64_TABLE[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-    vBytes temp_vec(output_size); 
+    output_vec.reserve(output_vec.size() + OUTPUT_SIZE);
 
-    std::size_t j = 0;
-    						
-    for (std::size_t i = 0; i < input_size; i += 3) {
-    	const Byte 
-			octet_a = tmp_xmp_vec[i],
-        	octet_b = (i + 1 < input_size) ? tmp_xmp_vec[i + 1] : 0,
-        	octet_c = (i + 2 < input_size) ? tmp_xmp_vec[i + 2] : 0;
-        		
-        const uint32_t triple = (static_cast<uint32_t>(octet_a) << 16) | (static_cast<uint32_t>(octet_b) << 8) | octet_c;
-		
-        temp_vec[j++] = base64_table[(triple >> 18) & 0x3F];
-        temp_vec[j++] = base64_table[(triple >> 12) & 0x3F];
-        temp_vec[j++] = (i + 1 < input_size) ? base64_table[(triple >> 6) & 0x3F] : '=';
-        temp_vec[j++] = (i + 2 < input_size) ? base64_table[triple & 0x3F] : '=';
+    for (std::size_t i = 0; i < INPUT_SIZE; i += 3) {
+        const Byte 
+            OCTET_A = BINARY_DATA[i],
+            OCTET_B = (i + 1 < INPUT_SIZE) ? BINARY_DATA[i + 1] : 0,
+            OCTET_C = (i + 2 < INPUT_SIZE) ? BINARY_DATA[i + 2] : 0;
+
+        const uint32_t TRIPLE = (static_cast<uint32_t>(OCTET_A) << 16) | 
+                                (static_cast<uint32_t>(OCTET_B) << 8) | 
+                                OCTET_C;
+
+        output_vec.emplace_back(BASE64_TABLE[(TRIPLE >> 18) & 0x3F]);
+        output_vec.emplace_back(BASE64_TABLE[(TRIPLE >> 12) & 0x3F]);
+        output_vec.emplace_back((i + 1 < INPUT_SIZE) ? BASE64_TABLE[(TRIPLE >> 6) & 0x3F] : '=');
+        output_vec.emplace_back((i + 2 < INPUT_SIZE) ? BASE64_TABLE[TRIPLE & 0x3F] : '=');
     }
-    	tmp_xmp_vec = std::move(temp_vec);
 }
 
-static void base64ToBinary(vBytes& base64_data_vec, vBytes& pshop_tmp_vec) {
-	const std::size_t input_size = base64_data_vec.size();
+static void appendBase64AsBinary(std::span<const Byte> BASE64_DATA, vBytes& destination_vec) {
+    const std::size_t INPUT_SIZE = BASE64_DATA.size();
 	
-    if (input_size == 0 || (input_size % 4) != 0) {
-    	throw std::invalid_argument("Base64 input size must be a multiple of 4 and non-empty");
+    if (INPUT_SIZE == 0 || (INPUT_SIZE % 4) != 0) {
+        throw std::invalid_argument("Base64 input size must be a multiple of 4 and non-empty");
     }
 
-   	static constexpr int8_t base64_table[256] = {
-  		-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    static constexpr int8_t BASE64_TABLE[256] = {
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-       	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 62, -1, -1, -1, 63, 
+        -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+        -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 62, -1, -1, -1, 63, 
         52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1, -1, -1, -1, -1, -1, 
-       	-1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 
+        -1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 
         15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, -1, -1, -1, -1, -1, 
         -1, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 
         41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, -1, -1, -1, -1, -1, 
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-       	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-       	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-       	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
-	};
+        -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+        -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+        -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
+    };
 	
-    auto decode_val = [](unsigned char c) -> int {
-        return base64_table[c];
+    auto decode_val = [](Byte C) -> int {
+        return BASE64_TABLE[C];
     };
 
-    vBytes binary_vec;
-    binary_vec.reserve(pshop_tmp_vec.size());  
+    destination_vec.reserve(destination_vec.size() + (INPUT_SIZE * 3 / 4));
 
-    for (std::size_t i = 0; i < input_size; i += 4) {
-    	const unsigned char 
-        	c0 = base64_data_vec[i],
-        	c1 = base64_data_vec[i + 1],
-        	c2 = base64_data_vec[i + 2],
-        	c3 = base64_data_vec[i + 3];
+    for (std::size_t i = 0; i < INPUT_SIZE; i += 4) {
+        const Byte 
+            C0 = BASE64_DATA[i],
+            C1 = BASE64_DATA[i + 1],
+            C2 = BASE64_DATA[i + 2],
+            C3 = BASE64_DATA[i + 3];
+
         const bool 
-        	p2 = (c2 == '='),
-         	p3 = (c3 == '=');
+            P2 = (C2 == '='),
+            P3 = (C3 == '=');
 
-        if (p2 && !p3) {
+        if (P2 && !P3) {
             throw std::invalid_argument("Invalid Base64 padding: '==' required when third char is '='");
         }
-        if ((p2 || p3) && (i + 4 < input_size)) {
+        if ((P2 || P3) && (i + 4 < INPUT_SIZE)) {
             throw std::invalid_argument("Padding '=' may only appear in the final quartet");
         }
 
         const int 
-        	v0 = decode_val(c0),
-        	v1 = decode_val(c1),
-        	v2 = p2 ? 0 : decode_val(c2),
-        	v3 = p3 ? 0 : decode_val(c3);
+            V0 = decode_val(C0),
+            V1 = decode_val(C1),
+            V2 = P2 ? 0 : decode_val(C2),
+            V3 = P3 ? 0 : decode_val(C3);
 
-        if (v0 < 0 || v1 < 0 || (!p2 && v2 < 0) || (!p3 && v3 < 0)) {
+        if (V0 < 0 || V1 < 0 || (!P2 && V2 < 0) || (!P3 && V3 < 0)) {
             throw std::invalid_argument("Invalid Base64 character encountered");
         }
 
-        const uint32_t triple = (static_cast<uint32_t>(v0) << 18) | (static_cast<uint32_t>(v1) << 12) | (static_cast<uint32_t>(v2) << 6) | static_cast<uint32_t>(v3);
+        const uint32_t TRIPLE = (static_cast<uint32_t>(V0) << 18) | (static_cast<uint32_t>(V1) << 12) | (static_cast<uint32_t>(V2) << 6) | static_cast<uint32_t>(V3);
 
-        binary_vec.emplace_back(static_cast<Byte>((triple >> 16) & 0xFF));
+        destination_vec.emplace_back(static_cast<Byte>((TRIPLE >> 16) & 0xFF));
         
-        if (!p2) binary_vec.emplace_back(static_cast<Byte>((triple >> 8) & 0xFF));
-        if (!p3) binary_vec.emplace_back(static_cast<Byte>(triple & 0xFF));
+        if (!P2) destination_vec.emplace_back(static_cast<Byte>((TRIPLE >> 8) & 0xFF));
+        if (!P3) destination_vec.emplace_back(static_cast<Byte>(TRIPLE & 0xFF));
     }
-    // Append binary data to the other recovered segments of the data file. This should now be the complete file.
-    pshop_tmp_vec.insert(pshop_tmp_vec.end(), binary_vec.begin(), binary_vec.end());
 }
-								
+							
 // Encrypt data file using the Libsodium cryptographic library
 static std::size_t encryptDataFile(vBytes& segment_vec, vBytes& data_vec, vBytes& jpg_vec, vString& platforms_vec, std::string& data_filename, bool hasBlueskyOption, bool hasRedditOption) {
-    const std::size_t
-        DATA_FILENAME_XOR_KEY_INDEX = hasBlueskyOption ? 0x175ULL : 0x2FBULL,
+	const std::size_t
+    	DATA_FILENAME_XOR_KEY_INDEX = hasBlueskyOption ? 0x175ULL : 0x2FBULL,
         DATA_FILENAME_INDEX         = hasBlueskyOption ? 0x161ULL : 0x2E7ULL,
         SODIUM_KEY_INDEX            = hasBlueskyOption ? 0x18DULL : 0x313ULL,
         NONCE_KEY_INDEX             = hasBlueskyOption ? 0x1ADULL : 0x333ULL;
@@ -1014,101 +1011,122 @@ static std::size_t encryptDataFile(vBytes& segment_vec, vBytes& data_vec, vBytes
     }                
         
     segment_vec.reserve(segment_vec.size() + data_vec.size());
-         
-    vBytes bluesky_xmp_vec;
+  
     vBytes bluesky_pshop_vec;
+    vBytes bluesky_xmp_vec;
             
     if (hasBlueskyOption) { 
         constexpr uint16_t COMPRESSED_FILE_SIZE_INDEX = 0x1CD;
-
         constexpr std::size_t EXIF_SEGMENT_DATA_SIZE_LIMIT = 65027ULL;
         
         const std::size_t ENCRYPTED_VEC_SIZE = data_vec.size();
                              
         updateValue(segment_vec, COMPRESSED_FILE_SIZE_INDEX, ENCRYPTED_VEC_SIZE, value_bit_length);
 
-        if (ENCRYPTED_VEC_SIZE > EXIF_SEGMENT_DATA_SIZE_LIMIT) {    
+        if (ENCRYPTED_VEC_SIZE <= EXIF_SEGMENT_DATA_SIZE_LIMIT) {
+            // All data fits in EXIF segment
+            segment_vec.insert(segment_vec.begin() + EXIF_SEGMENT_DATA_INSERT_INDEX, data_vec.begin(), data_vec.end());
+        } else {
+        	// Data overflows EXIF segment — need Photoshop segment with up to 2 datasets, ~32KB each, and possibly XMP segment (XMP data stored as base64).
             segment_vec.insert(segment_vec.begin() + EXIF_SEGMENT_DATA_INSERT_INDEX, data_vec.begin(), data_vec.begin() + EXIF_SEGMENT_DATA_SIZE_LIMIT);
+
+            constexpr std::size_t
+                FIRST_DATASET_SIZE_LIMIT = 32767ULL,
+                LAST_DATASET_SIZE_LIMIT  = 32730ULL;
+            
+            constexpr Byte FIRST_DATASET_SIZE_INDEX = 0x21;
+            value_bit_length = 16;
+            
+            // Initialize Photoshop segment header and reserve max possible size
+            bluesky_pshop_vec = { 
+                0xFF, 0xED, 0x00, 0x21, 0x50, 0x68, 0x6F, 0x74, 0x6F, 0x73, 0x68, 0x6F, 0x70, 0x20, 0x33, 0x2E, 
+                0x30, 0x00, 0x38, 0x42, 0x49, 0x4D, 0x04, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x05, 0x1C, 0x08, 
+                0x0A, 0x00, 0x00
+            };
+            bluesky_pshop_vec.reserve(35 + FIRST_DATASET_SIZE_LIMIT + 5 + LAST_DATASET_SIZE_LIMIT);
 
             std::size_t 
                 remaining_data_size = ENCRYPTED_VEC_SIZE - EXIF_SEGMENT_DATA_SIZE_LIMIT,
-                data_file_index 	= EXIF_SEGMENT_DATA_SIZE_LIMIT;
+                data_file_index     = EXIF_SEGMENT_DATA_SIZE_LIMIT;
                         
-            constexpr std::size_t
-                FIRST_DATASET_SIZE_LIMIT = 32767ULL, // 0x7FFF
-                LAST_DATASET_SIZE_LIMIT  = 32730ULL; // 0x7FDA 
-                        
-            constexpr Byte FIRST_DATASET_SIZE_INDEX = 0x21;
-                        
-            value_bit_length = 16;
-                        
-            bluesky_pshop_vec = { 
-                0xFF, 0xED, 0x00, 0x21, 0x50, 0x68, 0x6F, 0x74, 0x6F, 0x73, 0x68, 0x6F, 0x70, 0x20, 0x33, 0x2E, 0x30, 0x00, 0x38, 0x42, 0x49,
-                0x4D, 0x04, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x05, 0x1C, 0x08, 0x0A, 0x00, 0x00
-            };
-                        
-            const std::size_t first_copy_size = std::min(FIRST_DATASET_SIZE_LIMIT, remaining_data_size);
+            // First Photoshop dataset
+            const std::size_t FIRST_COPY_SIZE = std::min(FIRST_DATASET_SIZE_LIMIT, remaining_data_size);
             
-            updateValue(bluesky_pshop_vec, FIRST_DATASET_SIZE_INDEX, first_copy_size, value_bit_length);
-            bluesky_pshop_vec.insert(bluesky_pshop_vec.end(), data_vec.begin() + data_file_index, data_vec.begin() + data_file_index + first_copy_size);
+            updateValue(bluesky_pshop_vec, FIRST_DATASET_SIZE_INDEX, FIRST_COPY_SIZE, value_bit_length);
+            bluesky_pshop_vec.insert(bluesky_pshop_vec.end(), data_vec.begin() + data_file_index, data_vec.begin() + data_file_index + FIRST_COPY_SIZE);
                         
-            if (remaining_data_size > FIRST_DATASET_SIZE_LIMIT) {    
+            if (remaining_data_size > FIRST_DATASET_SIZE_LIMIT) {
                 remaining_data_size -= FIRST_DATASET_SIZE_LIMIT;
                 data_file_index += FIRST_DATASET_SIZE_LIMIT;
-                            
-                constexpr Byte DATASET_SIZE_INDEX = 3;
-                                
-                vBytes dataset_marker_vec { 0x1C, 0x08, 0x0A, 0x00, 0x00 }; 
-                            
-                const std::size_t last_copy_size = std::min(LAST_DATASET_SIZE_LIMIT, remaining_data_size);
-                updateValue(dataset_marker_vec, DATASET_SIZE_INDEX, last_copy_size, value_bit_length);
                 
-                bluesky_pshop_vec.insert(bluesky_pshop_vec.end(), dataset_marker_vec.begin(), dataset_marker_vec.end());
-                bluesky_pshop_vec.insert(bluesky_pshop_vec.end(), data_vec.begin() + data_file_index, data_vec.begin() + data_file_index + last_copy_size);
+                // Second Photoshop dataset
+                const std::size_t LAST_COPY_SIZE = std::min(LAST_DATASET_SIZE_LIMIT, remaining_data_size);
+                
+                // Inline the dataset marker with size bytes
+                const Byte DATASET_MARKER[] = { 
+                    0x1C, 0x08, 0x0A, 
+                    static_cast<Byte>((LAST_COPY_SIZE >> 8) & 0xFF),
+                    static_cast<Byte>(LAST_COPY_SIZE & 0xFF)
+                };
+                bluesky_pshop_vec.insert(bluesky_pshop_vec.end(), std::begin(DATASET_MARKER), std::end(DATASET_MARKER));
+                bluesky_pshop_vec.insert(bluesky_pshop_vec.end(), data_vec.begin() + data_file_index, data_vec.begin() + data_file_index + LAST_COPY_SIZE);
                             
-                if (remaining_data_size > LAST_DATASET_SIZE_LIMIT) {    
+                if (remaining_data_size > LAST_DATASET_SIZE_LIMIT) {
                     remaining_data_size -= LAST_DATASET_SIZE_LIMIT;
                     data_file_index += LAST_DATASET_SIZE_LIMIT;
-                                
-                    vBytes tmp_xmp_vec(remaining_data_size);
-            
-                    std::copy_n(data_vec.begin() + data_file_index, remaining_data_size, tmp_xmp_vec.begin());
-            
-                    binaryToBase64(tmp_xmp_vec);
-                        
-                    constexpr std::size_t XMP_SEGMENT_DATA_INSERT_INDEX = 0x139ULL;
-                            
+                    
+                    // XMP segment with base64-encoded data
+                    
+                    // XMP header
                     bluesky_xmp_vec = { 
-                        0xFF, 0xE1, 0x01, 0x93, 0x68, 0x74, 0x74, 0x70, 0x3A, 0x2F, 0x2F, 0x6E, 0x73, 0x2E, 0x61, 0x64, 0x6F, 0x62, 0x65, 0x2E, 0x63,
-                        0x6F, 0x6D, 0x2F, 0x78, 0x61, 0x70, 0x2F, 0x31, 0x2E, 0x30, 0x2F, 0x00, 0x3C, 0x3F, 0x78, 0x70, 0x61, 0x63, 0x6B, 0x65, 0x74,
-                        0x20, 0x62, 0x65, 0x67, 0x69, 0x6E, 0x3D, 0x22, 0x22, 0x20, 0x69, 0x64, 0x3D, 0x22, 0x57, 0x35, 0x4D, 0x30, 0x4D, 0x70, 0x43,
-                        0x65, 0x68, 0x69, 0x48, 0x7A, 0x72, 0x65, 0x53, 0x7A, 0x4E, 0x54, 0x63, 0x7A, 0x6B, 0x63, 0x39, 0x64, 0x22, 0x3F, 0x3E, 0x0A,
-                        0x3C, 0x78, 0x3A, 0x78, 0x6D, 0x70, 0x6D, 0x65, 0x74, 0x61, 0x20, 0x78, 0x6D, 0x6C, 0x6E, 0x73, 0x3A, 0x78, 0x3D, 0x22, 0x61,
-                        0x64, 0x6F, 0x62, 0x65, 0x3A, 0x6E, 0x73, 0x3A, 0x6D, 0x65, 0x74, 0x61, 0x2F, 0x22, 0x20, 0x78, 0x3A, 0x78, 0x6D, 0x70, 0x74,
-                        0x6B, 0x3D, 0x22, 0x47, 0x6F, 0x20, 0x58, 0x4D, 0x50, 0x20, 0x53, 0x44, 0x4B, 0x20, 0x31, 0x2E, 0x30, 0x22, 0x3E, 0x3C, 0x72,
-                        0x64, 0x66, 0x3A, 0x52, 0x44, 0x46, 0x20, 0x78, 0x6D, 0x6C, 0x6E, 0x73, 0x3A, 0x72, 0x64, 0x66, 0x3D, 0x22, 0x68, 0x74, 0x74,
-                        0x70, 0x3A, 0x2F, 0x2F, 0x77, 0x77, 0x77, 0x2E, 0x77, 0x33, 0x2E, 0x6F, 0x72, 0x67, 0x2F, 0x31, 0x39, 0x39, 0x39, 0x2F, 0x30,
-                        0x32, 0x2F, 0x32, 0x32, 0x2D, 0x72, 0x64, 0x66, 0x2D, 0x73, 0x79, 0x6E, 0x74, 0x61, 0x78, 0x2D, 0x6E, 0x73, 0x23, 0x22, 0x3E,
-                        0x3C, 0x72, 0x64, 0x66, 0x3A, 0x44, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6F, 0x6E, 0x20, 0x78, 0x6D, 0x6C, 0x6E,
-                        0x73, 0x3A, 0x64, 0x63, 0x3D, 0x22, 0x68, 0x74, 0x74, 0x70, 0x3A, 0x2F, 0x2F, 0x70, 0x75, 0x72, 0x6C, 0x2E, 0x6F, 0x72, 0x67,
-                        0x2F, 0x64, 0x63, 0x2F, 0x65, 0x6C, 0x65, 0x6D, 0x65, 0x6E, 0x74, 0x73, 0x2F, 0x31, 0x2E, 0x31, 0x2F, 0x22, 0x20, 0x72, 0x64,
-                        0x66, 0x3A, 0x61, 0x62, 0x6F, 0x75, 0x74, 0x3D, 0x22, 0x22, 0x3E, 0x3C, 0x64, 0x63, 0x3A, 0x63, 0x72, 0x65, 0x61, 0x74, 0x6F,
-                        0x72, 0x3E, 0x3C, 0x72, 0x64, 0x66, 0x3A, 0x53, 0x65, 0x71, 0x3E, 0x3C, 0x72, 0x64, 0x66, 0x3A, 0x6C, 0x69, 0x3E, 0x3C, 0x2F,
-                        0x72, 0x64, 0x66, 0x3A, 0x6C, 0x69, 0x3E, 0x3C, 0x2F, 0x72, 0x64, 0x66, 0x3A, 0x53, 0x65, 0x71, 0x3E, 0x3C, 0x2F, 0x64, 0x63,
-                        0x3A, 0x63, 0x72, 0x65, 0x61, 0x74, 0x6F, 0x72, 0x3E, 0x3C, 0x2F, 0x72, 0x64, 0x66, 0x3A, 0x44, 0x65, 0x73, 0x63, 0x72, 0x69,
-                        0x70, 0x74, 0x69, 0x6F, 0x6E, 0x3E, 0x3C, 0x2F, 0x72, 0x64, 0x66, 0x3A, 0x52, 0x44, 0x46, 0x3E, 0x3C, 0x2F, 0x78, 0x3A, 0x78,
-                        0x6D, 0x70, 0x6D, 0x65, 0x74, 0x61, 0x3E, 0x0A, 0x3C, 0x3F, 0x78, 0x70, 0x61, 0x63, 0x6B, 0x65, 0x74, 0x20, 0x65, 0x6E, 0x64,
-                        0x3D, 0x22, 0x77, 0x22, 0x3F, 0x3E
+                        0xFF, 0xE1, 0x01, 0x93, 0x68, 0x74, 0x74, 0x70, 0x3A, 0x2F, 0x2F, 0x6E, 0x73, 0x2E, 0x61, 0x64, 
+                        0x6F, 0x62, 0x65, 0x2E, 0x63, 0x6F, 0x6D, 0x2F, 0x78, 0x61, 0x70, 0x2F, 0x31, 0x2E, 0x30, 0x2F, 
+                        0x00, 0x3C, 0x3F, 0x78, 0x70, 0x61, 0x63, 0x6B, 0x65, 0x74, 0x20, 0x62, 0x65, 0x67, 0x69, 0x6E, 
+                        0x3D, 0x22, 0x22, 0x20, 0x69, 0x64, 0x3D, 0x22, 0x57, 0x35, 0x4D, 0x30, 0x4D, 0x70, 0x43, 0x65, 
+                        0x68, 0x69, 0x48, 0x7A, 0x72, 0x65, 0x53, 0x7A, 0x4E, 0x54, 0x63, 0x7A, 0x6B, 0x63, 0x39, 0x64, 
+                        0x22, 0x3F, 0x3E, 0x0A, 0x3C, 0x78, 0x3A, 0x78, 0x6D, 0x70, 0x6D, 0x65, 0x74, 0x61, 0x20, 0x78, 
+                        0x6D, 0x6C, 0x6E, 0x73, 0x3A, 0x78, 0x3D, 0x22, 0x61, 0x64, 0x6F, 0x62, 0x65, 0x3A, 0x6E, 0x73, 
+                        0x3A, 0x6D, 0x65, 0x74, 0x61, 0x2F, 0x22, 0x20, 0x78, 0x3A, 0x78, 0x6D, 0x70, 0x74, 0x6B, 0x3D, 
+                        0x22, 0x47, 0x6F, 0x20, 0x58, 0x4D, 0x50, 0x20, 0x53, 0x44, 0x4B, 0x20, 0x31, 0x2E, 0x30, 0x22, 
+                        0x3E, 0x3C, 0x72, 0x64, 0x66, 0x3A, 0x52, 0x44, 0x46, 0x20, 0x78, 0x6D, 0x6C, 0x6E, 0x73, 0x3A, 
+                        0x72, 0x64, 0x66, 0x3D, 0x22, 0x68, 0x74, 0x74, 0x70, 0x3A, 0x2F, 0x2F, 0x77, 0x77, 0x77, 0x2E, 
+                        0x77, 0x33, 0x2E, 0x6F, 0x72, 0x67, 0x2F, 0x31, 0x39, 0x39, 0x39, 0x2F, 0x30, 0x32, 0x2F, 0x32, 
+                        0x32, 0x2D, 0x72, 0x64, 0x66, 0x2D, 0x73, 0x79, 0x6E, 0x74, 0x61, 0x78, 0x2D, 0x6E, 0x73, 0x23, 
+                        0x22, 0x3E, 0x3C, 0x72, 0x64, 0x66, 0x3A, 0x44, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 
+                        0x6F, 0x6E, 0x20, 0x78, 0x6D, 0x6C, 0x6E, 0x73, 0x3A, 0x64, 0x63, 0x3D, 0x22, 0x68, 0x74, 0x74, 
+                        0x70, 0x3A, 0x2F, 0x2F, 0x70, 0x75, 0x72, 0x6C, 0x2E, 0x6F, 0x72, 0x67, 0x2F, 0x64, 0x63, 0x2F, 
+                        0x65, 0x6C, 0x65, 0x6D, 0x65, 0x6E, 0x74, 0x73, 0x2F, 0x31, 0x2E, 0x31, 0x2F, 0x22, 0x20, 0x72, 
+                        0x64, 0x66, 0x3A, 0x61, 0x62, 0x6F, 0x75, 0x74, 0x3D, 0x22, 0x22, 0x3E, 0x3C, 0x64, 0x63, 0x3A, 
+                        0x63, 0x72, 0x65, 0x61, 0x74, 0x6F, 0x72, 0x3E, 0x3C, 0x72, 0x64, 0x66, 0x3A, 0x53, 0x65, 0x71, 
+                        0x3E, 0x3C, 0x72, 0x64, 0x66, 0x3A, 0x6C, 0x69, 0x3E
                     };
-                    bluesky_xmp_vec.insert(bluesky_xmp_vec.begin() + XMP_SEGMENT_DATA_INSERT_INDEX, tmp_xmp_vec.begin(), tmp_xmp_vec.end());
-                }
-            }        
-        } else {
-			segment_vec.insert(segment_vec.begin() + EXIF_SEGMENT_DATA_INSERT_INDEX, data_vec.begin(), data_vec.end());
-        }    
+                    
+                    // Reserve space for header + base64 data + footer
+                    const std::size_t BASE64_SIZE = ((remaining_data_size + 2) / 3) * 4;
+                    bluesky_xmp_vec.reserve(bluesky_xmp_vec.size() + BASE64_SIZE + 92);
+                    
+                    // Encode remaining data as base64 and append directly
+                    std::span<const Byte> REMAINING_DATA(data_vec.data() + data_file_index, remaining_data_size);
+                    binaryToBase64(REMAINING_DATA, bluesky_xmp_vec);
+                    
+                    // Append XMP footer
+                    constexpr Byte XMP_FOOTER[] = {
+                    	0x3C, 0x2F, 0x72, 0x64, 0x66, 0x3A, 0x6C, 0x69, 0x3E, 0x3C, 0x2F, 0x72, 0x64, 0x66, 0x3A, 0x53, 
+                        0x65, 0x71, 0x3E, 0x3C, 0x2F, 0x64, 0x63, 0x3A, 0x63, 0x72, 0x65, 0x61, 0x74, 0x6F, 0x72, 0x3E, 
+                        0x3C, 0x2F, 0x72, 0x64, 0x66, 0x3A, 0x44, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6F, 
+                        0x6E, 0x3E, 0x3C, 0x2F, 0x72, 0x64, 0x66, 0x3A, 0x52, 0x44, 0x46, 0x3E, 0x3C, 0x2F, 0x78, 0x3A, 
+                        0x78, 0x6D, 0x70, 0x6D, 0x65, 0x74, 0x61, 0x3E, 0x0A, 0x3C, 0x3F, 0x78, 0x70, 0x61, 0x63, 0x6B, 
+                        0x65, 0x74, 0x20, 0x65, 0x6E, 0x64, 0x3D, 0x22, 0x77, 0x22, 0x3F, 0x3E
+                    };
+                    bluesky_xmp_vec.insert(bluesky_xmp_vec.end(), std::begin(XMP_FOOTER), std::end(XMP_FOOTER));
+                }  
+            }  
+        }  
     } else { 
-       segment_vec.insert(segment_vec.end(), data_vec.begin(), data_vec.end());
-    }    
+        // Non-Bluesky: just append data to segment_vec (ICC Profile...).
+        segment_vec.insert(segment_vec.end(), data_vec.begin(), data_vec.end());
+    }
+    
     vBytes().swap(data_vec);
     constexpr Byte SODIUM_XOR_KEY_LENGTH = 8;
     
@@ -1122,10 +1140,10 @@ static std::size_t encryptDataFile(vBytes& segment_vec, vBytes& data_vec, vBytes
     sodium_key_pos += SODIUM_XOR_KEY_LENGTH; 
     
     while (sodium_keys_length--) {   
-    	segment_vec[sodium_key_pos] ^= segment_vec[sodium_xor_key_pos++];
+        segment_vec[sodium_key_pos] ^= segment_vec[sodium_xor_key_pos++];
         sodium_key_pos++;
         if (sodium_xor_key_pos >= SODIUM_KEY_INDEX + SODIUM_XOR_KEY_LENGTH) {
-        	sodium_xor_key_pos = SODIUM_KEY_INDEX;
+            sodium_xor_key_pos = SODIUM_KEY_INDEX;
         }
     }
                 
@@ -1318,11 +1336,8 @@ static std::string decryptDataFile(vBytes& jpg_vec, bool isBlueskyFile, bool& ha
     		}
     		jpg_vec[write_pos++] = jpg_vec[read_pos++];  
 		}
-		if (hasNoProfileHeaders) {
-			jpg_vec.resize(jpg_vec.size());
-		} else {
-			jpg_vec.resize(write_pos);
-		}               
+		
+		jpg_vec.resize(write_pos);               
 		jpg_vec.shrink_to_fit();      
 			
 		if (crypto_secretbox_open_easy(jpg_vec.data(), jpg_vec.data(), jpg_vec.size(), nonce.data(), key.data()) !=0) {
@@ -1839,92 +1854,75 @@ static int recoverData(vBytes& jpg_vec, Mode mode, fs::path& image_file_path) {
 	}
 	
 	if (isBlueskyFile) { // EXIF segment (FFE1) for data file storage is used instead of ICC Profile (FFE2) segment. Also check for PHOTOSHOP & XMP segments and their index locations.
-		constexpr size_t PSHOP_XMP_SEARCH_LIMIT =  125480ULL; 
+		constexpr size_t SEARCH_LIMIT = 125480ULL; 
     	constexpr auto 
-			PSHOP_SIG       = std::to_array<Byte>({ 0x73, 0x68, 0x6F, 0x70, 0x20, 0x33, 0x2E }),
-			XMP_CREATOR_SIG = std::to_array<Byte>({ 0x3C, 0x72, 0x64, 0x66, 0x3A, 0x6C, 0x69 });
+			PSHOP_SEGMENT_SIG = std::to_array<Byte>({ 0x73, 0x68, 0x6F, 0x70, 0x20, 0x33, 0x2E }),
+			XMP_CREATOR_SIG   = std::to_array<Byte>({ 0x3C, 0x72, 0x64, 0x66, 0x3A, 0x6C, 0x69 });
 
-    	index_opt = searchSig(jpg_vec, std::span<const Byte>(PSHOP_SIG), PSHOP_XMP_SEARCH_LIMIT);
+    	index_opt = searchSig(jpg_vec, std::span<const Byte>(PSHOP_SEGMENT_SIG), SEARCH_LIMIT);
     		
     	if (index_opt) {
     		// Found Photoshop segment.
         	constexpr std::size_t 
-        		PSHOP_DATASET_MAX_SEGMENT_SIZE 		= 32800ULL, // If the photoshop segment size is greater than this size, we have two datasets (max).
-            	PSHOP_SEGMENT_SIZE_INDEX_DIFF 		= 7ULL,
-            	PSHOP_FIRST_DATASET_SIZE_INDEX_DIFF = 24ULL,
-            	PSHOP_DATASET_FILE_INDEX_DIFF 		= 2ULL;
+        		DATASET_MAX_SIZE 	      	  = 32800ULL, // If the photoshop segment size is greater than this size, we have two datasets (max).
+            	PSHOP_SEGMENT_SIZE_INDEX_DIFF = 7ULL,
+            	FIRST_DATASET_SIZE_INDEX_DIFF = 24ULL,
+            	DATASET_FILE_INDEX_DIFF       = 2ULL;
         
         	constexpr Byte BYTE_LENGTH = 2;
 
         	const std::size_t
-            	PSHOP_SIG_INDEX 			   = *index_opt,
-            	PSHOP_SEGMENT_SIZE_INDEX 	   = PSHOP_SIG_INDEX - PSHOP_SEGMENT_SIZE_INDEX_DIFF,
-            	PSHOP_FIRST_DATASET_SIZE_INDEX = PSHOP_SIG_INDEX + PSHOP_FIRST_DATASET_SIZE_INDEX_DIFF,
-            	PSHOP_FIRST_DATASET_FILE_INDEX = PSHOP_FIRST_DATASET_SIZE_INDEX + PSHOP_DATASET_FILE_INDEX_DIFF;
+            	PSHOP_SEGMENT_SIG_INDEX  = *index_opt,
+            	PSHOP_SEGMENT_SIZE_INDEX = PSHOP_SEGMENT_SIG_INDEX  - PSHOP_SEGMENT_SIZE_INDEX_DIFF,
+            	FIRST_DATASET_SIZE_INDEX = PSHOP_SEGMENT_SIG_INDEX  + FIRST_DATASET_SIZE_INDEX_DIFF,
+            	FIRST_DATASET_FILE_INDEX = FIRST_DATASET_SIZE_INDEX + DATASET_FILE_INDEX_DIFF;
 
         	const uint16_t
-            	PSHOP_SEGMENT_SIZE 	 	 = static_cast<uint16_t>(getValue(view(jpg_vec), PSHOP_SEGMENT_SIZE_INDEX, BYTE_LENGTH)),
-            	PSHOP_FIRST_DATASET_SIZE = static_cast<uint16_t>(getValue(view(jpg_vec), PSHOP_FIRST_DATASET_SIZE_INDEX, BYTE_LENGTH));
+            	PSHOP_SEGMENT_SIZE = static_cast<uint16_t>(getValue(view(jpg_vec), PSHOP_SEGMENT_SIZE_INDEX, BYTE_LENGTH)),
+            	FIRST_DATASET_SIZE = static_cast<uint16_t>(getValue(view(jpg_vec), FIRST_DATASET_SIZE_INDEX, BYTE_LENGTH));
 
-        	constexpr std::size_t EXIF_DATA_END_INDEX_DIFF = 55ULL;
-        		
-        	const std::size_t EXIF_DATA_END_INDEX = PSHOP_SIG_INDEX - EXIF_DATA_END_INDEX_DIFF;
-
-        	if (PSHOP_DATASET_MAX_SEGMENT_SIZE >= PSHOP_SEGMENT_SIZE) {
-        		// Just a single dataset. Copy it and finish here...
-        		std::copy_n(jpg_vec.begin() + PSHOP_FIRST_DATASET_FILE_INDEX, PSHOP_FIRST_DATASET_SIZE, jpg_vec.begin() + EXIF_DATA_END_INDEX);
-        	} else {
-				// We have a second (final) dataset for the photoshop segment...
-            	vBytes pshop_tmp_vec; // To store second pshop dataset and (if found) the xmp segment...
-            	pshop_tmp_vec.reserve(PSHOP_FIRST_DATASET_SIZE * 4ULL);
+			vBytes file_parts_vec; 
+            file_parts_vec.reserve(FIRST_DATASET_SIZE * 5ULL);
             	
-            	pshop_tmp_vec.insert(pshop_tmp_vec.end(), jpg_vec.begin() + PSHOP_FIRST_DATASET_FILE_INDEX, jpg_vec.begin() + PSHOP_FIRST_DATASET_FILE_INDEX + PSHOP_FIRST_DATASET_SIZE);
-
-            	constexpr std::size_t PSHOP_SECOND_DATASET_SIZE_INDEX_DIFF = 3ULL;
-            			
+            file_parts_vec.insert(file_parts_vec.end(), jpg_vec.begin() + FIRST_DATASET_FILE_INDEX, jpg_vec.begin() + FIRST_DATASET_FILE_INDEX + FIRST_DATASET_SIZE);
+            		
+            bool hasXmpSegment = false;
+            std::size_t xmp_creator_sig_index = 0;
+            	
+        	if (PSHOP_SEGMENT_SIZE > DATASET_MAX_SIZE) {
+            	constexpr std::size_t SECOND_DATASET_SIZE_INDEX_DIFF = 3ULL;		
             	const std::size_t
-                	PSHOP_SECOND_DATASET_SIZE_INDEX = PSHOP_FIRST_DATASET_FILE_INDEX + PSHOP_FIRST_DATASET_SIZE + PSHOP_SECOND_DATASET_SIZE_INDEX_DIFF,
-                	PSHOP_SECOND_DATASET_FILE_INDEX = PSHOP_SECOND_DATASET_SIZE_INDEX + PSHOP_DATASET_FILE_INDEX_DIFF;
+                	SECOND_DATASET_SIZE_INDEX = FIRST_DATASET_FILE_INDEX  + FIRST_DATASET_SIZE + SECOND_DATASET_SIZE_INDEX_DIFF,
+                	SECOND_DATASET_FILE_INDEX = SECOND_DATASET_SIZE_INDEX + DATASET_FILE_INDEX_DIFF;
 
-            	const uint16_t PSHOP_SECOND_DATASET_SIZE = static_cast<uint16_t>(getValue(view(jpg_vec), PSHOP_SECOND_DATASET_SIZE_INDEX, BYTE_LENGTH));
+            	const uint16_t SECOND_DATASET_SIZE = static_cast<uint16_t>(getValue(view(jpg_vec), SECOND_DATASET_SIZE_INDEX, BYTE_LENGTH));
             	
-            	pshop_tmp_vec.insert(pshop_tmp_vec.end(), jpg_vec.begin() + PSHOP_SECOND_DATASET_FILE_INDEX, jpg_vec.begin() + PSHOP_SECOND_DATASET_FILE_INDEX + PSHOP_SECOND_DATASET_SIZE);
+            	file_parts_vec.insert(file_parts_vec.end(), jpg_vec.begin() + SECOND_DATASET_FILE_INDEX, jpg_vec.begin() + SECOND_DATASET_FILE_INDEX + SECOND_DATASET_SIZE);
 
 				// Now check to see if we have an XMP segment. (Always base64 data).
-            	index_opt = searchSig(jpg_vec, std::span<const Byte>(XMP_CREATOR_SIG), PSHOP_XMP_SEARCH_LIMIT);
-            			
-            	if (!index_opt) {
-                	std::copy_n(pshop_tmp_vec.begin(), pshop_tmp_vec.size(), jpg_vec.begin() + EXIF_DATA_END_INDEX);
-            	} else {
-					// Found XMP segment.
-                	const std::size_t
-                    	XMP_CREATOR_SIG_INDEX 	= *index_opt,
-                    	BASE64_DATA_BEGIN_INDEX = XMP_CREATOR_SIG_INDEX + SIG_LENGTH + 1ULL;
-
-                	constexpr Byte BASE64_DATA_END_SIG = 0x3C;
+            	index_opt = searchSig(jpg_vec, std::span<const Byte>(XMP_CREATOR_SIG), SEARCH_LIMIT);
+            	if (index_opt) {
+                	hasXmpSegment = true;
+    				xmp_creator_sig_index = *index_opt;
+                		
+                    const std::size_t BASE64_BEGIN_INDEX = xmp_creator_sig_index + SIG_LENGTH + 1ULL;
+                	constexpr Byte BASE64_END_SIG = 0x3C;
                 			
                 	const std::size_t 
-                		BASE64_DATA_END_SIG_INDEX = static_cast<std::size_t>(std::find(jpg_vec.begin() + BASE64_DATA_BEGIN_INDEX, jpg_vec.end(), BASE64_DATA_END_SIG) - jpg_vec.begin()),
-                		BASE64_DATA_SIZE 		  = BASE64_DATA_END_SIG_INDEX - BASE64_DATA_BEGIN_INDEX;
+                		BASE64_END_SIG_INDEX = static_cast<std::size_t>(std::find(jpg_vec.begin() + BASE64_BEGIN_INDEX, jpg_vec.end(), BASE64_END_SIG) - jpg_vec.begin()),
+                		BASE64_SIZE 	     = BASE64_END_SIG_INDEX - BASE64_BEGIN_INDEX;
                 			
-  					vBytes base64_data_vec(BASE64_DATA_SIZE);
-                	std::copy_n(jpg_vec.begin() + BASE64_DATA_BEGIN_INDEX, BASE64_DATA_SIZE, base64_data_vec.begin());
-                			
-					// Convert the XMP base64 data segment back to binary.
-                	base64ToBinary(base64_data_vec, pshop_tmp_vec);
-
-                	constexpr std::size_t EXIF_DATA_END_INDEX_DIFF = 351ULL;
-                			
-                	const std::size_t EXIF_DATA_END_INDEX = XMP_CREATOR_SIG_INDEX - EXIF_DATA_END_INDEX_DIFF;
-					
-					// Append the binary data from multiple segments (pshop (2x datasets) + xmp) to the EXIF binary segment data. We now have the complete data file.
-                	jpg_vec.reserve(jpg_vec.size() + pshop_tmp_vec.size());			
-                	jpg_vec.insert(jpg_vec.begin() + EXIF_DATA_END_INDEX, pshop_tmp_vec.begin(), pshop_tmp_vec.end());
+					std::span<const Byte> base64_span(jpg_vec.data() + BASE64_BEGIN_INDEX, BASE64_SIZE);
+					appendBase64AsBinary(base64_span, file_parts_vec);
             	}
         	}
-    	}
-	}
-			
+        	const std::size_t 
+        		EXIF_DATA_END_INDEX_DIFF = hasXmpSegment  ? 351ULL : 55ULL,
+       			EXIF_DATA_END_INDEX 	 = (hasXmpSegment ? xmp_creator_sig_index : PSHOP_SEGMENT_SIG_INDEX) - EXIF_DATA_END_INDEX_DIFF;
+       		
+        		std::copy_n(file_parts_vec.begin(), file_parts_vec.size(), jpg_vec.begin() + EXIF_DATA_END_INDEX);
+    		}
+	}			
 	bool hasDecryptionFailed = false;
 			
 	std::string decrypted_filename = decryptDataFile(jpg_vec, isBlueskyFile, hasDecryptionFailed);
@@ -2014,6 +2012,7 @@ int main(int argc, char** argv) {
     	return 1;
     }
 }
+
 
 
 
