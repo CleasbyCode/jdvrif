@@ -456,7 +456,7 @@ static constexpr auto STD_LUMA_QTABLE = std::to_array<Byte>({
 static int estimateImageQuality(const vBytes& jpg) {
 	constexpr auto DQT_SIG = std::to_array<Byte>({0xFF, 0xDB});
     
-    constexpr size_t DQT_SEARCH_LIMIT = 32768;
+    constexpr size_t DQT_SEARCH_LIMIT = 32768ULL;
 
     auto dqt_pos_opt = searchSig(jpg, std::span<const Byte>(DQT_SIG), DQT_SEARCH_LIMIT);
     if (!dqt_pos_opt) return 80; 
@@ -653,11 +653,11 @@ static void updateBlueskySegmentValues(vBytes& segment_vec, vBytes& pshop_vec, v
     constexpr std::size_t 
     	SEGMENT_SIZE_INDEX     	  = 0x02ULL,
     	BIM_SIZE_INDEX            = 0x1CULL,
-    	BIM_SIZE_DIFF             = 28ULL,  // Consistant size difference between PSHOP segment size and 8BIM size
+    	BIM_SIZE_DIFF             = 28ULL,  	// Consistant size difference between PSHOP segment size and 8BIM size
     	SEGMENT_MARKER_BYTES_SIZE = 2ULL,
-    	PSHOP_VEC_DEFAULT_SIZE    = 35ULL,  // PSHOP segment size without user data.
-    	XMP_VEC_DEFAULT_SIZE      = 405ULL, // XMP segment size without user data.
-    	XMP_SEGMENT_SIZE_LIMIT 	  = 60033ULL;  // Size here includes segment SIG two bytes (don't count). Bluesky will strip XMP data segments greater than 60031 bytes (0xEA7F).
+    	PSHOP_VEC_DEFAULT_SIZE    = 35ULL,     	// PSHOP segment size without user data.
+    	XMP_VEC_DEFAULT_SIZE      = 405ULL,    	// XMP segment size without user data.
+    	XMP_SEGMENT_SIZE_LIMIT 	  = 60033ULL;  	// Size here includes segment SIG two bytes (don't count). Bluesky will strip XMP data segments greater than 60031 bytes (0xEA7F).
     	
     const std::size_t	
     	PSHOP_VEC_SIZE = pshop_vec.size(),
@@ -667,7 +667,7 @@ static void updateBlueskySegmentValues(vBytes& segment_vec, vBytes& pshop_vec, v
     // Segment order within image file (for compatibility reasons) EXIF --> XMP --> PHOTOSHOP.
     // If the data file size is large enough to require all three segments, XMP, even though containing the last part of the data file, will be appended after EXIF, before Photoshop.
     
-    // So we deal with XMP before Photoshop...	
+    // We deal with XMP before Photoshop...	
     // Are we using the XMP segment?
     if (XMP_VEC_SIZE > XMP_VEC_DEFAULT_SIZE) {
     	// Data file was also too large for the Photoshop segment, so we spill over again to the final available segment, XMP.             
@@ -715,9 +715,9 @@ static void segmentDataFile(vBytes& segment_vec, vBytes& data_vec, vBytes& jpg_v
     Byte value_bit_length = 16;
     
 	std::size_t 
-        segment_data_size = 65519,
-		profile_with_data_vec_size = segment_vec.size(),
-        max_first_segment_size = segment_data_size + SOI_SIG_LENGTH + SEGMENT_SIG_LENGTH + SEGMENT_HEADER_LENGTH;
+        segment_data_size 			= 65519,
+		profile_with_data_vec_size  = segment_vec.size(),
+        max_first_segment_size 		= segment_data_size + SOI_SIG_LENGTH + SEGMENT_SIG_LENGTH + SEGMENT_HEADER_LENGTH;
         
     // Store the two start_of_image bytes, to be restored later.
     vBytes soi_bytes(segment_vec.begin(), segment_vec.begin() + SOI_SIG_LENGTH);
