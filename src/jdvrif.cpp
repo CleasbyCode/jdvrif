@@ -1215,24 +1215,25 @@ static std::size_t getPin() {
 
 // Decrypt embedded data file using the Libsodium cryptographic library.
 static std::string decryptDataFile(vBytes& jpg_vec, bool isBlueskyFile, bool& hasDecryptionFailed) {
+	constexpr std::size_t SODIUM_XOR_KEY_LENGTH = 8ULL; 
 	const std::size_t 
-		SODIUM_KEY_INDEX = isBlueskyFile ? 0x18DULL : 0x2FBULL,
-		NONCE_KEY_INDEX  = isBlueskyFile ? 0x1ADULL : 0x31BULL;
+		SODIUM_KEY_INDEX 	 	 = isBlueskyFile ? 0x18D : 0x2FB,
+		NONCE_KEY_INDEX  	 	 = isBlueskyFile ? 0x1AD : 0x31B,
+		ENCRYPTED_FILENAME_INDEX = isBlueskyFile ? 0x161 : 0x2CF,
+		FILENAME_XOR_KEY_INDEX   = isBlueskyFile ? 0x175 : 0x2E3,
+		FILE_SIZE_INDEX 	 	 = isBlueskyFile ? 0x1CD : 0x2CA,
+		FILENAME_LENGTH_INDEX    = ENCRYPTED_FILENAME_INDEX - 1;
 
-	Byte 
-		sodium_keys_length = 48,
-		value_bit_length   = 64;
-			
-	std::size_t recovery_pin = getPin();
-			
-	updateValue(jpg_vec, SODIUM_KEY_INDEX, recovery_pin, value_bit_length);
-			
-	constexpr Byte SODIUM_XOR_KEY_LENGTH = 8; 
+	Byte value_bit_length = 64;
 			
 	std::size_t 
+		recovery_pin 	   = getPin(),
+		sodium_keys_length = 48,
 		sodium_xor_key_pos = SODIUM_KEY_INDEX,
 		sodium_key_pos 	   = SODIUM_KEY_INDEX + SODIUM_XOR_KEY_LENGTH;
 			
+	updateValue(jpg_vec, SODIUM_KEY_INDEX, recovery_pin, value_bit_length);
+				
 	while(sodium_keys_length--) {
 		jpg_vec[sodium_key_pos] ^= jpg_vec[sodium_xor_key_pos++];
 		sodium_key_pos++;
@@ -1246,12 +1247,6 @@ static std::string decryptDataFile(vBytes& jpg_vec, bool isBlueskyFile, bool& ha
 			
 	std::copy_n(jpg_vec.begin() + SODIUM_KEY_INDEX, key.size(), key.data());
 	std::copy_n(jpg_vec.begin() + NONCE_KEY_INDEX, nonce.size(), nonce.data());
-
-	const std::size_t
-		ENCRYPTED_FILENAME_INDEX = isBlueskyFile ? 0x161ULL : 0x2CFULL,
-		FILENAME_XOR_KEY_INDEX   = isBlueskyFile ? 0x175ULL : 0x2E3ULL,
-		FILE_SIZE_INDEX 	 	 = isBlueskyFile ? 0x1CDULL : 0x2CAULL,
-		FILENAME_LENGTH_INDEX    = ENCRYPTED_FILENAME_INDEX - 1ULL;
 		
     const Byte FILENAME_LENGTH = jpg_vec[FILENAME_LENGTH_INDEX];
 
@@ -1262,19 +1257,20 @@ static std::string decryptDataFile(vBytes& jpg_vec, bool isBlueskyFile, bool& ha
     	decrypted_filename[i] = static_cast<char>(jpg_vec[ENCRYPTED_FILENAME_INDEX + i] ^ jpg_vec[FILENAME_XOR_KEY_INDEX + i]);
     }
 			
-	constexpr uint16_t TOTAL_PROFILE_HEADER_SEGMENTS_INDEX = 0x2C8;
+	constexpr std::size_t 
+		TOTAL_PROFILE_HEADER_SEGMENTS_INDEX = 0x2C8ULL,
+		COMMON_DIFF_VAL 		    		= 65537ULL; // ICC segment spacing. Size difference between each segment profile header.
+		
 	Byte byte_length = 2;
-	
-	const std::size_t ENCRYPTED_FILE_START_INDEX = isBlueskyFile ? 0x1D1ULL : 0x33BULL;
 	
 	const uint16_t TOTAL_PROFILE_HEADER_SEGMENTS = static_cast<uint16_t>(getValue(view(jpg_vec), TOTAL_PROFILE_HEADER_SEGMENTS_INDEX, byte_length));		
 	
-	constexpr std::size_t COMMON_DIFF_VAL = 65537ULL; // ICC segment spacing. Size difference between each icc segment profile header.
 	byte_length = 4;
 	
 	const std::size_t 
-		EMBEDDED_FILE_SIZE = getValue(view(jpg_vec), FILE_SIZE_INDEX, byte_length),
-		LAST_SEGMENT_INDEX = (static_cast<std::size_t>(TOTAL_PROFILE_HEADER_SEGMENTS) - 1ULL) * COMMON_DIFF_VAL - 0x16ULL;
+		ENCRYPTED_FILE_START_INDEX = isBlueskyFile ? 0x1D1 : 0x33B,
+		EMBEDDED_FILE_SIZE 	   	   = getValue(view(jpg_vec), FILE_SIZE_INDEX, byte_length),
+		LAST_SEGMENT_INDEX 	   	   = (static_cast<std::size_t>(TOTAL_PROFILE_HEADER_SEGMENTS) - 1) * COMMON_DIFF_VAL - 0x16;
 	
 	// Check embedded data file for corruption, such as missing data segments.
 	// Why? If you post an embedded image to Mastodon, which exceeds the icc profile segment limit of 100 (~6MB), 
@@ -1303,16 +1299,16 @@ static std::string decryptDataFile(vBytes& jpg_vec, bool isBlueskyFile, bool& ha
         	return {};
     	} 	
 	} else {
-		std::size_t header_index = 0xFCB0ULL; // The first split segment profile header location, this is after the main header/icc profile, which was previously removed.
-	
 		constexpr std::size_t PROFILE_HEADER_LENGTH = 18ULL;
 		
-		const std::size_t LIMIT = jpg_vec.size();
+		const std::size_t 
+			LIMIT = jpg_vec.size(),
+			HEADER_INDEX = 0xFCB0; // The first split segment profile header location, this is after the main header/icc profile, which was previously removed.
 		
 		std::size_t  
 			read_pos    = 0,                 
 			write_pos   = 0,                 
-			next_header = header_index;		
+			next_header = HEADER_INDEX;		
 			
 		// We need to avoid including the icc segment profile headers within the decrypted output file.
 		// Because we know the total number of profile headers and their location (common difference val), 
@@ -1322,7 +1318,7 @@ static std::string decryptDataFile(vBytes& jpg_vec, bool isBlueskyFile, bool& ha
 		while (read_pos < LIMIT) {
     		if (read_pos == next_header) {
         		// Skip the header bytes.
-        		read_pos += std::min(PROFILE_HEADER_LENGTH, LIMIT - read_pos);
+        		read_pos 	+= std::min(PROFILE_HEADER_LENGTH, LIMIT - read_pos);
         		next_header += COMMON_DIFF_VAL;
         		continue;
     		}
@@ -2004,6 +2000,7 @@ int main(int argc, char** argv) {
     	return 1;
     }
 }
+
 
 
 
