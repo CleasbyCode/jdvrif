@@ -958,24 +958,24 @@ static void appendBase64AsBinary(std::span<const Byte> BASE64_DATA, vBytes& dest
         if (!P3) destination_vec.emplace_back(static_cast<Byte>(TRIPLE & 0xFF));
     }
 }
-							
+
 // Encrypt data file using the Libsodium cryptographic library
 static std::size_t encryptDataFile(vBytes& segment_vec, vBytes& data_vec, vBytes& jpg_vec, vString& platforms_vec, std::string& data_filename, bool hasBlueskyOption, bool hasRedditOption) {
 	const std::size_t
-    	DATA_FILENAME_XOR_KEY_INDEX = hasBlueskyOption ? 0x175ULL : 0x2FBULL,
-        DATA_FILENAME_INDEX         = hasBlueskyOption ? 0x161ULL : 0x2E7ULL,
-        SODIUM_KEY_INDEX            = hasBlueskyOption ? 0x18DULL : 0x313ULL,
-        NONCE_KEY_INDEX             = hasBlueskyOption ? 0x1ADULL : 0x333ULL;
+    	DATA_FILENAME_XOR_KEY_INDEX = hasBlueskyOption ? 0x175 : 0x2FB,
+        DATA_FILENAME_INDEX         = hasBlueskyOption ? 0x161 : 0x2E7,
+        SODIUM_KEY_INDEX            = hasBlueskyOption ? 0x18D : 0x313,
+        NONCE_KEY_INDEX             = hasBlueskyOption ? 0x1AD : 0x333;
         
     constexpr std::size_t EXIF_SEGMENT_DATA_INSERT_INDEX = 0x1D1ULL;
                 
-    Byte 
-        data_filename_length = segment_vec[DATA_FILENAME_INDEX - 1],
-        value_bit_length     = 32;
+    const Byte DATA_FILENAME_LENGTH = segment_vec[DATA_FILENAME_INDEX - 1];
         
-    randombytes_buf(segment_vec.data() + DATA_FILENAME_XOR_KEY_INDEX, data_filename_length);
+    Byte value_bit_length = 32;
+        
+    randombytes_buf(segment_vec.data() + DATA_FILENAME_XOR_KEY_INDEX, DATA_FILENAME_LENGTH);
 
-    std::transform(data_filename.begin(), data_filename.begin() + data_filename_length, 
+    std::transform(data_filename.begin(), data_filename.begin() + DATA_FILENAME_LENGTH, 
         segment_vec.begin() + DATA_FILENAME_XOR_KEY_INDEX, segment_vec.begin() + DATA_FILENAME_INDEX, 
             [](char a, Byte b) { return static_cast<Byte>(a) ^ b; }
     );    
@@ -986,15 +986,15 @@ static std::size_t encryptDataFile(vBytes& segment_vec, vBytes& data_vec, vBytes
     crypto_secretbox_keygen(key.data());
     randombytes_buf(nonce.data(), nonce.size());
 
-    std::copy_n(key.begin(), crypto_secretbox_KEYBYTES, segment_vec.begin() + SODIUM_KEY_INDEX);     
-    std::copy_n(nonce.begin(), crypto_secretbox_NONCEBYTES, segment_vec.begin() + NONCE_KEY_INDEX);
-    
+    std::copy(key.begin(), key.end(), segment_vec.begin() + SODIUM_KEY_INDEX);
+    std::copy(nonce.begin(), nonce.end(), segment_vec.begin() + NONCE_KEY_INDEX);
+
     const std::size_t data_length = data_vec.size();
     
     data_vec.resize(data_length + TAG_BYTES);
 
     if (crypto_secretbox_easy(data_vec.data(), data_vec.data(), data_length, nonce.data(), key.data()) != 0) {
-        sodium_memzero(key.data(),   key.size());
+    	sodium_memzero(key.data(),   key.size());
         sodium_memzero(nonce.data(), nonce.size());
         throw std::runtime_error("crypto_secretbox_easy failed");
     }                
@@ -1006,7 +1006,7 @@ static std::size_t encryptDataFile(vBytes& segment_vec, vBytes& data_vec, vBytes
             
     if (hasBlueskyOption) { 
     	constexpr std::size_t 
-        	COMPRESSED_FILE_SIZE_INDEX = 0x1CDULL,
+        	COMPRESSED_FILE_SIZE_INDEX   = 0x1CDULL,
         	EXIF_SEGMENT_DATA_SIZE_LIMIT = 65027ULL;
         
         const std::size_t ENCRYPTED_VEC_SIZE = data_vec.size();
@@ -1060,16 +1060,16 @@ static std::size_t encryptDataFile(vBytes& segment_vec, vBytes& data_vec, vBytes
                 	static_cast<Byte>((LAST_COPY_SIZE >> 8) & 0xFF),
                     static_cast<Byte>(LAST_COPY_SIZE & 0xFF)
                 };
+				
                 bluesky_pshop_vec.insert(bluesky_pshop_vec.end(), std::begin(DATASET_MARKER), std::end(DATASET_MARKER));
                 bluesky_pshop_vec.insert(bluesky_pshop_vec.end(), data_vec.begin() + data_file_index, data_vec.begin() + data_file_index + LAST_COPY_SIZE);
                             
                 if (remaining_data_size > LAST_DATASET_SIZE_LIMIT) {
                     remaining_data_size -= LAST_DATASET_SIZE_LIMIT;
                     
-                    data_file_index += LAST_DATASET_SIZE_LIMIT;
+                	data_file_index += LAST_DATASET_SIZE_LIMIT;
                     
-                    // XMP segment with base64-encoded data
-                    
+                    // XMP segment with base64-encoded data...
                     // XMP header
                     bluesky_xmp_vec = { 
                         0xFF, 0xE1, 0x01, 0x93, 0x68, 0x74, 0x74, 0x70, 0x3A, 0x2F, 0x2F, 0x6E, 0x73, 0x2E, 0x61, 0x64, 
@@ -1095,7 +1095,6 @@ static std::size_t encryptDataFile(vBytes& segment_vec, vBytes& data_vec, vBytes
                     };
                     
                     constexpr std::size_t XMP_FOOTER_SIZE = 92ULL;
-                    // Reserve space for header + base64 data + footer
                     
                     const std::size_t BASE64_SIZE = ((remaining_data_size + 2) / 3) * 4;
                     bluesky_xmp_vec.reserve(bluesky_xmp_vec.size() + BASE64_SIZE + XMP_FOOTER_SIZE);
@@ -1123,19 +1122,19 @@ static std::size_t encryptDataFile(vBytes& segment_vec, vBytes& data_vec, vBytes
     }
     
     vBytes().swap(data_vec);
-    constexpr Byte SODIUM_XOR_KEY_LENGTH = 8;
     
+    constexpr std::size_t SODIUM_XOR_KEY_LENGTH = 8ULL; 
+                   
     std::size_t 
-        pin                = getValue(view(segment_vec), SODIUM_KEY_INDEX, SODIUM_XOR_KEY_LENGTH),
+    	pin                = getValue(view(segment_vec), SODIUM_KEY_INDEX, SODIUM_XOR_KEY_LENGTH),
+        sodium_keys_length = 48,  
         sodium_xor_key_pos = SODIUM_KEY_INDEX,
         sodium_key_pos     = SODIUM_KEY_INDEX;
-
-    Byte sodium_keys_length = 48;
-    
+  
     sodium_key_pos += SODIUM_XOR_KEY_LENGTH; 
     
     while (sodium_keys_length--) {   
-        segment_vec[sodium_key_pos] ^= segment_vec[sodium_xor_key_pos++];
+    	segment_vec[sodium_key_pos] ^= segment_vec[sodium_xor_key_pos++];
         sodium_key_pos++;
         if (sodium_xor_key_pos >= SODIUM_KEY_INDEX + SODIUM_XOR_KEY_LENGTH) {
             sodium_xor_key_pos = SODIUM_KEY_INDEX;
@@ -1152,9 +1151,9 @@ static std::size_t encryptDataFile(vBytes& segment_vec, vBytes& data_vec, vBytes
     sodium_memzero(nonce.data(), nonce.size());
        
     if (hasBlueskyOption) {
-        updateBlueskySegmentValues(segment_vec, bluesky_pshop_vec, bluesky_xmp_vec, jpg_vec, platforms_vec);
+    	updateBlueskySegmentValues(segment_vec, bluesky_pshop_vec, bluesky_xmp_vec, jpg_vec, platforms_vec);
     } else {
-        segmentDataFile(segment_vec, data_vec, jpg_vec, platforms_vec, hasRedditOption);
+    	segmentDataFile(segment_vec, data_vec, jpg_vec, platforms_vec, hasRedditOption);
     }         
     return pin;
 }
@@ -2005,5 +2004,6 @@ int main(int argc, char** argv) {
     	return 1;
     }
 }
+
 
 
