@@ -811,32 +811,33 @@ static void segmentDataFile(vBytes& segment_vec, vBytes& data_vec, vBytes& jpg_v
     if (hasRedditOption) {  
     	jpg_vec.insert(jpg_vec.begin(), soi_bytes.begin(), soi_bytes.begin() + SOI_SIG_LENGTH); 
 
-		// Important for Reddit. Downloading an embedded image from Reddit can result in a truncated, corrupt data file.
-		// Add these padding bytes to prevent the data file from being truncated. The padding bytes will be reduced instead.
+		// Important for Reddit. Downloading an embedded image from Reddit can sometimes result in a truncated, corrupt data file.
+		// We add these padding bytes to help prevent the data file from being truncated. The padding bytes will be reduced instead.
         constexpr std::size_t 
-        	PADDING_SIZE = 8000ULL,
-        	EOI_SIG_LENGTH = 2ULL;
-        	
-        vBytes padding_vec(PADDING_SIZE);
-        
-        constexpr Byte 
-        	PADDING_START  = 33,
-            PADDING_RANGE  = 94;
-        
-        for (auto& byte : padding_vec) {
-        	byte = PADDING_START + static_cast<Byte>(randombytes_uniform(PADDING_RANGE));
-        }
-        
-        jpg_vec.reserve(jpg_vec.size() + PADDING_SIZE + data_vec.size());
-        jpg_vec.insert(jpg_vec.end() - EOI_SIG_LENGTH, padding_vec.begin(), padding_vec.end());
-        
-        vBytes().swap(padding_vec);
-        
-        jpg_vec.insert(jpg_vec.end() - EOI_SIG_LENGTH, data_vec.begin() + EOI_SIG_LENGTH, data_vec.end());
-        
-        // Just keep the Reddit compatibilty report information from the string vector.
-        platforms_vec[0] = std::move(platforms_vec[5]);
-        platforms_vec.resize(1);    
+       		PADDING_SIZE   = 8000ULL,
+    		EOI_SIG_LENGTH = 2ULL;
+
+		constexpr Byte 
+    		PADDING_START = 33,
+    		PADDING_RANGE = 94;
+
+		vBytes padding_vec = { 0xFF, 0xE2, 0x1F, 0x42 };
+		padding_vec.reserve(padding_vec.size() + PADDING_SIZE);
+
+		for (std::size_t i = 0; i < PADDING_SIZE; ++i) {
+    		padding_vec.emplace_back(PADDING_START + static_cast<Byte>(randombytes_uniform(PADDING_RANGE)));
+		}
+
+		jpg_vec.reserve(jpg_vec.size() + padding_vec.size() + data_vec.size());
+		jpg_vec.insert(jpg_vec.end() - EOI_SIG_LENGTH, padding_vec.begin(), padding_vec.end());
+
+		vBytes().swap(padding_vec);
+
+		jpg_vec.insert(jpg_vec.end() - EOI_SIG_LENGTH, data_vec.begin() + EOI_SIG_LENGTH, data_vec.end());
+
+		// Just keep the Reddit compatibility report information from the string vector.
+		platforms_vec[0] = std::move(platforms_vec[5]);
+		platforms_vec.resize(1);
     } else {     
     	// DEFAULT MODE (hasNoOption).
         segment_vec = std::move(data_vec);
@@ -1998,3 +1999,4 @@ int main(int argc, char** argv) {
     	return 1;
     }
 }
+
