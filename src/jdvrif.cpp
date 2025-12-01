@@ -1524,7 +1524,7 @@ static int concealData(vBytes& jpg_vec, Mode mode, Option option, fs::path& data
 	
     optimizeImage(jpg_vec, isProgressive);
 	
-    constexpr size_t DQT_SEARCH_LIMIT = 100;   
+    constexpr std::size_t DQT_SEARCH_LIMIT = 100;   
           
     constexpr auto 
     	DQT1_SIG = std::to_array<Byte>({ 0xFF, 0xDB, 0x00, 0x43 }),    
@@ -1985,3 +1985,4 @@ int main(int argc, char** argv) {
     	return 1;
     }
 }
+
