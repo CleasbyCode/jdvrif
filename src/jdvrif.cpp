@@ -1109,7 +1109,7 @@ static std::size_t encryptDataFile(vBytes& segment_vec, vBytes& data_vec, vBytes
     
     vBytes().swap(data_vec);
     
-    constexpr std::size_t SODIUM_XOR_KEY_LENGTH = 8ULL; 
+    constexpr std::size_t SODIUM_XOR_KEY_LENGTH = 8; 
                    
     std::size_t 
     	pin                = getValue(view(segment_vec), SODIUM_KEY_INDEX, SODIUM_XOR_KEY_LENGTH),
@@ -1985,4 +1985,5 @@ int main(int argc, char** argv) {
     	return 1;
     }
 }
+
 
