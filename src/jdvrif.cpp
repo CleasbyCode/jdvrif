@@ -74,6 +74,7 @@
 #include <cctype>
 #include <cstddef>
 #include <cstring>
+#include <cstdio>
 #include <filesystem>
 #include <format>
 #include <fstream> 
@@ -1924,3 +1925,4 @@ int main(int argc, char** argv) {
     }
      return 0;
 }
+
