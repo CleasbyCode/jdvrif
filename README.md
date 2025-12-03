@@ -45,8 +45,7 @@ For platforms such as ***X-Twitter*** & ***Tumblr***, which have small size limi
 ```console
 Note: Compiler support for C++23 required.
 
-user1@mx:~/Downloads/jdvrif-main/src$ sudo apt-get install libsodium-dev
-user1@mx:~/Downloads/jdvrif-main/src$ sudo apt-get install libturbojpeg0-dev
+user1@mx:~/Downloads/jdvrif-main/src$ sudo apt install libsodium-dev libturbojpeg0-dev
 user1@mx:~/Downloads/jdvrif-main/src$ chmod +x compile_jdvrif.sh
 user1@mx:~/Downloads/jdvrif-main/src$ ./compile_jdvrif.sh
 user1@mx:~/Downloads/jdvrif-main/src$ Compilation successful. Executable 'jdvrif' created.
