@@ -1927,6 +1927,10 @@ int main(int argc, char** argv) {
             throw std::runtime_error("Libsodium initialization failed!");
         }
 
+		#ifdef _WIN32
+    		SetConsoleOutputCP(CP_UTF8);  
+		#endif
+		
         auto args_opt = ProgramArgs::parse(argc, argv);
         if (!args_opt) return 0;
 
@@ -1948,5 +1952,3 @@ int main(int argc, char** argv) {
     }
      return 0;
 }
-
-
