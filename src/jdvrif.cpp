@@ -519,7 +519,7 @@ static void optimizeImage(vBytes& jpg_vec, bool isProgressive) {
   
     int width = 0, height = 0, jpegSubsamp = 0, jpegColorspace = 0;
     if (tjDecompressHeader3(transformer.get(), jpg_vec.data(), static_cast<unsigned long>(jpg_vec.size()), &width, &height, &jpegSubsamp, &jpegColorspace) != 0) {
-        throw std::runtime_error(std::string("Image Error: ") + tjGetErrorStr2(transformer.get()));
+        throw std::runtime_error(std::format("Image Error: {}", tjGetErrorStr2(transformer.get())));
     }
 
 	if (width < 300 && height < 300) {
@@ -552,7 +552,7 @@ static void optimizeImage(vBytes& jpg_vec, bool isProgressive) {
     unsigned long dstSize = 0;
 
     if (tjTransform(transformer.get(), jpg_vec.data(), static_cast<unsigned long>(jpg_vec.size()), 1, &dstBuffer.data, &dstSize, &xform, 0) != 0) {
-    	throw std::runtime_error(std::string("tjTransform: ") + tjGetErrorStr2(transformer.get()));
+    	throw std::runtime_error(std::format("tjTransform: {}", tjGetErrorStr2(transformer.get())));
     }
 
     if (xop == TJXOP_ROT90 || xop == TJXOP_ROT270 || xop == TJXOP_TRANSPOSE || xop == TJXOP_TRANSVERSE) {
@@ -1952,3 +1952,4 @@ int main(int argc, char** argv) {
     }
      return 0;
 }
+
