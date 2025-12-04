@@ -1270,6 +1270,29 @@ static std::string decryptDataFile(vBytes& jpg_vec, bool isBlueskyFile, bool& ha
         }
     }
 
+	if (isBlueskyFile) {
+    	constexpr auto EXIF_SIG = std::to_array<Byte>({0xFF, 0xE1});
+        constexpr std::size_t
+        	SEARCH_LIMIT  = 100,
+        	EXIF_MAX_SIZE = 65534;
+
+        auto index_opt = searchSig(jpg_vec, EXIF_SIG, SEARCH_LIMIT);
+
+        if (!index_opt) {
+        	throw std::runtime_error("File Extraction Error: Expected segment marker not found. Embedded data file is corrupt!");
+        }
+
+        value_byte_length = 2;
+
+        const std::size_t
+        	EXIF_SIG_INDEX    = *index_opt,
+        	EXIF_SEGMENT_SIZE = getValue(jpg_vec, EXIF_SIG_INDEX + value_byte_length, value_byte_length);
+
+    	if (EMBEDDED_FILE_SIZE >= EXIF_MAX_SIZE && EXIF_MAX_SIZE > EXIF_SEGMENT_SIZE) {
+        	throw std::runtime_error("File Extraction Error: Invalid segment size. Embedded data file is corrupt!");
+        }
+    }
+	
     std::memmove(jpg_vec.data(), jpg_vec.data() + ENCRYPTED_FILE_START_INDEX, EMBEDDED_FILE_SIZE);
     jpg_vec.resize(EMBEDDED_FILE_SIZE);
 
@@ -1925,4 +1948,5 @@ int main(int argc, char** argv) {
     }
      return 0;
 }
+
 
