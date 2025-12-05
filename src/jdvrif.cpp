@@ -1239,11 +1239,10 @@ static std::string decryptDataFile(vBytes& jpg_vec, bool isBlueskyFile, bool& ha
 
     std::size_t
         recovery_pin       = getPin(),
+		value_byte_length  = 8,
         sodium_keys_length = 48,
         sodium_xor_key_pos = SODIUM_KEY_INDEX,
         sodium_key_pos     = SODIUM_KEY_INDEX + SODIUM_XOR_KEY_LENGTH;
-
-    std::size_t value_byte_length = 8;
 
     updateValue(jpg_vec, SODIUM_KEY_INDEX, recovery_pin, value_byte_length);
 
@@ -1972,3 +1971,4 @@ int main(int argc, char** argv) {
     }
     return 0;
 }
+
