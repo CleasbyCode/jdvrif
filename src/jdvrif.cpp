@@ -522,7 +522,7 @@ static void optimizeImage(vBytes& jpg_vec, bool isProgressive) {
         throw std::runtime_error(std::format("Image Error: {}", tjGetErrorStr2(transformer.get())));
     }
 
-	if (width < 300 && height < 300) {
+	if (width < 300 || height < 300) {
         throw std::runtime_error("Image Error: Dimensions are too small.\nFor platform compatibility, cover image must be at least 300px for both width and height.");
     }
 
@@ -1952,4 +1952,5 @@ int main(int argc, char** argv) {
     }
      return 0;
 }
+
 
