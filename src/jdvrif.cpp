@@ -260,11 +260,11 @@ public:
             return (i >= 0 && i < argc) ? std::string_view(argv[i]) : std::string_view{};
         };
 
-        const std::string PROG = fs::path(argv[0]).filename().string();
-        const std::string USAGE = std::format(
-            "Usage:  {} conceal [-b|-r] <cover_image> <secret_file>\n\t{} recover <cover_image>\n\t{} --info",
-            PROG, PROG, PROG
-        );
+        constexpr std::string_view PREFIX = "Usage: ";
+        const std::string
+            PROG = fs::path(argv[0]).filename().string(),
+            INDENT(PREFIX.size(), ' '),
+            USAGE = std::format("{}{} conceal [-b|-r] <secret_file>\n""{}{} recover <cover_image>\n""{}{} --info", PREFIX, PROG, INDENT, PROG, INDENT, PROG);
 
         if (argc < 2) die(USAGE);
 
@@ -1533,7 +1533,7 @@ static int concealData(vBytes& jpg_vec, Mode mode, Option option, fs::path& data
         hasBlueskyOption = (option == Option::Bluesky),
         hasRedditOption  = (option == Option::Reddit);
 
-    vBytes data_vec = readFile(data_file_path, FileTypeCheck::data_file);
+    vBytes data_vec = readFile(data_file_path);
     std::size_t data_size = data_vec.size();
 
     isProgressive = (2 * 1024 * 1024 > data_size && hasNoOption);
@@ -1971,4 +1971,3 @@ int main(int argc, char** argv) {
     }
     return 0;
 }
-
