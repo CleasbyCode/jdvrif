@@ -933,11 +933,11 @@ static std::size_t encryptDataFile(vBytes& segment_vec, vBytes& data_vec, vBytes
     std::ranges::copy(key, segment_vec.begin() + SODIUM_KEY_INDEX);
     std::ranges::copy(nonce, segment_vec.begin() + NONCE_KEY_INDEX);
 
-    const std::size_t data_length = data_vec.size();
+    const std::size_t DATA_LENGTH = data_vec.size();
 
-    data_vec.resize(data_length + TAG_BYTES);
+    data_vec.resize(DATA_LENGTH + TAG_BYTES);
 
-    if (crypto_secretbox_easy(data_vec.data(), data_vec.data(), data_length, nonce.data(), key.data()) != 0) {
+    if (crypto_secretbox_easy(data_vec.data(), data_vec.data(), DATA_LENGTH, nonce.data(), key.data()) != 0) {
         sodium_memzero(key.data(),   key.size());
         sodium_memzero(nonce.data(), nonce.size());
         throw std::runtime_error("crypto_secretbox_easy failed");
@@ -1971,3 +1971,4 @@ int main(int argc, char** argv) {
     }
     return 0;
 }
+
