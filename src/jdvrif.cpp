@@ -1395,11 +1395,11 @@ static void zlibFunc(vBytes& data_vec, Mode mode) {
             THRESHOLD_BEST_SPEED = 500 * 1024 * 1024,
             THRESHOLD_DEFAULT    = 250 * 1024 * 1024;
 
-        const int compression_level = (input_size > THRESHOLD_BEST_SPEED)  ? Z_BEST_SPEED :
+        const int COMPRESSION_LEVEL = (input_size > THRESHOLD_BEST_SPEED)  ? Z_BEST_SPEED :
                                       (input_size > THRESHOLD_DEFAULT)     ? Z_DEFAULT_COMPRESSION :
                                                                              Z_BEST_COMPRESSION;
 
-        if (deflateInit(&strm, compression_level) != Z_OK) {
+        if (deflateInit(&strm, COMPRESSION_LEVEL) != Z_OK) {
             throw std::runtime_error("zlib: deflateInit failed");
         }
 
@@ -1971,4 +1971,5 @@ int main(int argc, char** argv) {
     }
     return 0;
 }
+
 
