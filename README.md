@@ -53,9 +53,9 @@ user1@mx:~/Downloads/jdvrif-main/src$ sudo cp jdvrif /usr/bin
 
 user1@mx:~/Desktop$ jdvrif 
 
-Usage:  jdvrif conceal [-b|-r] <cover_image> <secret_file>
-        jdvrif recover <cover_image>  
-        jdvrif --info
+Usage: jdvrif conceal [-b|-r] <cover_image> <secret_file>
+       jdvrif recover <cover_image>  
+       jdvrif --info
 
 user1@mx:~/Desktop$ jdvrif conceal your_cover_image.jpg your_secret_file.doc
 
