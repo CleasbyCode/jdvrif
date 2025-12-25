@@ -392,7 +392,7 @@ To correctly download images from X-Twitter or Reddit, click image within the po
     }
 
     // Helper: Map EXIF orientation (1-8) to TurboJPEG Transform Operations
-    int getTransformOp(uint16_t orientation) {
+    [[nodiscard]] int getTransformOp(uint16_t orientation) {
         switch (orientation) {
             case 2: return TJXOP_HFLIP;
             case 3: return TJXOP_ROT180;
@@ -403,7 +403,7 @@ To correctly download images from X-Twitter or Reddit, click image within the po
             case 8: return TJXOP_ROT270;
             default: return TJXOP_NONE;
         }
-    }
+	}
 
     // TurboJPEG. RAII wrapper for tjhandle (decompressor or compressor)
     struct TJHandle {
@@ -1971,4 +1971,5 @@ int main(int argc, char** argv) {
     }
     return 0;
 }
+
 
