@@ -266,7 +266,7 @@ To correctly download images from X-Twitter or Reddit, click image within the po
             const std::string
                 PROG = fs::path(argv[0]).filename().string(),
                 INDENT(PREFIX.size(), ' '),
-                USAGE = std::format("{}{} conceal [-b|-r] <secret_file>\n""{}{} recover <cover_image>\n""{}{} --info", PREFIX, PROG, INDENT, PROG, INDENT, PROG);
+                USAGE = std::format("{}{} conceal [-b|-r] <cover_image> <secret_file>\n""{}{} recover <cover_image>\n""{}{} --info", PREFIX, PROG, INDENT, PROG, INDENT, PROG);
 
             if (argc < 2) die(USAGE);
 
@@ -1971,5 +1971,6 @@ int main(int argc, char** argv) {
     }
     return 0;
 }
+
 
 
