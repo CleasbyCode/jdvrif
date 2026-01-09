@@ -17,7 +17,7 @@ For increased storage capacity and better security, your embedded data file is c
 
 https://github.com/user-attachments/assets/8d21cdbb-30f0-424c-aeb8-bcacca8c4255
 
-https://github.com/user-attachments/assets/762ce911-25f0-4e96-883d-b38103ebc0f6
+
 
 ## Compatible Platforms
 *Posting size limit measured by the ***combined*** size of the ***cover image*** + ***compressed data file:****  
