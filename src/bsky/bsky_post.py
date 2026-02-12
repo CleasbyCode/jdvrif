@@ -3,13 +3,13 @@
 """
 Script demonstrating how to create posts using the Bluesky API, covering most of the features and embed options.
 
-Script credit:
+Original script credit:
     This Python script is the work of Bryan Newbold:
         https://gist.github.com/bnewbold
         https://gist.github.com/bnewbold/ebc172c927b6a64d536bdf46bd5c2925
         https://bsky.app/profile/bnewbold.net
 
-Note: Updated by Grok to support hashtags in posts. Some other improvements by Claude Opus 4.5
+Note: Use of AI - Updated by Grok to support hashtags in posts. Some other improvements by Claude Opus 4.6, such as --alt-text now supports per-image alt text.
 
 To run this Python script, you need the 'requests' and 'bs4' (BeautifulSoup) packages installed.
     pip install requests beautifulsoup4
@@ -20,8 +20,10 @@ import os
 import sys
 import json
 import argparse
+from pathlib import Path
 from typing import Dict, List, Optional
 from datetime import datetime, timezone
+from urllib.parse import urljoin
 
 import requests
 from bs4 import BeautifulSoup
@@ -31,6 +33,7 @@ from bs4 import BeautifulSoup
 DEFAULT_PDS_URL = "https://bsky.social"
 MAX_IMAGES_PER_POST = 4
 MAX_IMAGE_SIZE_BYTES = 1_000_000
+MAX_POST_GRAPHEMES = 300
 
 
 def bsky_login_session(pds_url: str, handle: str, password: str) -> Dict:
@@ -228,7 +231,7 @@ def get_reply_refs(pds_url: str, parent_uri: str) -> Dict:
 
 def get_mimetype(filename: str) -> str:
     """Determine MIME type from filename extension."""
-    suffix = filename.split(".")[-1].lower()
+    suffix = Path(filename).suffix.lower().lstrip(".")
     mime_types = {
         "png": "image/png",
         "jpeg": "image/jpeg",
@@ -258,11 +261,15 @@ def upload_file(pds_url: str, access_token: str, filename: str, img_bytes: bytes
 
 
 def upload_images(
-    pds_url: str, access_token: str, image_paths: List[str], alt_text: Optional[str] = None
+    pds_url: str, access_token: str, image_paths: List[str], alt_texts: Optional[List[str]] = None
 ) -> Dict:
-    """Upload images and create an embed object."""
+    """Upload images and create an embed object.
+
+    Each image is paired with the alt text at the same index in alt_texts.
+    If alt_texts is shorter than image_paths, remaining images get empty alt text.
+    """
     images = []
-    for ip in image_paths:
+    for i, ip in enumerate(image_paths):
         with open(ip, "rb") as f:
             img_bytes = f.read()
 
@@ -271,8 +278,12 @@ def upload_images(
                 f"Image file size too large. {MAX_IMAGE_SIZE_BYTES:,} bytes maximum, got: {len(img_bytes):,}"
             )
 
+        alt = ""
+        if alt_texts and i < len(alt_texts):
+            alt = alt_texts[i]
+
         blob = upload_file(pds_url, access_token, ip, img_bytes)
-        images.append({"alt": alt_text or "", "image": blob})
+        images.append({"alt": alt, "image": blob})
 
     return {
         "$type": "app.bsky.embed.images",
@@ -307,7 +318,6 @@ def fetch_embed_url_card(pds_url: str, access_token: str, url: str) -> Dict:
         img_url = image_tag["content"]
         # Handle relative URLs
         if "://" not in img_url:
-            from urllib.parse import urljoin
             img_url = urljoin(url, img_url)
 
         try:
@@ -397,9 +407,14 @@ def create_post(args: argparse.Namespace) -> None:
         },
         timeout=30,
     )
-    print("createRecord response:", file=sys.stderr)
-    print(json.dumps(resp.json(), indent=2))
+
+    resp_body = resp.json()
+    if not resp.ok:
+        print("createRecord error response:", file=sys.stderr)
+        print(json.dumps(resp_body, indent=2), file=sys.stderr)
     resp.raise_for_status()
+
+    print(json.dumps(resp_body, indent=2))
 
 
 # ============== Tests ==============
@@ -502,7 +517,9 @@ Examples:
     )
     parser.add_argument(
         "--alt-text",
-        help="Alt text for images",
+        action="append",
+        metavar="TEXT",
+        help="Alt text for images (one per --image, in order)",
     )
     parser.add_argument(
         "--lang",
@@ -537,6 +554,11 @@ Examples:
 
     if args.image and len(args.image) > MAX_IMAGES_PER_POST:
         print(f"Error: At most {MAX_IMAGES_PER_POST} images per post.", file=sys.stderr)
+        sys.exit(1)
+
+    if args.text and len(args.text) > MAX_POST_GRAPHEMES:
+        print(f"Error: Post text exceeds {MAX_POST_GRAPHEMES} grapheme limit "
+              f"(got {len(args.text)}).", file=sys.stderr)
         sys.exit(1)
 
     try:
