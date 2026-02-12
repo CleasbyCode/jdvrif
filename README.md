@@ -46,6 +46,7 @@ Note: Compiler support for C++23 required.
 user1@mx:~/Downloads/jdvrif-main/src$ sudo apt install libsodium-dev libturbojpeg0-dev
 user1@mx:~/Downloads/jdvrif-main/src$ chmod +x compile_jdvrif.sh
 user1@mx:~/Downloads/jdvrif-main/src$ ./compile_jdvrif.sh
+user1@mx:~/Downloads/jdvrif-main/src$ Compiling jdvrif...
 user1@mx:~/Downloads/jdvrif-main/src$ Compilation successful. Executable 'jdvrif' created.
 user1@mx:~/Downloads/jdvrif-main/src$ sudo cp jdvrif /usr/bin
 
