@@ -22,21 +22,19 @@ int main(int argc, char** argv) {
         auto args_opt = ProgramArgs::parse(argc, argv);
         if (!args_opt) return 0;
 
-        ProgramArgs args = *args_opt;
+        auto& args = *args_opt;
 
-        bool isConcealMode = (args.mode == Mode::conceal);
+        vBytes jpg_vec = readFile(args.image_file_path, args.mode == Mode::conceal ? FileTypeCheck::cover_image : FileTypeCheck::embedded_image);
 
-        vBytes jpg_vec = readFile(args.image_file_path, isConcealMode ? FileTypeCheck::cover_image : FileTypeCheck::embedded_image);
-
-        if (isConcealMode) {
+        if (args.mode == Mode::conceal) {
             concealData(jpg_vec, args.mode, args.option, args.data_file_path);
         } else {
             recoverData(jpg_vec, args.mode, args.image_file_path);
         }
     }
-    catch (const std::runtime_error& e) {
+    catch (const std::exception& e) {
         std::println(std::cerr, "\n{}\n", e.what());
         return 1;
-    }
+	}
     return 0;
 }
