@@ -12,8 +12,8 @@ void zlibFunc(vBytes& data_vec, Mode mode) {
     vBytes buffer_vec(BUFSIZE);
     vBytes output_vec;
 
-    const std::size_t INPUT_SIZE = data_vec.size();
-    output_vec.reserve(INPUT_SIZE + BUFSIZE);
+    const std::size_t input_size = data_vec.size();
+    output_vec.reserve(input_size + BUFSIZE);
 
     z_stream strm{};
     strm.next_in   = data_vec.data();
@@ -21,7 +21,7 @@ void zlibFunc(vBytes& data_vec, Mode mode) {
     strm.avail_out = static_cast<uInt>(BUFSIZE);
     strm.avail_in  = 0;
 
-    std::size_t input_left = INPUT_SIZE;
+    std::size_t input_left = input_size;
 
     // RAII cleanup for the zlib stream.
     auto stream_guard = [&](auto end_fn) {
@@ -56,8 +56,8 @@ void zlibFunc(vBytes& data_vec, Mode mode) {
             THRESHOLD_DEFAULT    = 250 * 1024 * 1024;
 
         const int compression_level =
-            (INPUT_SIZE > THRESHOLD_BEST_SPEED) ? Z_BEST_SPEED :
-            (INPUT_SIZE > THRESHOLD_DEFAULT)    ? Z_DEFAULT_COMPRESSION :
+            (input_size > THRESHOLD_BEST_SPEED) ? Z_BEST_SPEED :
+            (input_size > THRESHOLD_DEFAULT)    ? Z_DEFAULT_COMPRESSION :
                                                   Z_BEST_COMPRESSION;
 
         if (deflateInit(&strm, compression_level) != Z_OK) {

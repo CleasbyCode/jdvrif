@@ -5,34 +5,34 @@
 
 void binaryToBase64(std::span<const Byte> binary_data, vBytes& output_vec) {
     const std::size_t
-        INPUT_SIZE  = binary_data.size(),
-        OUTPUT_SIZE = ((INPUT_SIZE + 2) / 3) * 4,
-        BASE_OFFSET = output_vec.size();
+        input_size  = binary_data.size(),
+        output_size = ((input_size + 2) / 3) * 4,
+        base_offset = output_vec.size();
 
     static constexpr std::string_view BASE64_TABLE = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-    output_vec.resize(BASE_OFFSET + OUTPUT_SIZE);
+    output_vec.resize(base_offset + output_size);
 
-    std::size_t out = BASE_OFFSET;
-    for (std::size_t i = 0; i < INPUT_SIZE; i += 3) {
+    std::size_t out = base_offset;
+    for (std::size_t i = 0; i < input_size; i += 3) {
         const Byte
-            A = binary_data[i],
-            B = (i + 1 < INPUT_SIZE) ? binary_data[i + 1] : 0,
-            C = (i + 2 < INPUT_SIZE) ? binary_data[i + 2] : 0;
+            a = binary_data[i],
+            b = (i + 1 < input_size) ? binary_data[i + 1] : 0,
+            c = (i + 2 < input_size) ? binary_data[i + 2] : 0;
 
-        const uint32_t triple = (static_cast<uint32_t>(A) << 16) | (static_cast<uint32_t>(B) << 8)  | C;
+        const uint32_t triple = (static_cast<uint32_t>(a) << 16) | (static_cast<uint32_t>(b) << 8)  | c;
 
         output_vec[out++] = BASE64_TABLE[(triple >> 18) & 0x3F];
         output_vec[out++] = BASE64_TABLE[(triple >> 12) & 0x3F];
-        output_vec[out++] = (i + 1 < INPUT_SIZE) ? BASE64_TABLE[(triple >> 6) & 0x3F] : '=';
-        output_vec[out++] = (i + 2 < INPUT_SIZE) ? BASE64_TABLE[triple & 0x3F] : '=';
+        output_vec[out++] = (i + 1 < input_size) ? BASE64_TABLE[(triple >> 6) & 0x3F] : '=';
+        output_vec[out++] = (i + 2 < input_size) ? BASE64_TABLE[triple & 0x3F] : '=';
     }
 }
 
 void appendBase64AsBinary(std::span<const Byte> base64_data, vBytes& destination_vec) {
-    const std::size_t INPUT_SIZE = base64_data.size();
+    const std::size_t input_size = base64_data.size();
 
-    if (INPUT_SIZE == 0 || (INPUT_SIZE % 4) != 0) {
+    if (input_size == 0 || (input_size % 4) != 0) {
         throw std::invalid_argument("Base64 input size must be a multiple of 4 and non-empty");
     }
 
@@ -55,44 +55,44 @@ void appendBase64AsBinary(std::span<const Byte> base64_data, vBytes& destination
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
     });
 
-    destination_vec.reserve(destination_vec.size() + (INPUT_SIZE * 3 / 4));
+    destination_vec.reserve(destination_vec.size() + (input_size * 3 / 4));
 
-    for (std::size_t i = 0; i < INPUT_SIZE; i += 4) {
+    for (std::size_t i = 0; i < input_size; i += 4) {
         const Byte
-            C0 = base64_data[i],
-            C1 = base64_data[i + 1],
-            C2 = base64_data[i + 2],
-            C3 = base64_data[i + 3];
+            c0 = base64_data[i],
+            c1 = base64_data[i + 1],
+            c2 = base64_data[i + 2],
+            c3 = base64_data[i + 3];
 
         const bool
-            P2 = (C2 == '='),
-            P3 = (C3 == '=');
+            p2 = (c2 == '='),
+            p3 = (c3 == '=');
 
-        if (P2 && !P3) {
+        if (p2 && !p3) {
             throw std::invalid_argument("Invalid Base64 padding: '==' required when third char is '='");
         }
-        if ((P2 || P3) && (i + 4 < INPUT_SIZE)) {
+        if ((p2 || p3) && (i + 4 < input_size)) {
             throw std::invalid_argument("Padding '=' may only appear in the final quartet");
         }
 
         const int
-            V0 = BASE64_TABLE[C0],
-            V1 = BASE64_TABLE[C1],
-            V2 = P2 ? 0 : BASE64_TABLE[C2],
-            V3 = P3 ? 0 : BASE64_TABLE[C3];
+            v0 = BASE64_TABLE[c0],
+            v1 = BASE64_TABLE[c1],
+            v2 = p2 ? 0 : BASE64_TABLE[c2],
+            v3 = p3 ? 0 : BASE64_TABLE[c3];
 
-        if (V0 < 0 || V1 < 0 || (!P2 && V2 < 0) || (!P3 && V3 < 0)) {
+        if (v0 < 0 || v1 < 0 || (!p2 && v2 < 0) || (!p3 && v3 < 0)) {
             throw std::invalid_argument("Invalid Base64 character encountered");
         }
 
-        const uint32_t TRIPLE = (static_cast<uint32_t>(V0) << 18) |
-                                (static_cast<uint32_t>(V1) << 12) |
-                                (static_cast<uint32_t>(V2) << 6) |
-                                static_cast<uint32_t>(V3);
+        const uint32_t triple = (static_cast<uint32_t>(v0) << 18) |
+                                (static_cast<uint32_t>(v1) << 12) |
+                                (static_cast<uint32_t>(v2) << 6) |
+                                static_cast<uint32_t>(v3);
 
-        destination_vec.emplace_back(static_cast<Byte>((TRIPLE >> 16) & 0xFF));
+        destination_vec.emplace_back(static_cast<Byte>((triple >> 16) & 0xFF));
 
-        if (!P2) destination_vec.emplace_back(static_cast<Byte>((TRIPLE >> 8) & 0xFF));
-        if (!P3) destination_vec.emplace_back(static_cast<Byte>(TRIPLE & 0xFF));
+        if (!p2) destination_vec.emplace_back(static_cast<Byte>((triple >> 8) & 0xFF));
+        if (!p3) destination_vec.emplace_back(static_cast<Byte>(triple & 0xFF));
     }
 }

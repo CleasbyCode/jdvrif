@@ -36,5 +36,6 @@ int main(int argc, char** argv) {
         std::println(std::cerr, "\n{}\n", e.what());
         return 1;
 	}
+
     return 0;
 }

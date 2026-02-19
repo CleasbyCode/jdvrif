@@ -11,7 +11,7 @@
 
 // Write an integer as big-endian bytes into `vec` at the given byte offset.
 // Length must be 2, 4, or 8.
-void updateValue(vBytes& vec, std::size_t index, std::size_t value, std::size_t length = 2);
+void updateValue(std::span<Byte> data, std::size_t index, std::size_t value, std::size_t length = 2);
 
 // Read a big-endian integer from `data` at the given byte offset.
 // Length must be 2, 4, or 8.

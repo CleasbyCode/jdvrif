@@ -25,10 +25,10 @@ void recoverData(vBytes& jpg_vec, Mode mode, const fs::path& image_file_path) {
             "This is not a valid jdvrif \"file-embedded\" image.");
     }
 
-    const std::size_t JDVRIF_SIG_INDEX = *index_opt;
-    const std::streamoff pin_attempts_offset = static_cast<std::streamoff>(JDVRIF_SIG_INDEX + INDEX_DIFF - 1);
+    const std::size_t jdvrif_sig_index = *index_opt;
+    const std::streamoff pin_attempts_offset = static_cast<std::streamoff>(jdvrif_sig_index + INDEX_DIFF - 1);
 
-    Byte pin_attempts_val = jpg_vec[JDVRIF_SIG_INDEX + INDEX_DIFF - 1];
+    Byte pin_attempts_val = jpg_vec[jdvrif_sig_index + INDEX_DIFF - 1];
 
     bool
         isBlueskyFile    = true,
@@ -38,9 +38,9 @@ void recoverData(vBytes& jpg_vec, Mode mode, const fs::path& image_file_path) {
 
     if (icc_opt) {
         constexpr std::size_t NO_ZLIB_COMPRESSION_ID_INDEX_DIFF = 24;
-        const std::size_t ICC_PROFILE_SIG_INDEX = *icc_opt;
+        const std::size_t icc_profile_sig_index = *icc_opt;
 
-        jpg_vec.erase(jpg_vec.begin(), jpg_vec.begin() + (ICC_PROFILE_SIG_INDEX - INDEX_DIFF));
+        jpg_vec.erase(jpg_vec.begin(), jpg_vec.begin() + (icc_profile_sig_index - INDEX_DIFF));
         isDataCompressed = (jpg_vec[NO_ZLIB_COMPRESSION_ID_INDEX - NO_ZLIB_COMPRESSION_ID_INDEX_DIFF] != NO_ZLIB_COMPRESSION_ID);
         isBlueskyFile = false;
     }

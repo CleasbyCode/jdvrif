@@ -23,9 +23,7 @@ vBytes buildMultiSegmentICC(vBytes& segment_vec, std::span<const Byte> soi_bytes
 
     updateValue(segment_vec, SEGMENTS_TOTAL_VAL_INDEX, segments_required);
 
-    segment_vec.erase(
-        segment_vec.begin(),
-        segment_vec.begin() + (SOI_SIG_LENGTH + SEGMENT_SIG_LENGTH + SEGMENT_HEADER_LENGTH));
+    segment_vec.erase(segment_vec.begin(), segment_vec.begin() + (SOI_SIG_LENGTH + SEGMENT_SIG_LENGTH + SEGMENT_HEADER_LENGTH));
 
     vBytes result;
     result.reserve(adjusted_size + (segments_required * (SEGMENT_SIG_LENGTH + SEGMENT_HEADER_LENGTH)));
@@ -63,9 +61,7 @@ vBytes buildMultiSegmentICC(vBytes& segment_vec, std::span<const Byte> soi_bytes
         header[16] = static_cast<Byte>(seg & 0xFF);
 
         result.insert(result.end(), header.begin(), header.end());
-        result.insert(result.end(),
-            segment_vec.cbegin() + offset,
-            segment_vec.cbegin() + offset + data_size);
+        result.insert(result.end(), segment_vec.cbegin() + offset, segment_vec.cbegin() + offset + data_size);
 
         offset += data_size;
     }

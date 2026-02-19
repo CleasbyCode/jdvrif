@@ -11,71 +11,71 @@ std::optional<uint16_t> exifOrientation(std::span<const Byte> jpg) {
     constexpr std::size_t EXIF_SEARCH_LIMIT = 4096;
     constexpr auto APP1_SIG = std::to_array<Byte>({0xFF, 0xE1});
 
-    const auto APP1_POS_OPT = searchSig(jpg, APP1_SIG, EXIF_SEARCH_LIMIT);
-    if (!APP1_POS_OPT) return std::nullopt;
+    const auto app1_post_opt = searchSig(jpg, APP1_SIG, EXIF_SEARCH_LIMIT);
+    if (!app1_post_opt) return std::nullopt;
 
-    const std::size_t POS = *APP1_POS_OPT;
-    if (POS + 4 > jpg.size()) return std::nullopt;
+    const std::size_t pos = *app1_post_opt;
+    if (pos + 4 > jpg.size()) return std::nullopt;
 
-    const uint16_t SEGMENT_LENGTH = (static_cast<uint16_t>(jpg[POS + 2]) << 8) | jpg[POS + 3];
-    const std::size_t EXIF_END = POS + 2 + SEGMENT_LENGTH;
+    const uint16_t segment_length = (static_cast<uint16_t>(jpg[pos + 2]) << 8) | jpg[pos + 3];
+    const std::size_t EXIF_END = pos + 2 + segment_length;
     if (EXIF_END > jpg.size()) return std::nullopt;
 
-    const std::span<const Byte> PAYLOAD(jpg.data() + POS + 4, SEGMENT_LENGTH - 2);
+    const std::span<const Byte> payload(jpg.data() + pos + 4, segment_length - 2);
 
     constexpr std::size_t EXIF_HEADER_SIZE = 6;
     constexpr auto EXIF_SIG = std::to_array<Byte>({'E', 'x', 'i', 'f', '\0', '\0'});
 
-    if (PAYLOAD.size() < EXIF_HEADER_SIZE || !std::ranges::equal(PAYLOAD.first(EXIF_HEADER_SIZE), EXIF_SIG)) {
+    if (payload.size() < EXIF_HEADER_SIZE || !std::ranges::equal(payload.first(EXIF_HEADER_SIZE), EXIF_SIG)) {
         return std::nullopt;
     }
 
-    const std::span<const Byte> TIFF = PAYLOAD.subspan(EXIF_HEADER_SIZE);
-    if (TIFF.size() < 8) return std::nullopt;
+    const std::span<const Byte> tiff = payload.subspan(EXIF_HEADER_SIZE);
+    if (tiff.size() < 8) return std::nullopt;
 
     bool is_le;
-    if      (TIFF[0] == 'I' && TIFF[1] == 'I') is_le = true;
-    else if (TIFF[0] == 'M' && TIFF[1] == 'M') is_le = false;
+    if      (tiff[0] == 'I' && tiff[1] == 'I') is_le = true;
+    else if (tiff[0] == 'M' && tiff[1] == 'M') is_le = false;
     else return std::nullopt;
 
     auto read16 = [&](std::size_t offset) -> std::optional<uint16_t> {
-        if (offset + 2 > TIFF.size()) return std::nullopt;
+        if (offset + 2 > tiff.size()) return std::nullopt;
         uint16_t value;
-        std::memcpy(&value, TIFF.data() + offset, 2);
+        std::memcpy(&value, tiff.data() + offset, 2);
         return is_le ? value : std::byteswap(value);
     };
 
     auto read32 = [&](std::size_t offset) -> std::optional<uint32_t> {
-        if (offset + 4 > TIFF.size()) return std::nullopt;
+        if (offset + 4 > tiff.size()) return std::nullopt;
         uint32_t value;
-        std::memcpy(&value, TIFF.data() + offset, 4);
+        std::memcpy(&value, tiff.data() + offset, 4);
         return is_le ? value : std::byteswap(value);
     };
 
-    const auto MAGIC = read16(2);
-    if (!MAGIC || *MAGIC != 0x002A) return std::nullopt;
+    const auto magic = read16(2);
+    if (!magic || *magic != 0x002A) return std::nullopt;
 
-    const auto IFD_OFFSET_OPT = read32(4);
-    if (!IFD_OFFSET_OPT) return std::nullopt;
+    const auto ifd_offset_opt = read32(4);
+    if (!ifd_offset_opt) return std::nullopt;
 
-    const uint32_t IFD_OFFSET = *IFD_OFFSET_OPT;
-    if (IFD_OFFSET < 8 || IFD_OFFSET >= TIFF.size()) return std::nullopt;
+    const uint32_t ifd_offset = *ifd_offset_opt;
+    if (ifd_offset < 8 || ifd_offset >= tiff.size()) return std::nullopt;
 
-    const auto ENTRY_COUNT_OPT = read16(IFD_OFFSET);
-    if (!ENTRY_COUNT_OPT) return std::nullopt;
+    const auto entry_count_opt = read16(ifd_offset);
+    if (!entry_count_opt) return std::nullopt;
 
     constexpr uint16_t   TAG_ORIENTATION = 0x0112;
     constexpr std::size_t ENTRY_SIZE     = 12;
 
-    std::size_t entry_pos = IFD_OFFSET + 2;
+    std::size_t entry_pos = ifd_offset + 2;
 
-    for (uint16_t i = 0; i < *ENTRY_COUNT_OPT; ++i) {
-        if (entry_pos + ENTRY_SIZE > TIFF.size()) return std::nullopt;
+    for (uint16_t i = 0; i < *entry_count_opt; ++i) {
+        if (entry_pos + ENTRY_SIZE > tiff.size()) return std::nullopt;
 
-        const auto TAG_ID = read16(entry_pos);
-        if (!TAG_ID) return std::nullopt;
+        const auto tag_id = read16(entry_pos);
+        if (!tag_id) return std::nullopt;
 
-        if (*TAG_ID == TAG_ORIENTATION) {
+        if (*tag_id == TAG_ORIENTATION) {
             return read16(entry_pos + 8);
         }
         entry_pos += ENTRY_SIZE;
@@ -116,31 +116,33 @@ int estimateImageQuality(std::span<const Byte> jpg) {
     constexpr auto DQT_SIG = std::to_array<Byte>({0xFF, 0xDB});
     constexpr std::size_t DQT_SEARCH_LIMIT = 32768;
 
-    const auto DQT_POS_OPT = searchSig(jpg, DQT_SIG, DQT_SEARCH_LIMIT);
-    if (!DQT_POS_OPT) return DEFAULT_QUALITY_ESTIMATE;
+    const auto dqt_pos_opt = searchSig(jpg, DQT_SIG, DQT_SEARCH_LIMIT);
+    if (!dqt_pos_opt) return DEFAULT_QUALITY_ESTIMATE;
 
-    std::size_t pos = *DQT_POS_OPT;
+    std::size_t pos = *dqt_pos_opt;
     if (pos + 4 > jpg.size()) return DEFAULT_QUALITY_ESTIMATE;
 
-    const std::size_t LENGTH = (static_cast<std::size_t>(jpg[pos + 2]) << 8) | jpg[pos + 3];
-    const std::size_t END = pos + 2 + LENGTH;
-    if (END > jpg.size()) return DEFAULT_QUALITY_ESTIMATE;
+    const std::size_t
+        length = (static_cast<std::size_t>(jpg[pos + 2]) << 8) | jpg[pos + 3],
+        end = pos + 2 + length;
+
+    if (end > jpg.size()) return DEFAULT_QUALITY_ESTIMATE;
 
     pos += 4;
 
-    while (pos < END) {
+    while (pos < end) {
         const Byte
-            HEADER    = jpg[pos++],
-            PRECISION = (HEADER >> 4) & 0x0F,
-            TABLE_ID  = HEADER & 0x0F;
+            header    = jpg[pos++],
+            precision = (header >> 4) & 0x0F,
+            table_id  = header & 0x0F;
 
-        const std::size_t table_size = (PRECISION == 0) ? 64 : 128;
-        if (pos + table_size > END) break;
+        const std::size_t table_size = (precision == 0) ? 64 : 128;
+        if (pos + table_size > end) break;
 
-        if (TABLE_ID == 0) {
+        if (table_id == 0) {
             int sum = 0;
             for (std::size_t i = 0; i < 64; ++i) {
-                sum += (PRECISION == 0)
+                sum += (precision == 0)
                     ? jpg[pos + i]
                     : (static_cast<int>(jpg[pos + i * 2]) << 8) | jpg[pos + i * 2 + 1];
             }
@@ -190,13 +192,13 @@ void optimizeImage(vBytes& jpg_vec, bool isProgressive) {
             width, height, MIN_DIMENSION));
     }
 
-    const int XOP = [&] {
+    const int xop = [&] {
         if (auto ori = exifOrientation(jpg_vec)) return getTransformOp(*ori);
         return static_cast<int>(TJXOP_NONE);
     }();
 
     tjtransform xform{};
-    xform.op      = XOP;
+    xform.op      = xop;
     xform.options = TJXOPT_COPYNONE | TJXOPT_TRIM;
     if (isProgressive) {
         xform.options |= TJXOPT_PROGRESSIVE;
