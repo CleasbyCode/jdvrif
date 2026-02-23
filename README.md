@@ -105,7 +105,7 @@ jdvrif ***conceal*** mode ***platform*** options:
 
   To use the script, you will need to create an [***app password***](https://bsky.app/settings/app-passwords) from your ***Bluesky*** account.  
 
-  Here are some basic usage examples for the ***bsky_post.py*** script:  
+  Here are some basic usage examples for the ***bsky_post.py*** script.  
 
   Standard image post to your bsky profile:
 
