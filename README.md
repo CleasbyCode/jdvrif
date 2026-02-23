@@ -125,8 +125,6 @@ jdvrif ***conceal*** mode ***platform*** options:
 
 https://github.com/user-attachments/assets/b4c72ea7-40e3-49b0-89aa-ae2dd8ccccb9   
 
-https://github.com/user-attachments/assets/a84ffb6d-b5ce-4f66-bf65-7589d2d93a49
-
    "***-r***" To create compatible "*file-embedded*" ***JPG*** images for posting on the ***Reddit*** platform, you must use the ***-r*** option with ***conceal*** mode.
    ```console
   $ jdvrif conceal -r my_image.jpg secret.mp3 
