@@ -43,22 +43,23 @@ For platforms such as ***X-Twitter*** & ***Tumblr***, which have small size limi
 ```console
 Note: Compiler support for C++23 required.
 
-user1@mx:~/Downloads/jdvrif-main/src$ sudo apt install libsodium-dev libturbojpeg0-dev
-user1@mx:~/Downloads/jdvrif-main/src$ chmod +x compile_jdvrif.sh
-user1@mx:~/Downloads/jdvrif-main/src$ ./compile_jdvrif.sh
-user1@mx:~/Downloads/jdvrif-main/src$ Compiling jdvrif...
-user1@mx:~/Downloads/jdvrif-main/src$ Compilation successful. Executable 'jdvrif' created.
-user1@mx:~/Downloads/jdvrif-main/src$ sudo cp jdvrif /usr/bin
+$ sudo apt install libsodium-dev libturbojpeg0-dev
+$ chmod +x compile_jdvrif.sh
+$ ./compile_jdvrif.sh
 
-user1@mx:~/Desktop$ jdvrif 
+ Compiling jdvrif...
+ Compilation successful. Executable 'jdvrif' created.
+
+$ sudo cp jdvrif /usr/bin
+$ jdvrif 
 
 Usage: jdvrif conceal [-b|-r] <cover_image> <secret_file>
        jdvrif recover <cover_image>  
        jdvrif --info
 
-user1@mx:~/Desktop$ jdvrif conceal your_cover_image.jpg your_secret_file.doc
-
-Platform compatibility for output image:-
+$ jdvrif conceal your_cover_image.jpg your_secret_file.doc
+ 
+ Platform compatibility for output image:-
 
   ✓ X-Twitter
   ✓ Tumblr
@@ -69,21 +70,21 @@ Platform compatibility for output image:-
   ✓ ImgPile
   ✓ Flickr
   
-Saved "file-embedded" JPG image: jrif_129462.jpg (143029 bytes).
+ Saved "file-embedded" JPG image: jrif_129462.jpg (143029 bytes).
 
-Recovery PIN: [***2166776980318349924***]
+ Recovery PIN: [***2166776980318349924***]
 
-Important: Keep your PIN safe, so that you can extract the hidden file.
+ Important: Keep your PIN safe, so that you can extract the hidden file.
 
-Complete!
+ Complete!
         
-user1@mx:~/Desktop$ jdvrif recover jrif_129462.jpg
+$ jdvrif recover jrif_129462.jpg
 
-PIN: *******************
+ PIN: *******************
 
-Extracted hidden file: your_secret_file.doc (6165 bytes).
+ Extracted hidden file: your_secret_file.doc (6165 bytes).
 
-Complete! Please check your file.
+ Complete! Please check your file.
 
 ```
 jdvrif ***mode*** arguments:
