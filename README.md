@@ -103,7 +103,7 @@ jdvrif ***conceal*** mode ***platform*** options:
   You are also required to use the Python script ***"bsky_post.py"*** (found in the repo ***src*** folder) to post the image to ***Bluesky***.
   It will not work if you post images to ***Bluesky*** via the browser site or mobile app.  
 
-  To use the script, you will need to create an ***app password*** from your ***Bluesky*** account: (https://bsky.app/settings/app-passwords).  
+  To use the script, you will need to create an [***app password***](https://bsky.app/settings/app-passwords) from your ***Bluesky*** account.  
 
   Here are some basic usage examples for the ***bsky_post.py*** script:  
 
