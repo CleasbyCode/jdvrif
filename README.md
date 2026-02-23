@@ -41,7 +41,7 @@ For platforms such as ***X-Twitter*** & ***Tumblr***, which have small size limi
 ## Usage (Linux)
 
 ```console
-Note: Compiler support for C++23 required.
+ Note: Compiler support for C++23 required.
 
 $ sudo apt install libsodium-dev libturbojpeg0-dev
 $ chmod +x compile_jdvrif.sh
