@@ -92,32 +92,32 @@ jdvrif ***mode*** arguments:
   ***conceal*** - Compresses, encrypts and embeds your secret data file within a ***JPG*** cover image.  
   ***recover*** - Decrypts, uncompresses and extracts the concealed data file from a ***JPG*** cover image.
  
-jdvrif ***conceal*** mode platform options:
+jdvrif ***conceal*** mode ***platform*** options:
  
-  "***-b***" - To create compatible "*file-embedded*" ***JPG*** images for posting on the ***Bluesky*** platform, you must use the ***-b*** option with ***conceal*** mode.
+  "***-b***" To create compatible "*file-embedded*" ***JPG*** images for posting on the ***Bluesky*** platform, you must use the ***-b*** option with ***conceal*** mode.
   ```console
   $ jdvrif conceal -b my_image.jpg hidden.doc
   ```
   These images are only compatible for posting on ***Bluesky***. Your embedded data file will be removed if posted on a different platform.
  
-  You are required to use the Python script ***"bsky_post.py"*** (found in the repo ***src*** folder) to post the image to ***Bluesky***.
+  You are also required to use the Python script ***"bsky_post.py"*** (found in the repo ***src*** folder) to post the image to ***Bluesky***.
   It will not work if you post images to ***Bluesky*** via the browser site or mobile app.  
 
-  You will also need to create an ***app password*** from your ***Bluesky*** account, to use with the ***bsky_post.py*** script. (https://bsky.app/settings/app-passwords).  
+  To use the script, you will need to create an ***app password*** from your ***Bluesky*** account: (https://bsky.app/settings/app-passwords).  
 
   Here are some basic usage examples for the ***bsky_post.py*** script:  
 
-  Standard image post to your profile/account.
+  Standard image post to your bsky profile:
 
   ```console
   $ python3 bsky_post.py --handle you.bsky.social --password xxxx-xxxx-xxxx-xxxx --image your_image.jpg --alt-text "alt-text here (optional)" "standard post text here (required)"
   ```
-  If you want to post multiple images (Max. 4).  
+  If you want to post multiple images (Max. 4):  
 
   ```console 
   $ python3 bsky_post.py --handle you.bsky.social --password xxxx-xxxx-xxxx-xxxx --image img1.jpg --image img2.jpg --alt-text "alt_here" "standard post text..."
   ```
-  If you want to post an image as a reply to another thread.  
+  If you want to post an image as a reply to another post:  
 
   ```console
   $ python3 bsky_post.py --handle you.bsky.social --password xxxx-xxxx-xxxx-xxxx --image your_image.jpg --alt-text "alt_here" --reply-to https://bsky.app/profile/someone.bsky.social/post/8m2tgw6cgi23i "standard post text..."
@@ -127,7 +127,7 @@ https://github.com/user-attachments/assets/b4c72ea7-40e3-49b0-89aa-ae2dd8ccccb9
 
 https://github.com/user-attachments/assets/a84ffb6d-b5ce-4f66-bf65-7589d2d93a49
 
-   "***-r***" - To create compatible "*file-embedded*" ***JPG*** images for posting on the ***Reddit*** platform, you must use the ***-r*** option with ***conceal*** mode.
+   "***-r***" To create compatible "*file-embedded*" ***JPG*** images for posting on the ***Reddit*** platform, you must use the ***-r*** option with ***conceal*** mode.
    ```console
   $ jdvrif conceal -r my_image.jpg secret.mp3 
    ```
