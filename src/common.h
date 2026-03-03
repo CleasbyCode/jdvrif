@@ -1,4 +1,4 @@
-// JPG Data Vehicle (jdvrif v7.5) Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
+// JPG Data Vehicle (jdvrif v7.6) Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
 #pragma once
 
 // This software is based in part on the work of the Independent JPEG Group.
