@@ -8,7 +8,7 @@
 void displayInfo() {
     std::print(R"(
 
-JPG Data Vehicle (jdvrif v7.5)
+JPG Data Vehicle (jdvrif v7.6)
 Created by Nicholas Cleasby (@CleasbyCode) 10/04/2023
 
 jdvrif is a metadata "steganography-like" command-line tool used for concealing and extracting
