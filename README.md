@@ -1,6 +1,6 @@
 # jdvrif
 
-A fast steganography command-line tool used for embedding and extracting any file type via a **JPG** image.  
+A fast, easy-to-use steganography command-line tool used for concealing and extracting any file type via a **JPG** image.  
 
 There is also a [***Web edition***](https://cleasbycode.co.uk/jdvrif/app/), which you can use immediately, as a convenient alternative to downloading and compiling the CLI source code. Web file uploads are limited to **20MB**.    
 
@@ -9,7 +9,7 @@ There is also a [***Web edition***](https://cleasbycode.co.uk/jdvrif/app/), whic
 
 Unlike the common steganography method of concealing data within the pixels of a cover image ([***LSB***](https://ctf101.org/forensics/what-is-stegonagraphy/)), ***jdvrif*** hides files within ***application segments*** of a ***JPG*** image. 
 
-You can embed any file type up to ***2GB***, although compatible sites (*listed below*) have their own ***much smaller*** size limits and *other requirements.  
+You can conceal any file type up to ***2GB***, although compatible sites (*listed below*) have their own ***much smaller*** size limits and *other requirements.  
 
 For increased storage capacity and better security, your embedded data file is compressed with ***zlib/deflate*** and encrypted using the ***libsodium*** cryptographic library.  
 
