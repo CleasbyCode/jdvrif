@@ -1,6 +1,6 @@
 # jdvrif
 
-jdvrif is a fast, easy-to-use steganography command-line tool used for concealing and extracting any file type via a **JPG** image.  
+***jdvrif*** is a fast, easy-to-use steganography command-line tool used for concealing and extracting any file type via a **JPG** image.  
 
 There is also a [***Web edition***](https://cleasbycode.co.uk/jdvrif/app/), which you can use immediately, as a convenient alternative to downloading and compiling the CLI source code. Web file uploads are limited to **20MB**.    
 
