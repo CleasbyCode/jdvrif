@@ -83,6 +83,8 @@ For example, with ***Mastodon***, if your cover image is **1MB** you can still e
 
 For platforms such as ***X-Twitter*** & ***Tumblr***, which have small size limits, you may want to focus on data that compress well, such as text files, etc.  
 
+https://github.com/user-attachments/assets/c8c38e6d-ea23-4d67-98d9-cebdcd82b449
+
 https://github.com/user-attachments/assets/8d21cdbb-30f0-424c-aeb8-bcacca8c4255
 
 https://github.com/user-attachments/assets/b2cc33ff-b2c2-46c2-960b-f7b9ba65223d
