@@ -62,9 +62,7 @@ inline constexpr std::size_t
     NO_ZLIB_COMPRESSION_ID_INDEX = 0x80,
     TAG_BYTES = Tag{}.size();
 
-inline constexpr Byte
-    NO_ZLIB_COMPRESSION_ID = 0x58, // 'X'
-    PIN_ATTEMPTS_RESET     = 0x90;
+inline constexpr Byte NO_ZLIB_COMPRESSION_ID = 0x58; // 'X'
 
 enum class Mode   : Byte { conceal, recover };
 enum class Option : Byte { None, Bluesky, Reddit };
