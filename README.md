@@ -100,11 +100,13 @@ jdvrif ***conceal*** mode ***platform*** options:
 ```
 
 \******************   
-***Bluesky*** has recently changed the image format of saved/downloaded images (Desktop) to ***WEBP***. This has made the recovery incompatible for ***jdvrif***.  
+***Bluesky*** has recently changed the image format of saved / downloaded images (Desktop) to ***WEBP***.  
 
-I will keep the ***Bluesky*** code in ***jdvrif*** for educational purpopses and just in case ***Bluesky*** goes back to saving images as ***JGP***.  
+This has made the recovery incompatible for ***jdvrif*** and ***JPG*** images.  
+
+I will keep the ***Bluesky*** code in ***jdvrif*** for educational purpopses and just in case ***Bluesky*** goes back to saving images as ***JPG***.  
        
-If you still want to conceal and recover data in images posted on ***Bluesky*** you can use my ***WEBP** steganography CLI tool ***[wbpdv](https://github.com/CleasbyCode/wbpdv)***  
+If you still want to a tool to conceal data in images posted on ***Bluesky*** you can use my ***WEBP*** steganography CLI tool ***[wbpdv](https://github.com/CleasbyCode/wbpdv)***  
        
 \******************
 
