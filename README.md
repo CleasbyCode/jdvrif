@@ -97,7 +97,15 @@ jdvrif ***conceal*** mode ***platform*** options:
   "***-b***" To create compatible "*file-embedded*" ***JPG*** images for posting on the ***Bluesky*** platform, you must use the ***-b*** option with ***conceal*** mode.
   ```console
   $ jdvrif conceal -b my_image.jpg hidden.doc
-  ```
+```
+
+****************** 
+NOTE:  ***Bluesky*** has recently changed the image format of saved/downloaded images (Deskto / Browser) to ***WEBP***. This has made the recovery incompatible for ***jdvrif***.
+       I will keep the ***Bluesky*** code in ***jdvrif*** for educational purpopses and just in case ***Bluesky*** goes back to saving images as ***JGP***.  
+       
+       If you still want to conceal and recover data in images posted on ***Bluesky*** you can use my ***WEBP** steganography CLI tool ***[wbpdv](https://github.com/CleasbyCode/wbpdv)***
+******************
+
   These images are only compatible for posting on ***Bluesky***. Your embedded data file will be removed if posted on a different platform.
  
   You are also required to use the Python script ***"bsky_post.py"*** (found in the repo ***src*** folder) to post the image to ***Bluesky***.
