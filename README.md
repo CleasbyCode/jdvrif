@@ -65,6 +65,16 @@ Complete! Please check your file.
 
 ```
 ## Compatible Platforms
+\******************   
+***Bluesky*** has recently changed the image format of saved / downloaded images to ***WEBP***.  
+
+This has made the recovery incompatible for ***jdvrif*** and ***JPG*** images.  
+
+I will keep the ***Bluesky*** code in ***jdvrif*** for educational purpopses and just in case ***Bluesky*** goes back to saving images as ***JPG***.  
+       
+If you still want to a tool to conceal data in images posted on ***Bluesky*** you can use my ***WEBP*** steganography CLI tool ***[wbpdv](https://github.com/CleasbyCode/wbpdv)***  
+\******************
+
 *Posting size limit measured by the ***combined*** size of the ***cover image*** + ***compressed data file:****  
 
 ● ***Flickr*** (**200MB**), ***ImgPile*** (**100MB**), ***ImgBB*** (**32MB**),  
@@ -98,16 +108,6 @@ jdvrif ***conceal*** mode ***platform*** options:
   ```console
   $ jdvrif conceal -b my_image.jpg hidden.doc
 ```
-
-\******************   
-***Bluesky*** has recently changed the image format of saved / downloaded images to ***WEBP***.  
-
-This has made the recovery incompatible for ***jdvrif*** and ***JPG*** images.  
-
-I will keep the ***Bluesky*** code in ***jdvrif*** for educational purpopses and just in case ***Bluesky*** goes back to saving images as ***JPG***.  
-       
-If you still want to a tool to conceal data in images posted on ***Bluesky*** you can use my ***WEBP*** steganography CLI tool ***[wbpdv](https://github.com/CleasbyCode/wbpdv)***  
-\******************
 
   These images are only compatible for posting on ***Bluesky***. Your embedded data file will be removed if posted on a different platform.
  
