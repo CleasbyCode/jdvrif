@@ -9,10 +9,19 @@ Original script credit:
         https://gist.github.com/bnewbold/ebc172c927b6a64d536bdf46bd5c2925
         https://bsky.app/profile/bnewbold.net
 
-Note: Use of AI - Updated by Grok to support hashtags in posts. Some other improvements by Claude Opus 4.6, such as --alt-text now supports per-image alt text.
+Note: Use of AI/LLM's - Updated by Grok & Claude Opus:-
 
-To run this Python script, you need the 'requests' and 'bs4' (BeautifulSoup) packages installed.
-    pip install requests beautifulsoup4
+      Script now supports hashtags in posts.
+
+      --alt-text now supports per-image alt text.
+
+      The script now reads the image dimensions with Pillow and
+      includes aspectRatio (with width and height) in each image object.
+      It's what tells the feed how to size the image display box
+      to match the actual image proportions.
+
+To run this Python script, you will need the 'requests' 'bs4' (BeautifulSoup) & 'pillow' packages installed.
+    $ pip install requests beautifulsoup4 pillow
 """
 
 import re
@@ -27,6 +36,7 @@ from urllib.parse import urljoin
 
 import requests
 from bs4 import BeautifulSoup
+from PIL import Image
 
 
 # Constants
@@ -283,7 +293,9 @@ def upload_images(
             alt = alt_texts[i]
 
         blob = upload_file(pds_url, access_token, ip, img_bytes)
-        images.append({"alt": alt, "image": blob})
+        img = Image.open(ip)
+        width, height = img.size
+        images.append({"alt": alt, "image": blob, "aspectRatio": {"width": width, "height": height}})
 
     return {
         "$type": "app.bsky.embed.images",
