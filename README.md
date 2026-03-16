@@ -66,15 +66,17 @@ Complete! Please check your file.
 ```
 ## Compatible Platforms
 \******************   
-Note: ***Bluesky*** now saves/downloads images as ***WEBP*** by default. 
+Note: ***Bluesky*** now saves images as ***WEBP*** by default. 
 
-To save an image as ***JPG***, so that you can still recover concealed/embedded data with ***jdvrif***,  
+To save an image as ***JPG***, so that you can still recover concealed data with ***jdvrif***,  
 right-click on an image that you want to save. From the menu, select ***Open image in new tab***.  
-Select the new tab and within the address bar, move to the end of the address and add ***@jpg*** then hit enter.
+
+Select the new tab and within the address bar, move to the end of the address and add ***@jpg*** then hit enter.  
 Right-click the image and from the select ***Save image...***  
-Your image should now be saved/downloaded as a ***JPG** image, which will now work with ***jdvrif***.
+
+Your image should now be downloaded as a ***JPG** image, which will now work with ***jdvrif***.
          
-If you want a tool to conceal data in ***WEBP*** images to post on ***Bluesky*** you can use my ***WEBP*** steganography CLI tool ***[wbpdv](https://github.com/CleasbyCode/wbpdv)***  
+If you want a tool to conceal data using ***WEBP*** images to post on ***Bluesky*** you can use my ***WEBP*** steganography CLI tool ***[wbpdv](https://github.com/CleasbyCode/wbpdv)***  
 \******************
 
 *Posting size limit measured by the ***combined*** size of the ***cover image*** + ***compressed data file:****  
