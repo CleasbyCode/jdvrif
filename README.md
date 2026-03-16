@@ -99,7 +99,7 @@ For platforms such as ***X-Twitter*** & ***Tumblr***, which have small size limi
 
 https://github.com/user-attachments/assets/c8c38e6d-ea23-4d67-98d9-cebdcd82b449
 
-https://github.com/user-attachments/assets/b2cc33ff-b2c2-46c2-960b-f7b9ba65223d
+https://github.com/user-attachments/assets/88aaa5f7-3272-4d0c-aa59-1a5bfe2f08dc
   
 jdvrif ***mode*** arguments:
  
