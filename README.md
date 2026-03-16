@@ -66,13 +66,15 @@ Complete! Please check your file.
 ```
 ## Compatible Platforms
 \******************   
-***Bluesky*** has recently changed the image format of saved / downloaded images to ***WEBP***.  
+Note: ***Bluesky*** now saves/downloads images as ***WEBP*** by default. 
 
-This has made the recovery incompatible for ***jdvrif*** and ***JPG*** images.  
-
-I will keep the ***Bluesky*** code in ***jdvrif*** for educational purpopses and just in case ***Bluesky*** goes back to saving images as ***JPG***.  
-       
-If you still want to a tool to conceal data in images posted on ***Bluesky*** you can use my ***WEBP*** steganography CLI tool ***[wbpdv](https://github.com/CleasbyCode/wbpdv)***  
+To save an image as ***JPG***, so that you can still recover concealed/embedded data with ***jdvrif***,  
+right-click on an image that you want to save. From the menu, select ***Open image in new tab***.  
+Select the new tab and within the address bar, move to the end of the address and add ***@jpg*** then hit enter.
+Right-click the image and from the select ***Save image...***  
+Your image should now be saved/downloaded as a ***JPG** image, which will now work with ***jdvrif***.
+         
+If you want a tool to conceal data in ***WEBP*** images to post on ***Bluesky*** you can use my ***WEBP*** steganography CLI tool ***[wbpdv](https://github.com/CleasbyCode/wbpdv)***  
 \******************
 
 *Posting size limit measured by the ***combined*** size of the ***cover image*** + ***compressed data file:****  
@@ -96,10 +98,6 @@ For platforms such as ***X-Twitter*** & ***Tumblr***, which have small size limi
 https://github.com/user-attachments/assets/c8c38e6d-ea23-4d67-98d9-cebdcd82b449
 
 https://github.com/user-attachments/assets/b2cc33ff-b2c2-46c2-960b-f7b9ba65223d
-
-
-
-
   
 jdvrif ***mode*** arguments:
  
