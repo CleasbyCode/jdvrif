@@ -72,9 +72,9 @@ To save an image as ***JPG***, so that you can still recover concealed data with
 right-click on an image that you want to save. From the menu, select ***Open image in new tab***.  
 
 Select the new tab and within the address bar, move to the end of the address and add ***@jpg*** then hit enter.  
-Right-click the image and from the select ***Save image...***  
+Right-click the image and from the menu select ***Save image...***  
 
-Your image should now be downloaded as a ***JPG** image, which will now work with ***jdvrif***.
+Your image should now be downloaded as a ***JPG***, which will now work with ***jdvrif***.
          
 If you want a tool to conceal data using ***WEBP*** images to post on ***Bluesky*** you can use my ***WEBP*** steganography CLI tool ***[wbpdv](https://github.com/CleasbyCode/wbpdv)***  
 \******************
