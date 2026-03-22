@@ -60,9 +60,24 @@ void binaryToBase64Avx2(std::span<const Byte> binary_data, Byte* output) {
     static constexpr std::size_t AVX2_INPUT_STRIDE  = 24;
     static constexpr std::size_t AVX2_OUTPUT_STRIDE = 32;
 
-    const __m256i mask6 = _mm256_set1_epi32(0x3F);
     const std::size_t avx2_end = (binary_data.size() / AVX2_INPUT_STRIDE) * AVX2_INPUT_STRIDE;
-    alignas(32) std::array<std::uint32_t, 8> triples{};
+
+    // Muła/Lemire PSHUFB reshuffle mask: arranges each 3-byte triple within
+    // its 32-bit lane into [b, a, c, b] byte pattern. This gives 16-bit words
+    // (a<<8|b) and (b<<8|c) needed by the multiply trick below.
+    // Lower lane selects from bytes 0-11, upper lane from bytes 4-15 of
+    // the overlapping hi_raw load (corresponding to input bytes 12-23).
+    const __m256i reshuffle_mask = _mm256_set_epi8(
+        14, 15, 13, 14, 11, 12, 10, 11,  8,  9,  7,  8,  5,  6,  4,  5,
+        10, 11,  9, 10,  7,  8,  6,  7,  4,  5,  3,  4,  1,  2,  0,  1
+    );
+
+    // Masks to separate the "AC" (idx0, idx2) and "BD" (idx1, idx3) bit fields,
+    // and multipliers to shift them into their target byte positions.
+    const __m256i mask_ac     = _mm256_set1_epi32(0x0FC0FC00);
+    const __m256i mask_bd     = _mm256_set1_epi32(0x003F03F0);
+    const __m256i mulhi_const = _mm256_set1_epi32(0x04000040);
+    const __m256i mullo_const = _mm256_set1_epi32(0x01000010);
 
     std::size_t input_offset = 0;
     std::size_t output_offset = 0;
@@ -70,36 +85,24 @@ void binaryToBase64Avx2(std::span<const Byte> binary_data, Byte* output) {
     for (; input_offset < avx2_end; input_offset += AVX2_INPUT_STRIDE, output_offset += AVX2_OUTPUT_STRIDE) {
         const Byte* in = binary_data.data() + static_cast<std::ptrdiff_t>(input_offset);
 
-        triples[0] = (static_cast<std::uint32_t>(in[0]) << 16) | (static_cast<std::uint32_t>(in[1]) << 8) | in[2];
-        triples[1] = (static_cast<std::uint32_t>(in[3]) << 16) | (static_cast<std::uint32_t>(in[4]) << 8) | in[5];
-        triples[2] = (static_cast<std::uint32_t>(in[6]) << 16) | (static_cast<std::uint32_t>(in[7]) << 8) | in[8];
-        triples[3] = (static_cast<std::uint32_t>(in[9]) << 16) | (static_cast<std::uint32_t>(in[10]) << 8) | in[11];
-        triples[4] = (static_cast<std::uint32_t>(in[12]) << 16) | (static_cast<std::uint32_t>(in[13]) << 8) | in[14];
-        triples[5] = (static_cast<std::uint32_t>(in[15]) << 16) | (static_cast<std::uint32_t>(in[16]) << 8) | in[17];
-        triples[6] = (static_cast<std::uint32_t>(in[18]) << 16) | (static_cast<std::uint32_t>(in[19]) << 8) | in[20];
-        triples[7] = (static_cast<std::uint32_t>(in[21]) << 16) | (static_cast<std::uint32_t>(in[22]) << 8) | in[23];
-
-        const __m256i packed_input = _mm256_load_si256(reinterpret_cast<const __m256i*>(triples.data()));
-        const __m256i idx0 = _mm256_and_si256(_mm256_srli_epi32(packed_input, 18), mask6);
-        const __m256i idx1 = _mm256_and_si256(_mm256_srli_epi32(packed_input, 12), mask6);
-        const __m256i idx2 = _mm256_and_si256(_mm256_srli_epi32(packed_input, 6), mask6);
-        const __m256i idx3 = _mm256_and_si256(packed_input, mask6);
-
-        const __m256i lo01 = _mm256_unpacklo_epi32(idx0, idx1);
-        const __m256i hi01 = _mm256_unpackhi_epi32(idx0, idx1);
-        const __m256i lo23 = _mm256_unpacklo_epi32(idx2, idx3);
-        const __m256i hi23 = _mm256_unpackhi_epi32(idx2, idx3);
-
-        const __m256i groups01 = _mm256_packus_epi32(
-            _mm256_unpacklo_epi64(lo01, lo23),
-            _mm256_unpackhi_epi64(lo01, lo23)
+        // Two overlapping 128-bit loads cover exactly 24 input bytes (no over-read).
+        const __m256i input_data = _mm256_set_m128i(
+            _mm_loadu_si128(reinterpret_cast<const __m128i*>(in + 8)),
+            _mm_loadu_si128(reinterpret_cast<const __m128i*>(in))
         );
-        const __m256i groups23 = _mm256_packus_epi32(
-            _mm256_unpacklo_epi64(hi01, hi23),
-            _mm256_unpackhi_epi64(hi01, hi23)
-        );
-        const __m256i six_bit_values = _mm256_packus_epi16(groups01, groups23);
-        const __m256i ascii = translateBase64AsciiAvx2(six_bit_values);
+
+        // Reshuffle: place each triple's bytes into [b, a, c, b] within 32-bit lanes.
+        const __m256i reshuffled = _mm256_shuffle_epi8(input_data, reshuffle_mask);
+
+        // Muła/Lemire multiply trick: extract 4x6-bit indices per 32-bit lane
+        // without any cross-lane interleaving.
+        const __m256i t0 = _mm256_and_si256(reshuffled, mask_ac);
+        const __m256i t1 = _mm256_mulhi_epu16(t0, mulhi_const);
+        const __m256i t2 = _mm256_and_si256(reshuffled, mask_bd);
+        const __m256i t3 = _mm256_mullo_epi16(t2, mullo_const);
+        const __m256i six_bit_indices = _mm256_or_si256(t1, t3);
+
+        const __m256i ascii = translateBase64AsciiAvx2(six_bit_indices);
 
         _mm256_storeu_si256(
             reinterpret_cast<__m256i*>(output + static_cast<std::ptrdiff_t>(output_offset)),
