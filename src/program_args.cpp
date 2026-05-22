@@ -7,7 +7,7 @@
 
 namespace {
 constexpr std::string_view INFO_TEXT =
-    "\n\nJPG Data Vehicle (jdvrif v7.8)\nCreated by Nicholas Cleasby (@CleasbyCode) 10/04/2023\n\n"
+    "\n\nJPG Data Vehicle (jdvrif v7.9)\nCreated by Nicholas Cleasby (@CleasbyCode) 10/04/2023\n\n"
     "jdvrif is a metadata \"steganography-like\" command-line tool used for concealing and extracting\n"
     "any file type within and from a JPG image.\n\n"
     "──────────────────────────\nCompile & run (Linux)\n──────────────────────────\n\n"
