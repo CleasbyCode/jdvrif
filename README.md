@@ -20,7 +20,7 @@ For increased storage capacity and better security, your embedded data file is c
 ```console
 Note: Compiler support for C++23 required.
 
-$ sudo apt install libsodium-dev libturbojpeg0-dev
+$ sudo apt install libsodium-dev libturbojpeg0-dev libdeflate-dev
 $ chmod +x compile_jdvrif.sh
 $ ./compile_jdvrif.sh
 
@@ -166,5 +166,8 @@ This project makes use of the following third-party libraries:
 - **zlib**: General-purpose compression library
   - License: zlib/libpng license (see [***LICENSE***](https://github.com/madler/zlib/blob/develop/LICENSE) file)
   - Copyright (C) 1995-2024 Jean-loup Gailly and Mark Adler
+- **libdeflate**: Fast, whole-buffer DEFLATE/zlib/gzip compression and decompression library
+  - License: MIT (Expat) license (see [***LICENSE***](https://raw.githubusercontent.com/ebiggers/libdeflate/master/COPYING) file)
+  - Copyright (C) 2016-2024 Eric Biggers.
     
 ##
