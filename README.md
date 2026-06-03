@@ -47,7 +47,7 @@ Platform compatibility for output image:-
   ✓ ImgPile
   ✓ Flickr
   
-Saved "file-embedded" JPG image: jrif_129462.jpg (143029 bytes).
+Saved "file-embedded" JPG image: jrif_4e87c566c.jpg (143029 bytes).
 
 Recovery PIN: [***2166776980318349924***]
 
@@ -55,7 +55,7 @@ Important: Keep your PIN safe, so that you can extract the hidden file.
 
 Complete!
         
-$ jdvrif recover jrif_129462.jpg
+$ jdvrif recover jrif_4e87c566c.jpg
 
 PIN: *******************
 
