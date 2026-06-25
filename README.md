@@ -4,7 +4,7 @@
 
 There is also a [***Web edition***](https://cleasbycode.co.uk/jdvrif/app/), which you can use immediately, as a convenient alternative to downloading and compiling the CLI source code. Web file uploads are limited to **20MB**.    
 
-An experimental ***Rust*** port [***jdvrfif-rs***](https://github.com/CleasbyCode/jdvrif-rs) is available for those interested in that language. 
+An experimental ***Rust*** port [***jdvrif-rs***](https://github.com/CleasbyCode/jdvrif-rs) is available for those interested in that language. 
 
 ![Demo Image](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/jrif_323291.jpg)  
 *Demo Image: **"A place of concealment"** / ***PIN: 2190398302048725932****
