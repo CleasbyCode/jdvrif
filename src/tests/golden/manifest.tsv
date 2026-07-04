@@ -1,0 +1,8 @@
+case_id	conceal_option	cover_rel	payload_rel	golden_rel	pin	min_icc_segments	expect_pshop	expect_xmp
+default_single	.	testdata/covers/cover_default.jpg	testdata/payloads/payload_text.txt	golden/default_single/embedded.jpg	15753985819510608748	0	0	0
+default_multiseg	.	testdata/covers/cover_default.jpg	testdata/payloads/payload_multi.bin	golden/default_multiseg/embedded.jpg	17720445539489812036	2	0	0
+reddit_zip	-r	testdata/covers/cover_reddit.jpg	testdata/payloads/payload_archive.zip	golden/reddit_zip/embedded.jpg	9973207245096400504	0	0	0
+reddit_multiseg	-r	testdata/covers/cover_reddit.jpg	testdata/payloads/payload_multi.bin	golden/reddit_multiseg/embedded.jpg	14320793415905163101	2	0	0
+bluesky_single	-b	testdata/covers/cover_bluesky.jpg	testdata/payloads/bsingle.bin	golden/bluesky_single/embedded.jpg	4256458418735266950	0	0	0
+bluesky_split	-b	testdata/covers/cover_bluesky.jpg	testdata/payloads/bsplit.bin	golden/bluesky_split/embedded.jpg	9381791126997077066	0	1	0
+bluesky_xmp	-b	testdata/covers/cover_bluesky.jpg	testdata/payloads/bxmp.bin	golden/bluesky_xmp/embedded.jpg	8420306938243370079	0	1	1
