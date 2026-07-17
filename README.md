@@ -22,12 +22,9 @@ For increased storage capacity and better security, your embedded data file is c
 ```console
 Note: Compiler support for C++23 required.
 
-$ sudo apt install libsodium-dev libturbojpeg0-dev libdeflate-dev
+$ sudo apt install g++ cmake ninja-build util-linux libsodium-dev libturbojpeg0-dev zlib1g-dev libdeflate-dev
 $ chmod +x compile_jdvrif.sh
 $ ./compile_jdvrif.sh
-
-Compiling jdvrif...
-Compilation successful. Executable 'jdvrif' created.
 
 $ sudo cp jdvrif /usr/bin
 $ jdvrif 
