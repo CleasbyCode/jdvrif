@@ -151,7 +151,7 @@ https://github.com/user-attachments/assets/f56f54bb-658f-4b0e-a2f3-7d3428333304
 
 ## Third-Party Software
 
-  JDVRIF uses the following third-party software:
+  ***JDVRIF*** uses the following third-party software:
 
   ### Native libraries
 
