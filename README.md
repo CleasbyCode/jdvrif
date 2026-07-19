@@ -149,22 +149,45 @@ https://github.com/user-attachments/assets/b4c72ea7-40e3-49b0-89aa-ae2dd8ccccb9
 
 https://github.com/user-attachments/assets/f56f54bb-658f-4b0e-a2f3-7d3428333304
 
-## Third-Party Libraries
+## Third-Party Software
 
-This project makes use of the following third-party libraries:
+  JDVRIF uses the following third-party software:
 
-- **libsodium**: For cryptographic functions.
-  - [**LICENSE**](https://github.com/jedisct1/libsodium/blob/master/LICENSE)
-  - Copyright (C) 2013-2025 Frank Denis (github@pureftpd.org)
-- libjpeg-turbo (see [***LICENSE***](https://github.com/libjpeg-turbo/libjpeg-turbo/blob/main/LICENSE.md) file)  
-  - {This software is based in part on the work of the Independent JPEG Group.}
-  - Copyright (C) 2009-2024 D. R. Commander. All Rights Reserved.
-  - Copyright (C) 2015 Viktor Szathmáry. All Rights Reserved.
-- **zlib**: General-purpose compression library
-  - License: zlib/libpng license (see [***LICENSE***](https://github.com/madler/zlib/blob/develop/LICENSE) file)
-  - Copyright (C) 1995-2024 Jean-loup Gailly and Mark Adler
-- **libdeflate**: Fast, whole-buffer DEFLATE/zlib/gzip compression and decompression library
-  - License: MIT (Expat) license (see [***LICENSE***](https://raw.githubusercontent.com/ebiggers/libdeflate/master/COPYING) file)
-  - Copyright (C) 2016-2024 Eric Biggers.
+  ### Native libraries
+
+  - [libsodium](https://github.com/jedisct1/libsodium) — cryptographic operations.
+    License: [ISC](https://github.com/jedisct1/libsodium/blob/master/LICENSE).
+
+  - [libjpeg-turbo](https://github.com/libjpeg-turbo/libjpeg-turbo) (TurboJPEG API) — JPEG
+  processing and lossless transformation.
+    Licenses: [Independent JPEG Group License and Modified BSD 3-Clause License](https://github.com/
+    libjpeg-turbo/libjpeg-turbo/blob/main/LICENSE.md).
+
+    This software is based in part on the work of the Independent JPEG Group.
+
+  - [zlib](https://github.com/madler/zlib) — streaming DEFLATE/zlib compression and decompression.
+    License: [zlib License](https://github.com/madler/zlib/blob/develop/LICENSE).
+
+  - [libdeflate](https://github.com/ebiggers/libdeflate) — fast whole-buffer zlib compression.
+    License: [MIT (Expat) License](https://github.com/ebiggers/libdeflate/blob/master/COPYING).
+
+  ### Incorporated code and assets
+
+  - [base64simd](https://github.com/WojciechMula/base64simd) by Wojciech Muła and [aklomp/base64]
+  (https://github.com/aklomp/base64) by Alfred Klomp and contributors — basis for the AVX2 Base64
+  implementation and lookup tables.
+    License: BSD 2-Clause.
+
+  - [Compact ICC Profiles](https://github.com/saucecontrol/Compact-ICC-Profiles) — embedded Adobe-
+  compatible ICC profile.
+    License: CC0 1.0.
+
+  ### Optional Bluesky posting helper
+
+  The optional `bsky_post.py` helper uses:
+
+  - [Requests](https://github.com/psf/requests) — Apache License 2.0.
+  - [Beautiful Soup 4](https://pypi.org/project/beautifulsoup4/) — MIT License.
+  - [Pillow](https://github.com/python-pillow/Pillow) — MIT-CMU License.
     
 ##
