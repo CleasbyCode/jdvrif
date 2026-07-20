@@ -22,6 +22,7 @@ For increased storage capacity and better security, your embedded data file is c
 ```console
 $ sudo apt-get update
 $ sudo apt install g++ cmake ninja-build util-linux libsodium-dev libturbojpeg0-dev zlib1g-dev libdeflate-dev
+
 $ chmod +x compile_jdvrif.sh
 $ ./compile_jdvrif.sh
 
