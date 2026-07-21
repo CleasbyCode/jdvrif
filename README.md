@@ -158,6 +158,7 @@ https://github.com/user-attachments/assets/f56f54bb-658f-4b0e-a2f3-7d3428333304
   - [libsodium](https://github.com/jedisct1/libsodium) — Cryptographic random generation, password hashing, authenticated encryption, secure
     memory clearing, and Base64 decoding.
     License: [ISC](https://github.com/jedisct1/libsodium/blob/master/LICENSE)
+
     Copyright (c) 2013–2026 Frank Denis.
 
  - [libjpeg-turbo](https://github.com/libjpeg-turbo/libjpeg-turbo) 2.1.5
@@ -176,6 +177,7 @@ https://github.com/user-attachments/assets/f56f54bb-658f-4b0e-a2f3-7d3428333304
    
   - zlib — Streaming zlib compression and decompression.
     License: [zlib License](https://github.com/madler/zlib/blob/develop/LICENSE)
+
     Copyright (C) 1995–2026 Jean-loup Gailly and Mark Adler.
 
   - [libdeflate](https://github.com/ebiggers/libdeflate) — fast whole-buffer zlib compression.
