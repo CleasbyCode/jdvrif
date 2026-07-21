@@ -151,22 +151,27 @@ https://github.com/user-attachments/assets/b4c72ea7-40e3-49b0-89aa-ae2dd8ccccb9
 
 https://github.com/user-attachments/assets/f56f54bb-658f-4b0e-a2f3-7d3428333304
 
-## Third-Party Software
+## Third-Party Software and Assets
 
-  ***JDVRIF*** uses the following third-party software:
+  ### Core applications
 
-  ### Native libraries
+  - libsodium — Cryptographic random generation, password hashing, authenticated encryption, secure
+    memory clearing, and Base64 decoding.
+    License: [ISC](https://github.com/jedisct1/libsodium/blob/master/LICENSE)
+    Copyright (c) 2013–2026 Frank Denis.
 
-  - [libsodium](https://github.com/jedisct1/libsodium) — cryptographic operations.
-    License: [ISC](https://github.com/jedisct1/libsodium/blob/master/LICENSE).
+ - [libjpeg-turbo](https://github.com/libjpeg-turbo/libjpeg-turbo) 2.1.5
+    (TurboJPEG API) — JPEG processing and lossless transformation.
 
-  - [libjpeg-turbo](https://github.com/libjpeg-turbo/libjpeg-turbo) (TurboJPEG API) — JPEG
-  processing and lossless transformation.
-    Licenses: [Independent JPEG Group License and Modified BSD 3-Clause License](https://github.com/
-    libjpeg-turbo/libjpeg-turbo/blob/main/LICENSE.md).
+      Copyright © 1991–2020 Thomas G. Lane and Guido Vollbeding.
+      Copyright © 2009–2023 D. R. Commander. All Rights Reserved.
+      Copyright © 2015 Viktor Szathmáry. All Rights Reserved.
 
-    This software is based in part on the work of the Independent JPEG Group.
+      Licenses: [Independent JPEG Group License, Modified BSD 3-Clause License,
+      and zlib License](https://github.com/libjpeg-turbo/libjpeg-turbo/blob/2.1.5/LICENSE.md).
 
+      This software is based in part on the work of the Independent JPEG Group.
+   
   - [zlib](https://github.com/madler/zlib) — streaming DEFLATE/zlib compression and decompression.
     License: [zlib License](https://github.com/madler/zlib/blob/develop/LICENSE).
 
