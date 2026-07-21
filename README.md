@@ -189,10 +189,11 @@ https://github.com/user-attachments/assets/f56f54bb-658f-4b0e-a2f3-7d3428333304
 
   ### Incorporated code and assets
 
-  - [base64simd](https://github.com/WojciechMula/base64simd) by Wojciech Muła and [aklomp/base64]
-  (https://github.com/aklomp/base64) by Alfred Klomp and contributors — basis for the AVX2 Base64
-  implementation and lookup tables.
-    License: BSD 2-Clause.
+  - [base64simd](https://github.com/WojciechMula/base64simd) — The AVX2 Base64 encoder is adapted from Wojciech Muła’s vector Base64
+    implementation.
+    License:[BSD 2-Clause](https://github.com/WojciechMula/base64simd/blob/master/LICENSE)
+    
+    Copyright (c) 2015–2018, Wojciech Muła. All rights reserved.
 
   - [Compact ICC Profiles](https://github.com/saucecontrol/Compact-ICC-Profiles) — embedded Adobe-
   compatible ICC profile.
