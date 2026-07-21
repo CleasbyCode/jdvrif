@@ -175,8 +175,9 @@ https://github.com/user-attachments/assets/f56f54bb-658f-4b0e-a2f3-7d3428333304
 
       This software is based in part on the work of the Independent JPEG Group.
    
-  - [zlib](https://github.com/madler/zlib) — streaming DEFLATE/zlib compression and decompression.
-    License: [zlib License](https://github.com/madler/zlib/blob/develop/LICENSE).
+  - zlib — Streaming zlib compression and decompression.
+    License: zlib License (https://github.com/madler/zlib/blob/develop/LICENSE)
+    Copyright (C) 1995–2026 Jean-loup Gailly and Mark Adler.
 
   - [libdeflate](https://github.com/ebiggers/libdeflate) — fast whole-buffer zlib compression.
     License: [MIT (Expat) License](https://github.com/ebiggers/libdeflate/blob/master/COPYING).
