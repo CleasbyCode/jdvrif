@@ -155,7 +155,7 @@ https://github.com/user-attachments/assets/f56f54bb-658f-4b0e-a2f3-7d3428333304
 
   ### Core applications
 
-  - libsodium — Cryptographic random generation, password hashing, authenticated encryption, secure
+  - [libsodium](https://github.com/jedisct1/libsodium) — Cryptographic random generation, password hashing, authenticated encryption, secure
     memory clearing, and Base64 decoding.
     License: [ISC](https://github.com/jedisct1/libsodium/blob/master/LICENSE)
     Copyright (c) 2013–2026 Frank Denis.
