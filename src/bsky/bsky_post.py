@@ -2,9 +2,13 @@
 
 """Bluesky posting helper adapted from Bryan Newbold's original script:
 
+ https://github.com/bluesky-social/cookbook/blob/main/python-bsky-post/create_bsky_post.py
  https://gist.github.com/bnewbold
  https://bsky.app/profile/bnewbold.net
 
+ Fork:
+ https://gist.github.com/CleasbyCode/1eb678ca1fa1975b1c1e20aeec33637e
+ 
 Supports hashtags, per-image alt text, and Pillow-derived aspect ratios.
 Requires: requests, beautifulsoup4, pillow
     $ pip install requests beautifulsoup4 pillow
