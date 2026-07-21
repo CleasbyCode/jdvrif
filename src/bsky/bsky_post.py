@@ -12,7 +12,8 @@ Bluesky posting helper adapted from Bryan Newbold's original script:
  Fork:
  https://gist.github.com/CleasbyCode/1eb678ca1fa1975b1c1e20aeec33637e
  
-Supports hashtags, per-image alt text, and Pillow-derived aspect ratios.
+Supports hashtags, per-image alt text, Pillow-derived aspect ratios, ATP_AUTH_HANDLE and ATP_AUTH_PASSWORD environment variables.
+
 Requires: requests, beautifulsoup4, pillow
     $ pip install requests beautifulsoup4 pillow
 """
