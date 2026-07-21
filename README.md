@@ -164,8 +164,11 @@ https://github.com/user-attachments/assets/f56f54bb-658f-4b0e-a2f3-7d3428333304
     (TurboJPEG API) — JPEG processing and lossless transformation.
 
       Copyright © 1991–2020 Thomas G. Lane and Guido Vollbeding.
+   
       Copyright © 2009–2023 D. R. Commander. All Rights Reserved.
+   
       Copyright © 2015 Viktor Szathmáry. All Rights Reserved.
+   
 
       Licenses: [Independent JPEG Group License, Modified BSD 3-Clause License,
       and zlib License](https://github.com/libjpeg-turbo/libjpeg-turbo/blob/2.1.5/LICENSE.md).
