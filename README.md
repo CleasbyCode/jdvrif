@@ -182,7 +182,9 @@ https://github.com/user-attachments/assets/f56f54bb-658f-4b0e-a2f3-7d3428333304
 
   - [libdeflate](https://github.com/ebiggers/libdeflate) — Fast whole-buffer zlib-format compression.
     License: [MIT](https://github.com/ebiggers/libdeflate/blob/master/COPYING)
+    
     Copyright 2016 Eric Biggers.
+    
     Copyright 2024 Google LLC.
 
   ### Incorporated code and assets
