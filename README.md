@@ -162,8 +162,12 @@ https://github.com/user-attachments/assets/f56f54bb-658f-4b0e-a2f3-7d3428333304
     
       Copyright (c) 2013–2026 Frank Denis.
     
- - [libjpeg-turbo](https://github.com/libjpeg-turbo/libjpeg-turbo) 2.1.5
-    (TurboJPEG API) — JPEG processing and lossless transformation.
+ - [libjpeg-turbo](https://github.com/libjpeg-turbo/libjpeg-turbo) — JPEG processing and lossless transformation. Dynamically linked as a system library.
+
+      This software is based in part on the work of the Independent JPEG Group.
+
+      Licenses: [Independent JPEG Group License, Modified BSD 3-Clause License,
+      and zlib License](https://github.com/libjpeg-turbo/libjpeg-turbo/blob/2.1.5/LICENSE.md).
 
       Copyright © 1991–2020 Thomas G. Lane and Guido Vollbeding.
    
@@ -171,17 +175,13 @@ https://github.com/user-attachments/assets/f56f54bb-658f-4b0e-a2f3-7d3428333304
    
       Copyright © 2015 Viktor Szathmáry. All Rights Reserved.
    
-      Licenses: [Independent JPEG Group License, Modified BSD 3-Clause License,
-      and zlib License](https://github.com/libjpeg-turbo/libjpeg-turbo/blob/2.1.5/LICENSE.md).
+  - [zlib](https://github.com/madler/zlib) — Streaming zlib compression and decompression. Dynamically linked as a system library.
 
-      This software is based in part on the work of the Independent JPEG Group.
-   
-  - [zlib](https://github.com/madler/zlib) — Streaming zlib compression and decompression.
     License: [zlib License](https://github.com/madler/zlib/blob/develop/LICENSE)
     
     Copyright (C) 1995–2026 Jean-loup Gailly and Mark Adler.
 
-  - [libdeflate](https://github.com/ebiggers/libdeflate) — Fast whole-buffer zlib-format compression.
+  - [libdeflate](https://github.com/ebiggers/libdeflate) — Fast whole-buffer zlib-format compression. Dynamically linked as a system library.
     License: [MIT](https://github.com/ebiggers/libdeflate/blob/master/COPYING)
     
     Copyright 2016 Eric Biggers.
