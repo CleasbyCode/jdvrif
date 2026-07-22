@@ -212,9 +212,7 @@ https://github.com/user-attachments/assets/f56f54bb-658f-4b0e-a2f3-7d3428333304
 
   - Requests — HTTP and Bluesky API requests.
 
-    License: [Apache 2.0](https://github.com/psf/requests/blob/main/LICENSE)
-
-    [NOTICE](https://github.com/psf/requests/blob/main/NOTICE)
+    License: [Apache 2.0](https://github.com/psf/requests/blob/main/LICENSE) / [NOTICE](https://github.com/psf/requests/blob/main/NOTICE)
     
     Copyright 2019 Kenneth Reitz.
 
