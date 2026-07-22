@@ -125,8 +125,11 @@ if [[ ! -f "$TARGET_PATH" ]] || ! cmp -s -- "$BUILT_BINARY" "$TARGET_PATH"; then
     trap - EXIT
 fi
 
+echo ""
 echo "Compilation successful. Executable '$TARGET_PATH' is up to date."
+echo ""
 echo "Golden tests: bash \"$SRCDIR/tests/run_golden_tests.sh\" --bin \"$TARGET_PATH\""
 echo "Round-trip tests: bash \"$SRCDIR/tests/run_roundtrip_tests.sh\" --bin \"$TARGET_PATH\""
 echo "Security smoke tests: bash \"$SRCDIR/tests/run_security_smoke.sh\" --bin \"$TARGET_PATH\""
 echo "Bluesky helper tests: bash \"$SRCDIR/tests/run_bsky_tests.sh\""
+echo ""
