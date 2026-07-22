@@ -11,6 +11,7 @@ constexpr std::string_view INFO_TEXT =
     "jdvrif is a metadata \"steganography-like\" command-line tool used for concealing and extracting\n"
     "any file type within and from a JPG image.\n\n"
     "──────────────────────────\nCompile & run (Linux)\n──────────────────────────\n\n"
+    "  $ sudo apt update\n"
     "  $ sudo apt install g++ cmake ninja-build util-linux libsodium-dev libturbojpeg0-dev zlib1g-dev libdeflate-dev\n\n"
     "  $ chmod +x compile_jdvrif.sh\n  $ ./compile_jdvrif.sh\n\n"
     "  $ sudo cp jdvrif /usr/bin\n  $ jdvrif\n\n"
