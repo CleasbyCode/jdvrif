@@ -156,7 +156,7 @@ https://github.com/user-attachments/assets/f56f54bb-658f-4b0e-a2f3-7d3428333304
   ### Core applications
 
   - [libsodium](https://github.com/jedisct1/libsodium) — cryptographic random generation, Argon2id
-  key derivation, and XChaCha20-Poly1305 secret streams. Dynamically linked as a system library.
+  key derivation and XChaCha20-Poly1305 secret streams. Dynamically linked as a system library.
       
       License: [ISC License](https://github.com/jedisct1/libsodium/blob/master/LICENSE)
     
@@ -192,6 +192,7 @@ https://github.com/user-attachments/assets/f56f54bb-658f-4b0e-a2f3-7d3428333304
 
   - [base64simd](https://github.com/WojciechMula/base64simd) — The AVX2 Base64 encoder is adapted from Wojciech Muła’s vector Base64
     implementation.
+    
     License: [BSD 2-Clause](https://github.com/WojciechMula/base64simd/blob/master/LICENSE)
     
     Copyright (c) 2015–2018, Wojciech Muła. All rights reserved.
