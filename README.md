@@ -91,7 +91,7 @@ For example, with ***Mastodon***, if your cover image is **1MB** you can still e
 
 **Other: The ***Bluesky*** platform has ***separate*** size limits for the ***cover image*** and the ***compressed data file:****  
 
-● ***Bluesky*** (***-b option***). Cover image size limit (**~1.7MB**). Compressed data file size limit (**~171KB**).  The final embedded cover image must not exceed 2,000,000 bytes.  
+● ***Bluesky*** (***-b option***). Cover image max size limit (**2,000,000 bytes / ~1.9MB**). Your compressed hidden data file (payload) max size limit (**~171KB**).  The final embedded cover image (cover image + hidden file) must not exceed 2,000,000 bytes (~1.9MB).  
 
 ● "***create_bsky_post.py***" script is required to post images on ***Bluesky***. *More info on this further down the page.*
 
