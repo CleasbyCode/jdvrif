@@ -120,7 +120,7 @@ jdvrif ***conceal*** mode ***platform*** options:
 
   To use the script, you will need to create an [***app password***](https://bsky.app/settings/app-passwords) from your ***Bluesky*** account.  
 
-  See the create_bsky_post.py script in the src/bsky folder for some basic usage examples of the script.
+  See the [create_bsky_post.py](https://github.com/CleasbyCode/jdvrif/blob/main/src/bsky/create_bsky_post.py) script in the src/bsky folder for some basic usage examples of the script.
   
 
 https://github.com/user-attachments/assets/b4c72ea7-40e3-49b0-89aa-ae2dd8ccccb9   
