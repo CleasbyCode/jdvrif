@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(jdvrif VERSION 8.1 LANGUAGES CXX)
+project(jdvrif VERSION 8.2 LANGUAGES CXX)
 
 if(NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
   message(FATAL_ERROR "jdvrif requires Linux.")
