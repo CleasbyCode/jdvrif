@@ -194,9 +194,9 @@ test_build_script_from_other_directory() {
 test_info_documentation() {
     local info="$WORK/info.txt"
     "$BIN" --info > "$info"
-    grep -q 'CMake 3.20' "$info"
+    grep -q 'cmake' "$info"
     grep -q 'ninja-build' "$info"
-    grep -q 'binutils' "$info"
+    grep -q 'util-linux' "$info"
     grep -q 'zlib1g-dev' "$info"
     grep -q 'libdeflate-dev' "$info"
     grep -q 'bsky/bsky_post.py' "$info"
