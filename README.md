@@ -68,7 +68,7 @@ Complete! Please check your file.
 Note: ***Bluesky*** now saves images as ***WEBP*** by default. 
 
 To save an image as ***JPG***, so that you can still recover concealed data with ***jdvrif***,  
-right-click on an image that you want to save. From the menu, select ***Open image in new tab***.  
+first click the image in the post to open it, then right-click on the image. From the menu, select ***Open image in new tab***.  
 
 Select the new tab and within the address bar, move to the end of the address and add ***@jpg*** then hit enter.  
 Right-click the image and from the menu select ***Save image...***  
@@ -114,27 +114,12 @@ jdvrif ***conceal*** mode ***platform*** options:
 
   These images are only compatible for posting on ***Bluesky***. Your embedded data file will be removed if posted on a different platform.
  
-  You are also required to use the Python script ***"bsky_post.py"*** (found in the repo ***src*** folder) to post the image to ***Bluesky***.
+  You are also required to use the Python script ***"create_bsky_post.py"*** (found in the repo ***src/bsky*** folder) to post the image to ***Bluesky***.
   It will not work if you post images to ***Bluesky*** via the browser site or mobile app.  
 
   To use the script, you will need to create an [***app password***](https://bsky.app/settings/app-passwords) from your ***Bluesky*** account.  
 
-  Here are some basic usage examples for the ***bsky_post.py*** script.  
-
-  Standard image post to your bsky profile:
-
-  ```console
-  $ python3 bsky_post.py --handle you.bsky.social --password xxxx-xxxx-xxxx-xxxx --image your_image.jpg --alt-text "alt-text here (optional)" "standard post text here (required)"
-  ```
-  If you want to post multiple images (Max. 4):  
-
-  ```console 
-  $ python3 bsky_post.py --handle you.bsky.social --password xxxx-xxxx-xxxx-xxxx --image img1.jpg --image img2.jpg --alt-text "alt_here" "standard post text..."
-  ```
-  If you want to post an image as a reply to another post:  
-
-  ```console
-  $ python3 bsky_post.py --handle you.bsky.social --password xxxx-xxxx-xxxx-xxxx --image your_image.jpg --alt-text "alt_here" --reply-to https://bsky.app/profile/someone.bsky.social/post/8m2tgw6cgi23i "standard post text..."
+  See the create_bsky_post.py script in the src/bsky folder for some basic usage examples of the script.
   ```
 
 https://github.com/user-attachments/assets/b4c72ea7-40e3-49b0-89aa-ae2dd8ccccb9   
