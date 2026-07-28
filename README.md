@@ -125,18 +125,6 @@ jdvrif ***conceal*** mode ***platform*** options:
 
 https://github.com/user-attachments/assets/b4c72ea7-40e3-49b0-89aa-ae2dd8ccccb9   
 
-   "***-r***" To create compatible "*file-embedded*" ***JPG*** images for posting on the ***Reddit*** platform, you must use the ***-r*** option with ***conceal*** mode.
-   ```console
-  $ jdvrif conceal -r my_image.jpg secret.mp3 
-   ```
-   From the ***Reddit*** site, select "***Create Post***" followed by "***Images & Video***" tab, to attach and post your ***JPG*** image.
-  
-   These images are only compatible for posting on ***Reddit***. Your embedded data file will be removed if posted on a different platform.
-  
- To correctly download images from ***X-Twitter*** or ***Reddit***, click the image in the post to fully expand it, before saving.
-
-https://github.com/user-attachments/assets/f56f54bb-658f-4b0e-a2f3-7d3428333304
-
 ## Third-Party Software and Assets
 
   ### Core applications
