@@ -81,7 +81,7 @@ If you want a tool to conceal data using ***WEBP*** images to post on ***Bluesky
 *Posting size limit measured by the ***combined*** size of the ***cover image*** + ***compressed data file:****  
 
 ● ***Flickr*** (**200MB**), ***ImgPile*** (**100MB**), ***ImgBB*** (**32MB**),  
-● ***PostImage*** (**32MB**), ***Reddit*** (**20MB** | ***-r option***), ***Pixelfed*** (**15MB**).
+● ***PostImage*** (**32MB**), ***Pixelfed*** (**15MB**).
 
 *Size limit measured ***only*** by the ***compressed data file size:****  
 
