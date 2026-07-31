@@ -17,10 +17,11 @@ The script described here is a **security-hardened fork** of that original:
 
 The fork keeps the spirit of the original — a single standalone Python file
 that shows what's really going on behind the SDK abstractions — but brings it
-up to date with current lexicon limits (including the April 2026 increase of
-the image size limit to 2 MB), adds hashtag/cashtag facets, per-image alt
-text, aspect ratios, language tags, and record-with-media embeds, and treats
-every network fetch as potentially hostile.
+up to date with current lexicon limits (including the [April 2026 increase of
+the image size limit to 2 MB](https://techcrunch.com/2026/04/23/bluesky-now-supports-better-quality-photos/)),
+adds hashtag/cashtag facets, per-image alt text, aspect ratios, language tags,
+and record-with-media embeds, and treats every network fetch as potentially
+hostile.
 
 It requires Python 3.9+ with `requests`, `beautifulsoup4`, and `pillow`:
 
@@ -165,8 +166,13 @@ lexicon) and stored in the `langs` field:
 Where the original script accepted any string, the fork validates each tag
 against the actual BCP 47 grammar — language, extlang, script, region,
 variants, extensions, private-use subtags, and the grandfathered tags like
-`i-klingon` — so a typo like `--lang english` fails locally with a clear
-error instead of producing a malformed record.
+`i-klingon` — so a malformed tag like `--lang en--US` fails locally with a
+clear error instead of producing a malformed record.
+
+Note that the grammar is deliberately more permissive than the IANA registry:
+a 4–8 letter primary subtag is reserved or registered rather than illegal, so
+`--lang english` is *syntactically* valid and passes. Validating tags against
+the registry itself is out of scope for a single-file script.
 
 ## Rich-Text Facets
 
@@ -277,10 +283,15 @@ supported:
 ## Image Embeds
 
 Each post can carry up to four images. Since April 2026 each image blob may
-be up to **2,000,000 bytes** (the `app.bsky.embed.images` lexicon was raised
-from the 1 MB limit that applied when the original blog post was written, and
-accepted dimensions went up to 4000×4000). The script enforces the 2 MB limit
-locally so oversized files fail fast with a clear message.
+be up to **2,000,000 bytes**, raised from the 1 MB limit that applied when the
+original blog post was written; the maximum resolution went up at the same
+time, to 4000×4000 from 2000px. The script enforces the 2 MB limit locally so
+oversized files fail fast with a clear message.
+
+Its own dimension caps (16,384px per side, 40 megapixels) are deliberately
+*looser* than the service's — they are local decompression-bomb guards, not a
+mirror of the server's rules, and they exist to bound Pillow's memory use
+before the service ever sees the file.
 
 Files are read defensively — opened with `O_NOFOLLOW` (with an
 lstat/fstat identity check on platforms that lack it) and required to be
@@ -310,9 +321,14 @@ This yields three things the original didn't have:
 
 Alt text is supplied per image with repeatable `--alt-text` flags (the count
 must match `--image`), and the `alt` field is always present — an empty
-string when no alt text is given, as the lexicon requires. As with the
-original, stripping EXIF metadata before upload remains the client's
-responsibility.
+string when no alt text is given, as the lexicon requires. Each string is
+capped at 2,000 characters; the lexicon itself sets no `maxLength` on `alt`,
+so this simply mirrors the official composer. As with the original, stripping
+EXIF metadata before upload remains the client's responsibility.
+
+All four images are read and validated *before* the first blob is uploaded,
+so a typo in the fourth filename fails the post without leaving three
+orphaned blobs behind.
 
 The upload itself is unchanged in principle: bytes go to
 `com.atproto.repo.uploadBlob`, and the returned `blob` object is embedded in
@@ -337,8 +353,9 @@ points to. The fork's changes:
 * the HTML download is capped at 2 MB and the thumbnail at 1 MB;
 * card titles and descriptions are trimmed to sane lengths without splitting
   a combining character or emoji sequence at the cut point;
-* a failed thumbnail download prints a warning and posts the card without a
-  thumb, instead of aborting the whole post.
+* a failed thumbnail prints a warning and posts the card without a thumb,
+  instead of aborting the whole post — with one deliberate exception, covered
+  below.
 
 And, most importantly, every one of these downloads goes through the
 SSRF-protected fetcher described next.
@@ -370,6 +387,18 @@ refuse redirects entirely.
 deadline that covers DNS resolution, connection, and body reads, so a
 tarpit server can't hang the script indefinitely.
 
+This has a consequence worth spelling out, because it is the one place the
+"a failed thumbnail never aborts the post" rule bends. A blocking call that
+blows its deadline is *abandoned* in a daemon thread rather than cancelled —
+Python cannot cancel a thread parked in a socket read. That worker may still
+be touching the `requests.Session` it was handed. External downloads each get
+a throwaway Session, so abandoning one is harmless and their timeouts are
+swallowed. API calls share one Session that the final `createRecord` reuses,
+so *their* timeouts must propagate all the way out and end the process. That
+is why a thumbnail's `uploadBlob` timing out aborts the post while the same
+thumbnail's download timing out does not: one shares the Session, the other
+doesn't.
+
 **Size caps and content checks.** Response bodies are streamed with hard
 byte limits (declared `Content-Length` is checked first, then actual bytes),
 and compressed (`Content-Encoding`) responses are refused so a small gzip
@@ -381,9 +410,17 @@ can do to the machine running the script.
 ## Putting It All Together
 
 The complete script is a single file, `create_bsky_post.py`. Run
-`--help` for the full option list. It also ships with a built-in test suite
-covering the facet parsers, URI validation, SSRF checks, redirect handling,
-and response limits:
+`--help` for the full option list. `--verbose` prints the complete pending
+record before it is sent, plus the full body of any API error, which is the
+quickest way to see the facets and embeds this post has been describing:
+
+```bash
+python3 create_bsky_post.py "Hello, @alice.test! #greetings" --verbose
+```
+
+It also ships with a built-in test suite covering the facet parsers, URI
+validation, SSRF checks, redirect handling, response limits, and the
+thumbnail failure paths:
 
 ```bash
 python3 create_bsky_post.py --self-test

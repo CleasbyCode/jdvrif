@@ -124,9 +124,13 @@ MAX_IMAGE_PIXELS = 40_000_000
 MAX_IMAGE_DIMENSION = 16_384
 MAX_EXTERNAL_TITLE_CHARS = 300
 MAX_EXTERNAL_DESCRIPTION_CHARS = 1_000
+# The app.bsky.embed.images lexicon sets no maxLength on `alt`. This mirrors the
+# official composer's limit, so alt text that would be rejected or silently
+# truncated by clients fails locally instead.
+MAX_ALT_TEXT_CHARS = 2_000
 MAX_REDIRECTS = 3
 MAX_DOWNLOAD_ADDRESS_ATTEMPTS = 4
-USER_AGENT = "bsky-post/1.1 (+https://bsky.app)"
+USER_AGENT = "bsky-post/1.1 (+https://github.com/CleasbyCode/cookbook)"
 DOWNLOAD_CHUNK_SIZE = 64 * 1024
 
 HANDLE_REGEX = re.compile(
@@ -208,14 +212,6 @@ IMAGE_FORMAT_MIMETYPES = {
     "JPEG": "image/jpeg",
     "WEBP": "image/webp",
     "GIF": "image/gif",
-}
-
-EXTENSION_MIMETYPES = {
-    "png": "image/png",
-    "jpeg": "image/jpeg",
-    "jpg": "image/jpeg",
-    "webp": "image/webp",
-    "gif": "image/gif",
 }
 
 BSKY_APP_COLLECTIONS = {
@@ -536,11 +532,6 @@ def _public_url_addresses(url: str) -> tuple[ParseResult, List[str]]:
     return parsed, addresses
 
 
-def _assert_public_url(url: str) -> None:
-    """Reject non-HTTP(S) URLs or URLs resolving to any non-public address."""
-    _public_url_addresses(url)
-
-
 def _ascii_hostname(hostname: str) -> str:
     try:
         return str(ipaddress.ip_address(hostname))
@@ -857,23 +848,6 @@ def bsky_login_session(pds_url: str, handle: str, password: str) -> Dict:
     if not isinstance(data.get("accessJwt"), str) or not isinstance(data.get("did"), str):
         raise ValueError("createSession response is missing accessJwt or did")
     return data
-
-
-def parse_spans(
-    text: str,
-    regex: "re.Pattern[str]",
-    key: str,
-    transform: Callable[[re.Match[str]], str] = lambda m: m.group(1),
-) -> List[Dict]:
-    byte_offsets = _byte_offsets(text)
-    return [
-        {
-            "start": byte_offsets[match.start(1)],
-            "end": byte_offsets[match.end(1)],
-            key: transform(match),
-        }
-        for match in regex.finditer(text)
-    ]
 
 
 def _byte_offsets(text: str) -> List[int]:
@@ -1311,13 +1285,6 @@ def get_reply_refs(record_service_url: str, parent_uri: str) -> Dict:
     return {"root": root, "parent": record_ref(parent)}
 
 
-def get_mimetype(filename: str) -> str:
-    # Strip URL query/fragment so og:image URLs like "photo.jpg?sig=…" still match.
-    path_part = urlparse(filename).path or filename
-    suffix = Path(path_part).suffix.lower().lstrip(".")
-    return EXTENSION_MIMETYPES.get(suffix, "application/octet-stream")
-
-
 def _validate_image_dimensions(width: int, height: int) -> None:
     if width <= 0 or height <= 0:
         raise ValueError(f"Image has invalid dimensions: {width}x{height}")
@@ -1358,18 +1325,19 @@ def inspect_image(img_bytes: bytes, source: str) -> Dict[str, Any]:
 def upload_file(
     pds_url: str,
     access_token: str,
-    filename: str,
     img_bytes: bytes,
-    mimetype: Optional[str] = None,
+    mimetype: str,
 ) -> Dict:
-    content_type = mimetype or get_mimetype(filename)
+    # The mimetype is always the one Pillow decoded from the bytes themselves.
+    # Guessing it from a filename or URL extension would let a remote page pick
+    # the Content-Type of a blob we vouch for, so no such fallback exists.
     with _open_api_response(
         _SESSION.post,
         _api_url(pds_url, "com.atproto.repo.uploadBlob"),
         timeout=60,
         operation="waiting for uploadBlob response headers",
         headers={
-            "Content-Type": content_type,
+            "Content-Type": mimetype,
             "Authorization": "Bearer " + access_token,
         },
         data=img_bytes,
@@ -1451,19 +1419,27 @@ def upload_images(
     image_paths: List[str],
     alt_texts: Optional[List[str]] = None,
 ) -> Dict:
-    images = []
-    for i, ip in enumerate(image_paths):
-        path = Path(ip)
-        img_bytes = _read_image_file(path)
-        image_info = inspect_image(img_bytes, ip)
-        blob = upload_file(
-            pds_url,
-            access_token,
-            ip,
-            img_bytes,
-            image_info["mimetype"],
+    # Read and validate the whole batch before uploading any of it, so an
+    # unreadable or malformed file fails before the first blob is written. Blobs
+    # left unreferenced by a later failure are garbage collected by the PDS.
+    prepared = []
+    for index, image_path in enumerate(image_paths):
+        img_bytes = _read_image_file(Path(image_path))
+        prepared.append(
+            (
+                img_bytes,
+                inspect_image(img_bytes, image_path),
+                _image_alt_text(alt_texts, index),
+            )
         )
-        images.append(_image_embed_item(blob, image_info, _image_alt_text(alt_texts, i)))
+    images = [
+        _image_embed_item(
+            upload_file(pds_url, access_token, img_bytes, image_info["mimetype"]),
+            image_info,
+            alt,
+        )
+        for img_bytes, image_info, alt in prepared
+    ]
     return {"$type": "app.bsky.embed.images", "images": images}
 
 
@@ -1554,27 +1530,43 @@ def _attach_external_thumb(
     img_url = _meta_content(soup, "og:image")
     if not img_url:
         return
+
+    def warn_and_skip_thumb() -> None:
+        print(
+            f"warning: could not embed og:image {_url_for_log(img_url)!r}.",
+            file=sys.stderr,
+        )
+
     try:
         img_url = _absolute_url(page_url, img_url)
         img_bytes, _ = _safe_download(img_url, MAX_EMBED_IMAGE_BYTES)
         image_info = inspect_image(img_bytes, img_url)
-        card["thumb"] = upload_file(
-            pds_url,
-            access_token,
-            img_url,
-            img_bytes,
-            image_info["mimetype"],
-        )
     except (requests.RequestException, ValueError):
         # Swallowing requests.Timeout here is safe (and intentional), unlike the
         # API paths that must let it propagate: _safe_download uses its own
         # freshly-created sessions, so an abandoned daemon worker from a timed-out
         # download cannot be touching the shared _SESSION that createRecord reuses
         # next. A failed thumbnail must not abort an otherwise valid post.
-        print(
-            f"warning: could not embed og:image {_url_for_log(img_url)!r}.",
-            file=sys.stderr,
+        warn_and_skip_thumb()
+        return
+
+    try:
+        card["thumb"] = upload_file(
+            pds_url,
+            access_token,
+            img_bytes,
+            image_info["mimetype"],
         )
+    except requests.Timeout:
+        # uploadBlob runs on the shared _SESSION, so unlike the download above
+        # this timeout MUST propagate: the abandoned daemon worker may still be
+        # using _SESSION, which createRecord reuses next. See
+        # _run_before_download_deadline.
+        raise
+    except (requests.RequestException, ValueError):
+        # Any other upload failure (a rejected blob, an HTTP error) leaves the
+        # Session idle, so the card can still be posted without a thumbnail.
+        warn_and_skip_thumb()
 
 
 def fetch_embed_url_card(pds_url: str, access_token: str, url: str) -> Dict:
@@ -1852,7 +1844,7 @@ def test_normalize_pds_url():
 def test_url_security_checks():
     for url in ("http://127.0.0.1/", "http://[::1]/"):
         try:
-            _assert_public_url(url)
+            _public_url_addresses(url)
         except ValueError:
             pass
         else:
@@ -2073,7 +2065,6 @@ def test_login_rejects_redirects():
         def raise_for_status(self):
             raise AssertionError("redirect must be rejected before status handling")
 
-    original_post = _SESSION.post
     call_options = {}
 
     response = FakeResponse()
@@ -2083,6 +2074,8 @@ def test_login_rejects_redirects():
         return response
 
     try:
+        # Shadow the bound method with an instance attribute, then delete it so
+        # the class method is restored rather than pinned to the instance.
         _SESSION.post = fake_post
         try:
             bsky_login_session("https://pds.example", "alice", "secret")
@@ -2091,7 +2084,7 @@ def test_login_rejects_redirects():
         else:
             raise AssertionError("expected createSession redirect to fail")
     finally:
-        _SESSION.post = original_post
+        del _SESSION.post
 
     _check(call_options["allow_redirects"] is False)
     _check(response.closed)
@@ -2137,6 +2130,74 @@ def test_embed_thumbnail_uses_final_page_url():
         "page_url": "https://cdn.example/articles/current/page.html",
         "image_url": "https://cdn.example/articles/thumb.png",
     })
+
+
+def test_thumbnail_failures_respect_session_safety():
+    soup = BeautifulSoup(
+        b'<meta property="og:image" content="https://cdn.example/thumb.png">',
+        "html.parser",
+    )
+    originals = {
+        name: globals()[name]
+        for name in ("_safe_download", "inspect_image", "upload_file")
+    }
+
+    def attach(card: Dict) -> None:
+        # The failure paths warn on stderr; keep --self-test output clean.
+        original_stderr, sys.stderr = sys.stderr, io.StringIO()
+        try:
+            _attach_external_thumb(
+                card,
+                "https://pds.example",
+                "token",
+                "https://example.com/",
+                soup,
+            )
+        finally:
+            sys.stderr = original_stderr
+
+    def raise_timeout(*_args, **_kwargs):
+        raise requests.Timeout("timed out")
+
+    try:
+        globals()["inspect_image"] = lambda *_a: {
+            "width": 1,
+            "height": 1,
+            "mimetype": "image/png",
+        }
+
+        # A download timeout uses throwaway sessions, so the post still goes out.
+        globals()["_safe_download"] = raise_timeout
+        card: Dict = {}
+        attach(card)
+        _check("thumb" not in card, "download timeout must not attach a thumb")
+
+        globals()["_safe_download"] = lambda *_a: (b"bytes", "https://cdn.example/")
+
+        # An uploadBlob timeout may leave a daemon worker on the shared _SESSION,
+        # so it must abort the post rather than fall through to createRecord.
+        globals()["upload_file"] = raise_timeout
+        try:
+            attach(card)
+        except requests.Timeout:
+            pass
+        else:
+            raise AssertionError("expected uploadBlob timeout to abort the post")
+        _check("thumb" not in card, "timed-out upload must not attach a thumb")
+
+        # Other upload failures leave the Session idle and stay non-fatal.
+        def reject_blob(*_args, **_kwargs):
+            raise requests.RequestException("blob rejected")
+
+        globals()["upload_file"] = reject_blob
+        attach(card)
+        _check("thumb" not in card, "rejected upload must not attach a thumb")
+
+        globals()["upload_file"] = lambda *_a: {"$type": "blob"}
+        attach(card)
+        _check_equal(card["thumb"], {"$type": "blob"})
+    finally:
+        globals().update(originals)
 
 
 def test_inspect_image():
@@ -2256,6 +2317,7 @@ def run_self_tests() -> None:
         test_safe_download_redirect_returns_final_url,
         test_login_rejects_redirects,
         test_embed_thumbnail_uses_final_page_url,
+        test_thumbnail_failures_respect_session_safety,
         test_inspect_image,
         test_read_response_body_limits,
         test_get_reply_refs_reuses_root_ref,
@@ -2275,6 +2337,12 @@ def _validate_image_args(args: argparse.Namespace) -> None:
         raise ValueError("--alt-text requires --image.")
     if args.alt_text and args.image and len(args.alt_text) != len(args.image):
         raise ValueError("--alt-text count must match --image count.")
+    for alt_text in args.alt_text or ():
+        if len(alt_text) > MAX_ALT_TEXT_CHARS:
+            raise ValueError(
+                f"Alt text exceeds the {MAX_ALT_TEXT_CHARS:,}-character limit "
+                f"(got {len(alt_text):,} characters)."
+            )
 
 
 def _validate_embed_args(args: argparse.Namespace) -> int:
@@ -2421,7 +2489,9 @@ def validate_args(args: argparse.Namespace) -> None:
     embed_sources = _validate_embed_args(args)
     _validate_language_args(args.lang)
 
-    if not args.text and embed_sources == 0:
+    # Whitespace-only text is not text: it carries no content and the PDS
+    # rejects the resulting record. Blank text alongside an embed is fine.
+    if not args.text.strip() and embed_sources == 0:
         raise ValueError("Post text or an embed is required.")
 
     if args.reply_to:
