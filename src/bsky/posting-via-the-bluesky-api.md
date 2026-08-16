@@ -5,7 +5,7 @@ A guide to creating posts via the Bluesky API, including rich-text facets
 and website cards — with the safety rails a script needs when it fetches
 untrusted content from the open web.
 
-*July 23, 2026*
+*July 23, 2026 — updated August 15, 2026*
 
 This post is an updated companion to the AT Protocol team's original
 [Posting via the Bluesky API](https://atproto.com/blog/create-post)
@@ -23,10 +23,13 @@ adds hashtag/cashtag facets, per-image alt text, aspect ratios, language tags,
 and record-with-media embeds, and treats every network fetch as potentially
 hostile.
 
-It requires Python 3.9+ with `requests`, `beautifulsoup4`, and `pillow`:
+It requires Python 3.9+ with `requests`, `beautifulsoup4`, and `pillow`.
+Dependencies are pinned in `requirements.txt` for reproducibility — it also
+pins `urllib3` and `idna`, which are transitive dependencies of `requests` but
+which the SSRF/TLS layer relies on directly:
 
 ```bash
-pip install requests beautifulsoup4 pillow
+pip install -r requirements.txt
 ```
 
 ---
@@ -92,7 +95,7 @@ script publishes a single post, it never needs the refresh token.
 ```python
 def bsky_login_session(pds_url: str, handle: str, password: str) -> Dict:
     with _open_api_response(
-        _SESSION.post,
+        "POST",
         _api_url(pds_url, "com.atproto.server.createSession"),
         timeout=30,
         operation="waiting for createSession response headers",
@@ -102,23 +105,56 @@ def bsky_login_session(pds_url: str, handle: str, password: str) -> Dict:
             raise ValueError(
                 "Refusing redirect from credential-bearing createSession request"
             )
-        resp.raise_for_status()
+        if not resp.ok:
+            body = _response_body(resp)
+            error_name = (_api_error_name(body) or "").lower()
+            hint = LOGIN_ERROR_HINTS.get(error_name)
+            raise ValueError(
+                f"Login failed with HTTP {resp.status_code}"
+                f"{_api_error_summary(body)}."
+                + (f"\n{hint}" if hint else "")
+            )
         data = _json_object(resp, "createSession")
     if not isinstance(data.get("accessJwt"), str) or not isinstance(data.get("did"), str):
         raise ValueError("createSession response is missing accessJwt or did")
     return data
 ```
 
-Two hardening details already show up here. Redirects are disabled and
+Three hardening details already show up here. Redirects are disabled and
 explicitly refused: a misconfigured or malicious endpoint must never be able
-to bounce a request carrying your password somewhere else. And the response
-is read through a size-capped, deadline-bounded reader rather than trusted
-blindly.
+to bounce a request carrying your password somewhere else. The response is
+read through a size-capped, deadline-bounded reader rather than trusted
+blindly. And the failure path reads the XRPC error body instead of raising a
+bare `401 Client Error`, because login is where a first-time user is most
+likely to get stuck and the status code alone never says why:
 
-The PDS URL itself must be HTTPS. Plain HTTP is only allowed with
+```
+Error: Login failed with HTTP 401 (AuthFactorTokenRequired: A sign in code
+has been sent to your email address).
+This account has email two-factor authentication enabled, which the account
+password cannot bypass. Use an APP password instead, created at
+https://bsky.app/settings/app-passwords.
+```
+
+The hint is looked up from the error name for the handful of cases with an
+actionable fix (2FA, a revoked password, rate limiting, a takedown); anything
+else just reports what the server said. The password itself never appears in
+an error message.
+
+The PDS defaults to `https://bsky.social` and can be pointed elsewhere with
+`--pds-url` or the `ATP_PDS_HOST` environment variable (the record lookup
+service has the same pairing: `--record-service-url` / `ATP_RECORD_SERVICE_HOST`).
+Either way the URL must be HTTPS and must be a bare scheme and host, with no
+path, query, or fragment. Plain HTTP is only allowed with
 `--allow-insecure-pds`, and even then only for `localhost`/loopback
 addresses, so the flag is useful for local development but can't be abused
 to send credentials in cleartext across a network.
+
+Service URLs are a deliberately different trust boundary from everything in
+the next section: they're operator-supplied, never chosen by the content
+you're posting, so they are not subject to the public-address SSRF check.
+Aiming one at a private address is a local-testing decision, not something a
+hostile web page can arrange.
 
 ## Post Record Structure
 
@@ -199,8 +235,8 @@ def _byte_offsets(text: str) -> List[int]:
 Mentions are matched with a handle regex based on the
 [handle syntax spec](https://atproto.com/specs/handle), then each candidate
 is resolved to a DID via `com.atproto.identity.resolveHandle`. If a handle
-doesn't resolve, it's skipped and simply renders as plain text — same
-behavior as the original. The fork adds:
+doesn't resolve — including because the lookup timed out — it's skipped and
+simply renders as plain text, same behavior as the original. The fork adds:
 
 * a Unicode-aware word-boundary check, so `email@example.com` is not treated
   as a mention of `example.com`,
@@ -350,12 +386,25 @@ points to. The fork's changes:
 * relative `og:image` URLs are resolved with a proper `urljoin` against the
   page's **final** URL after redirects (the original naively concatenated
   strings against the original URL);
-* the HTML download is capped at 2 MB and the thumbnail at 1 MB;
+* the page's HTML is decoded using the charset the server declares in its
+  `Content-Type` header (falling back to a BOM, an in-document
+  `<meta charset>`, and byte sniffing), so a page served in a non-UTF-8
+  encoding still yields correct card text;
+* the HTML download is capped at 4 MB and the thumbnail at 1 MB;
+* `og:` properties are matched case-insensitively, since real pages do emit
+  `property="OG:Title"`;
 * card titles and descriptions are trimmed to sane lengths without splitting
   a combining character or emoji sequence at the cut point;
-* a failed thumbnail prints a warning and posts the card without a thumb,
-  instead of aborting the whole post — with one deliberate exception, covered
-  below.
+* nothing about the card can cost you the post. A failed thumbnail prints a
+  warning and posts the card without a thumb; if the page itself can't be
+  read at all — it exceeds the cap, times out, or returns an error — the
+  script warns and falls back to a bare card carrying just the URL, which
+  clients still render as a link.
+
+That last point is a deliberate ordering choice: the card is a decoration,
+and by the time it is being built you are already authenticated and your text
+is ready to send. Discarding the post because a remote server misbehaved
+would be the worst possible trade.
 
 And, most importantly, every one of these downloads goes through the
 SSRF-protected fetcher described next.
@@ -378,31 +427,50 @@ the connection goes to the address that was checked, a malicious DNS server
 can't pass validation with a public IP and then rebind the name to
 `169.254.169.254` for the actual request.
 
+Internationalized hostnames are encoded to their A-label *once*, and that
+single encoding is what gets resolved, sent as SNI, and checked against the
+certificate. Handing the raw Unicode name to `socket.getaddrinfo` would
+encode it with CPython's IDNA2003 codec, which disagrees with the IDNA2008 /
+UTS46 encoding used everywhere else for labels containing (for example) `ß`
+— resolving one name while authenticating another.
+
 **Redirect discipline.** Redirects are never followed automatically. Each
 hop (at most 3) is re-validated from scratch — scheme, host, public address —
 and HTTPS-to-HTTP downgrades are refused. Credential-bearing API requests
 refuse redirects entirely.
 
-**Deadlines everywhere.** Every network operation runs under a wall-clock
-deadline that covers DNS resolution, connection, and body reads, so a
-tarpit server can't hang the script indefinitely.
+**Deadlines everywhere, and a Session per request.** Every network operation
+runs under a wall-clock deadline that covers DNS resolution, connection, and
+body reads, so a tarpit server can't hang the script indefinitely.
 
-This has a consequence worth spelling out, because it is the one place the
-"a failed thumbnail never aborts the post" rule bends. A blocking call that
-blows its deadline is *abandoned* in a daemon thread rather than cancelled —
-Python cannot cancel a thread parked in a socket read. That worker may still
-be touching the `requests.Session` it was handed. External downloads each get
-a throwaway Session, so abandoning one is harmless and their timeouts are
-swallowed. API calls share one Session that the final `createRecord` reuses,
-so *their* timeouts must propagate all the way out and end the process. That
-is why a thumbnail's `uploadBlob` timing out aborts the post while the same
-thumbnail's download timing out does not: one shares the Session, the other
-doesn't.
+This has a consequence worth spelling out. A blocking call that blows its
+deadline is *abandoned* in a daemon thread rather than cancelled — Python
+cannot cancel a thread parked in a socket read. That worker keeps running,
+still holding the `requests.Session` it was handed. So every request builds
+its own Session and hands ownership to the worker if it is abandoned: an
+orphaned worker can then only ever touch connection state that nothing else
+will use again, and the code unwinding from the timeout simply leaves that
+Session alone rather than closing it underneath a live socket read.
 
-**Size caps and content checks.** Response bodies are streamed with hard
-byte limits (declared `Content-Length` is checked first, then actual bytes),
-and compressed (`Content-Encoding`) responses are refused so a small gzip
-body can't expand into gigabytes.
+The payoff is that timeouts are ordinary, recoverable errors everywhere. A
+`resolveHandle` that hangs costs you one mention, which falls back to plain
+text; a thumbnail upload that hangs costs you the thumbnail. Neither costs
+you the post. The alternative — a single shared Session — forces the opposite
+rule, where any timeout has to terminate the process to stay safe, and that
+rule is invisible to the next person editing the file. A distinct
+`DeadlineExceeded` exception type keeps this honest: it separates "our
+deadline expired and a worker was abandoned" from requests' own
+`ConnectTimeout`/`ReadTimeout`, which leave nothing running and are safely
+retried against the host's next address.
+
+**Size caps and content checks.** Response bodies are streamed with a hard
+byte limit applied to *decoded* bytes, which is exactly where a decompression
+bomb has to be stopped. Requests go out with `Accept-Encoding: identity`, but
+servers do ignore that, so any coding urllib3 unwraps transparently while
+streaming (gzip, deflate) is accepted and only codings that would reach the
+parser still encoded are refused. A declared `Content-Length` is used as an
+early-out too, but only when no coding was applied — otherwise it describes
+the compressed body and says nothing about what the response inflates to.
 
 None of this changes what gets posted — it changes what a hostile web page
 can do to the machine running the script.
@@ -411,16 +479,18 @@ can do to the machine running the script.
 
 The complete script is a single file, `create_bsky_post.py`. Run
 `--help` for the full option list. `--verbose` prints the complete pending
-record before it is sent, plus the full body of any API error, which is the
-quickest way to see the facets and embeds this post has been describing:
+record before it is sent, plus the full body of a failed `createRecord`,
+which is the quickest way to see the facets and embeds this post has been
+describing:
 
 ```bash
 python3 create_bsky_post.py "Hello, @alice.test! #greetings" --verbose
 ```
 
 It also ships with a built-in test suite covering the facet parsers, URI
-validation, SSRF checks, redirect handling, response limits, and the
-thumbnail failure paths:
+validation, SSRF checks, IDN resolution, redirect handling and limits,
+response size and content-encoding limits, image file safety, login error
+reporting, and the card and thumbnail degradation paths:
 
 ```bash
 python3 create_bsky_post.py --self-test

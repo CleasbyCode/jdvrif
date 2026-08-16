@@ -46,16 +46,19 @@ Security hardening over the original script:
  * Bounded redirects with per-hop revalidation and HTTPS-to-HTTP
    downgrade refusal; redirects on credential-bearing requests rejected
 
- * Wall-clock deadlines on every network operation, response size caps,
-   and refusal of compressed remote bodies
+ * Wall-clock deadlines on every network operation, with response size
+   caps applied to decoded bytes so a compressed body cannot inflate past
+   them; a Session per request, so a call abandoned at its deadline can
+   never share connection state with a later one
 
  * Strict validation of AT URIs, record CIDs, handles, language tags,
    image files (symlink-safe reads, dimension/pixel limits), and URLs
 
 Setup:
 
- Requires: requests, beautifulsoup4, pillow
-    $ pip install requests beautifulsoup4 pillow
+ Requires: requests, beautifulsoup4, pillow (with pinned versions in
+ requirements.txt alongside this script)
+    $ pip install -r requirements.txt
 
  Set your credentials as environment variables:
     $ export ATP_AUTH_HANDLE='your-handle.bsky.social'
@@ -81,6 +84,7 @@ from __future__ import annotations
 import argparse
 import base64
 import binascii
+import errno
 import io
 import ipaddress
 import json
@@ -91,6 +95,7 @@ import re
 import socket
 import stat
 import sys
+import tempfile
 import threading
 import time
 import unicodedata
@@ -103,8 +108,10 @@ from pathlib import Path
 from typing import Any, Callable, Dict, Iterator, List, Optional
 from urllib.parse import ParseResult, urljoin, urlparse, urlunparse
 
+import idna
 import requests
 from requests.adapters import HTTPAdapter
+from urllib3.response import HTTPResponse as _Urllib3Response
 from bs4 import BeautifulSoup
 from PIL import Image, UnidentifiedImageError
 
@@ -117,7 +124,10 @@ MAX_POST_BYTES = 3_000
 MAX_TAG_GRAPHEMES = 64
 MAX_TAG_BYTES = 640
 MAX_LANGS = 3
-MAX_EMBED_HTML_BYTES = 2_000_000
+# Modern article pages routinely exceed 1 MB of HTML before compression, so keep
+# generous headroom: the cap only needs to stop a hostile page from being read
+# without bound, and exceeding it now degrades the card rather than failing.
+MAX_EMBED_HTML_BYTES = 4_000_000
 MAX_EMBED_IMAGE_BYTES = 1_000_000
 MAX_API_RESPONSE_BYTES = 8_000_000
 MAX_IMAGE_PIXELS = 40_000_000
@@ -128,6 +138,8 @@ MAX_EXTERNAL_DESCRIPTION_CHARS = 1_000
 # official composer's limit, so alt text that would be rejected or silently
 # truncated by clients fails locally instead.
 MAX_ALT_TEXT_CHARS = 2_000
+# Server-supplied error text is echoed to the terminal, so keep it short.
+MAX_ERROR_DETAIL_CHARS = 300
 MAX_REDIRECTS = 3
 MAX_DOWNLOAD_ADDRESS_ATTEMPTS = 4
 USER_AGENT = "bsky-post/1.1 (+https://github.com/CleasbyCode/cookbook)"
@@ -222,10 +234,48 @@ BSKY_APP_COLLECTIONS = {
 
 EMBED_SOURCE_ATTRS = ("image", "embed_url", "embed_ref")
 
-_SESSION = requests.Session()
-_SESSION.headers["User-Agent"] = USER_AGENT
-_SESSION.headers["Accept-Encoding"] = "identity"
-_SESSION.trust_env = False
+# Content codings urllib3 unwraps transparently while streaming. Bodies in these
+# codings are safe to accept because the streaming size cap in
+# _read_response_body counts *decoded* bytes, which is exactly where a
+# decompression bomb has to be stopped. Anything outside this set would reach
+# the parser still encoded, so it is refused instead.
+DECODABLE_CONTENT_ENCODINGS = frozenset(
+    {"", "identity"} | set(getattr(_Urllib3Response, "CONTENT_DECODERS", ()))
+)
+
+
+class DeadlineExceeded(requests.Timeout):
+    """Raised when this script's own wall-clock deadline expires.
+
+    Distinct from requests' own ConnectTimeout/ReadTimeout because only this one
+    implies a blocking call was abandoned in a daemon worker thread that may
+    still be using the Session it was handed. Callers that own a Session must
+    not close it while unwinding from this exception; the abandoned worker owns
+    it from that point on.
+    """
+
+
+def _new_session() -> requests.Session:
+    """Build a Session used by exactly one request.
+
+    Every network call gets its own Session, so a blocking call abandoned at the
+    deadline can never be sharing connection state with a later request. That is
+    what makes it safe for callers to catch a timeout and carry on.
+    """
+    session = requests.Session()
+    session.headers["User-Agent"] = USER_AGENT
+    session.headers["Accept-Encoding"] = "identity"
+    session.trust_env = False
+    return session
+
+
+def _close_quietly(*closeables: Any) -> None:
+    for closeable in closeables:
+        try:
+            closeable.close()
+        except Exception:
+            pass
+
 
 _DOWNLOAD_DEADLINE: ContextVar[Optional[float]] = ContextVar(
     "_DOWNLOAD_DEADLINE",
@@ -345,7 +395,7 @@ def normalize_pds_url(pds_url: str, *, allow_insecure: bool = False) -> str:
 def _remaining_download_time(deadline: float, operation: str) -> float:
     remaining = deadline - time.monotonic()
     if remaining <= 0:
-        raise requests.Timeout(
+        raise DeadlineExceeded(
             f"{_NETWORK_TIMEOUT_SUBJECT.get()} timed out while {operation}"
         )
     return remaining
@@ -361,11 +411,13 @@ def _run_before_download_deadline(
     """Run one blocking operation without allowing it past the total deadline.
 
     On timeout the blocking call is abandoned in its daemon worker thread while
-    the caller raises requests.Timeout. That worker may still be touching the
-    shared _SESSION, which is not thread-safe, so any timeout MUST unwind all
-    the way to main() and terminate the process rather than be caught and
-    followed by another request that reuses _SESSION. _resolve_handle relies on
-    this by re-raising Timeout instead of swallowing it.
+    the caller raises DeadlineExceeded. The abandoned worker keeps whatever
+    Session it was handed, and because every request gets its own Session
+    (_new_session), it cannot interfere with any later request. Callers may
+    therefore catch a timeout and continue; they must only avoid closing the
+    Session the worker was given. `dispose_abandoned` is invoked with the
+    worker's result if it succeeds after being abandoned, so the caller can
+    release those resources once the worker is genuinely done with them.
     """
     outcome: queue.Queue[tuple[bool, Any]] = queue.Queue(maxsize=1)
     state_lock = threading.Lock()
@@ -421,12 +473,12 @@ def _run_before_download_deadline(
         succeeded, value = outcome.get(
             timeout=_remaining_download_time(deadline, operation)
         )
-    except requests.Timeout:
+    except DeadlineExceeded:
         abandon_pending_outcome()
         raise
     except queue.Empty as exc:
         abandon_pending_outcome()
-        raise requests.Timeout(
+        raise DeadlineExceeded(
             f"{_NETWORK_TIMEOUT_SUBJECT.get()} timed out while {operation}"
         ) from exc
 
@@ -493,10 +545,17 @@ def _public_url_addresses(url: str) -> tuple[ParseResult, List[str]]:
         if parsed.port is not None
         else (443 if parsed.scheme.lower() == "https" else 80)
     )
+    # Resolve the exact A-label that the TLS handshake will send as SNI and
+    # authenticate against. Handing socket.getaddrinfo the raw Unicode name
+    # instead would encode it with CPython's IDNA2003 codec, which disagrees
+    # with the IDNA2008/UTS46 encoding used by _ascii_hostname for labels
+    # containing (for example) 'ß' or a ZWJ -- resolving one name while
+    # validating a certificate for another.
+    hostname = _ascii_hostname(parsed.hostname or "")
 
     def resolve() -> Any:
         return socket.getaddrinfo(
-            parsed.hostname,
+            hostname,
             port,
             type=socket.SOCK_STREAM,
         )
@@ -509,11 +568,11 @@ def _public_url_addresses(url: str) -> tuple[ParseResult, List[str]]:
             else _run_before_download_deadline(
                 resolve,
                 deadline,
-                f"resolving {parsed.hostname!r}",
+                f"resolving {hostname!r}",
             )
         )
     except socket.gaierror as exc:
-        raise ValueError(f"Could not resolve {parsed.hostname!r}: {exc}") from exc
+        raise ValueError(f"Could not resolve {hostname!r}: {exc}") from exc
 
     addresses: List[str] = []
     for info in infos:
@@ -522,13 +581,13 @@ def _public_url_addresses(url: str) -> tuple[ParseResult, List[str]]:
         ip = getattr(ip, "ipv4_mapped", None) or ip
         if not _is_public_unicast_address(ip):
             raise ValueError(
-                f"Refusing to fetch non-public address {ip} for host {parsed.hostname!r}"
+                f"Refusing to fetch non-public address {ip} for host {hostname!r}"
             )
         normalized = str(ip)
         if normalized not in addresses:
             addresses.append(normalized)
     if not addresses:
-        raise ValueError(f"Could not resolve {parsed.hostname!r} to an IP address")
+        raise ValueError(f"Could not resolve {hostname!r} to an IP address")
     return parsed, addresses
 
 
@@ -536,7 +595,18 @@ def _ascii_hostname(hostname: str) -> str:
     try:
         return str(ipaddress.ip_address(hostname))
     except ValueError:
-        return hostname.encode("idna").decode("ascii")
+        pass
+    # Leave already-ASCII hostnames untouched: the stdlib "idna" codec is
+    # IDNA2003 and rejects perfectly resolvable names (e.g. underscore labels
+    # used by some CDNs), so only internationalized names are A-label encoded.
+    # Use the IDNA2008 `idna` package (a transitive dependency of requests) and
+    # surface a clear error instead of a cryptic UnicodeError on bad input.
+    if hostname.isascii():
+        return hostname
+    try:
+        return idna.encode(hostname, uts46=True).decode("ascii")
+    except idna.IDNAError as exc:
+        raise ValueError(f"Invalid internationalized hostname: {hostname!r}") from exc
 
 
 def _original_authority(parsed: ParseResult) -> str:
@@ -555,7 +625,15 @@ def _pinned_url(parsed: ParseResult, address: str) -> str:
 
 
 class _PinnedHTTPSAdapter(HTTPAdapter):
-    """Connect to an IP literal while authenticating the URL's original hostname."""
+    """Connect to an IP literal while authenticating the URL's original hostname.
+
+    The whole SSRF pinning scheme rests on urllib3 honouring two pool options:
+    `server_hostname` (the SNI name sent in the TLS handshake) and
+    `assert_hostname` (the name the presented certificate is verified against).
+    Passing these via `connection_pool_kw` is supported by urllib3 >= 2, which
+    requirements.txt pins; older releases handle them differently, so the pin is
+    load-bearing rather than cosmetic.
+    """
 
     def __init__(self, hostname: str):
         self._hostname = _ascii_hostname(hostname)
@@ -577,10 +655,7 @@ def _open_pinned_response(
     deadline = _DOWNLOAD_DEADLINE.get()
     last_error: Optional[requests.RequestException] = None
     for address in addresses[:MAX_DOWNLOAD_ADDRESS_ATTEMPTS]:
-        session = requests.Session()
-        session.headers.update(_SESSION.headers)
-        session.headers["Accept-Encoding"] = "identity"
-        session.trust_env = False
+        session = _new_session()
         if parsed.scheme.lower() == "https":
             session.mount("https://", _PinnedHTTPSAdapter(parsed.hostname or ""))
         try:
@@ -609,24 +684,44 @@ def _open_pinned_response(
                     request,
                     deadline,
                     f"connecting to {_url_for_log(url)!r}",
-                    dispose_abandoned=lambda late_response: late_response.close(),
+                    # The abandoned worker owns `session` from here on, so both
+                    # it and the late response are released together once that
+                    # worker finishes. `session` is bound as a default so the
+                    # callback can never see a later iteration's Session.
+                    dispose_abandoned=(
+                        lambda late_response, owned=session: _close_quietly(
+                            late_response,
+                            owned,
+                        )
+                    ),
                 )
             )
+        except DeadlineExceeded:
+            # Leave `session` alone: a daemon worker may still be using it.
+            raise
         except requests.RequestException as exc:
+            # A per-address failure (including requests' own connect/read
+            # timeouts) leaves nothing running, so this Session can be closed
+            # and the next address tried -- unless the deadline is already gone.
             last_error = exc
             session.close()
             if deadline is not None and time.monotonic() >= deadline:
-                raise requests.Timeout(
+                raise DeadlineExceeded(
                     "External download timed out while connecting to "
                     f"{_url_for_log(url)!r}"
                 ) from exc
             continue
 
+        abandoned = False
         try:
             yield response
+        except DeadlineExceeded:
+            abandoned = True
+            raise
         finally:
-            response.close()
-            session.close()
+            if not abandoned:
+                response.close()
+                session.close()
         return
 
     if last_error is not None:
@@ -650,17 +745,25 @@ def _declared_content_length(resp: requests.Response) -> Optional[int]:
 
 
 def _read_response_body(resp: requests.Response, max_bytes: int) -> bytes:
+    # Requests are sent with `Accept-Encoding: identity`, but servers do ignore
+    # that, so accept anything urllib3 unwraps for us and refuse only codings
+    # that would reach the caller still encoded. This costs nothing in
+    # decompression-bomb terms: iter_content() yields *decoded* bytes, so the
+    # streaming cap below is applied where a bomb actually has to be stopped.
     content_encoding = resp.headers.get("Content-Encoding", "").strip().lower()
-    if content_encoding not in ("", "identity"):
+    if content_encoding not in DECODABLE_CONTENT_ENCODINGS:
         raise ValueError(
-            "Refusing compressed remote response with Content-Encoding "
+            "Refusing remote response with undecodable Content-Encoding "
             f"{content_encoding!r}"
         )
+    is_encoded = content_encoding not in ("", "identity")
 
+    # Content-Length describes the encoded body, so it only bounds the decoded
+    # size when no coding was applied.
     declared = _declared_content_length(resp)
     if declared is not None and declared < 0:
         raise ValueError("Remote response declares a negative Content-Length")
-    if declared is not None and declared > max_bytes:
+    if declared is not None and not is_encoded and declared > max_bytes:
         raise ValueError(
             f"Remote response declares {declared} bytes, above {max_bytes} limit"
         )
@@ -694,12 +797,29 @@ def _redirect_target(resp: requests.Response, current_url: str) -> str:
     return urljoin(current_url, location)
 
 
+def _charset_from_content_type(content_type: Optional[str]) -> Optional[str]:
+    """Extract a charset label from a Content-Type header, if it declares one."""
+    if not content_type:
+        return None
+    for parameter in content_type.split(";")[1:]:
+        key, separator, value = parameter.strip().partition("=")
+        if separator and key.strip().lower() == "charset":
+            charset = value.strip().strip('"').strip("'")
+            return charset or None
+    return None
+
+
 def _safe_download(
     url: str,
     max_bytes: int,
     timeout: float = 10,
-) -> tuple[bytes, str]:
-    """Fetch a URL through pinned public addresses and return its final URL."""
+) -> tuple[bytes, str, Optional[str]]:
+    """Fetch a URL through pinned public addresses.
+
+    Returns the body, the final URL after any redirects, and the declared
+    Content-Type header (or None) so callers can honour a server-declared
+    charset when decoding text.
+    """
     if not math.isfinite(timeout) or timeout <= 0:
         raise ValueError("Download timeout must be a positive finite number")
 
@@ -715,7 +835,8 @@ def _safe_download(
     try:
         visited: set[str] = set()
         current = url
-        for redirects_followed in range(MAX_REDIRECTS + 1):
+        redirects_followed = 0
+        while True:
             _remaining_download_time(
                 deadline,
                 f"fetching {_url_for_log(current)!r}",
@@ -730,11 +851,12 @@ def _safe_download(
                 if status_code is None:
                     status_code = 302 if getattr(resp, "is_redirect", False) else 200
                 if 300 <= status_code < 400:
-                    if redirects_followed == MAX_REDIRECTS:
+                    if redirects_followed >= MAX_REDIRECTS:
                         raise ValueError(
                             f"Too many redirects (> {MAX_REDIRECTS}) "
                             f"following {_url_for_log(url)!r}"
                         )
+                    redirects_followed += 1
                     redirect_url = _redirect_target(resp, current)
                     current_parsed = _parse_url(
                         current,
@@ -762,11 +884,11 @@ def _safe_download(
                         "External download returned HTTP "
                         f"{status_code} for {_url_for_log(current)!r}"
                     ) from exc
-                return _read_response_body(resp, max_bytes), current
-        raise ValueError(
-            f"Too many redirects (> {MAX_REDIRECTS}) "
-            f"following {_url_for_log(url)!r}"
-        )
+                return (
+                    _read_response_body(resp, max_bytes),
+                    current,
+                    resp.headers.get("Content-Type"),
+                )
     finally:
         _NETWORK_TIMEOUT_SUBJECT.reset(subject_token)
         _DOWNLOAD_DEADLINE.reset(deadline_token)
@@ -774,14 +896,20 @@ def _safe_download(
 
 @contextmanager
 def _open_api_response(
-    request_method: Callable[..., requests.Response],
+    method: str,
     url: str,
     *,
     timeout: float,
     operation: str,
     **request_kwargs: Any,
 ) -> Iterator[requests.Response]:
-    """Open and close one streamed API response under a wall-clock deadline."""
+    """Open and close one streamed API response under a wall-clock deadline.
+
+    The Session is created here and used by this request alone, so a call
+    abandoned at the deadline cannot leave a daemon worker writing to state that
+    a later request depends on. That is why callers are free to catch a timeout
+    and keep going.
+    """
     if not math.isfinite(timeout) or timeout <= 0:
         raise ValueError("API timeout must be a positive finite number")
     requested_deadline = time.monotonic() + timeout
@@ -793,10 +921,13 @@ def _open_api_response(
     )
     deadline_token = _DOWNLOAD_DEADLINE.set(deadline)
     subject_token = _NETWORK_TIMEOUT_SUBJECT.set("API request")
+    session = _new_session()
     response: Optional[requests.Response] = None
+    abandoned = False
 
     def request() -> requests.Response:
-        return request_method(
+        return session.request(
+            method,
             url,
             timeout=timeout,
             allow_redirects=False,
@@ -805,17 +936,28 @@ def _open_api_response(
         )
 
     try:
-        response = _run_before_download_deadline(
-            request,
-            deadline,
-            operation,
-            dispose_abandoned=lambda late_response: late_response.close(),
-        )
-        yield response
+        try:
+            response = _run_before_download_deadline(
+                request,
+                deadline,
+                operation,
+                dispose_abandoned=(
+                    lambda late_response: _close_quietly(late_response, session)
+                ),
+            )
+            yield response
+        except DeadlineExceeded:
+            # Either the request or a body read inside the caller's block was
+            # abandoned mid-flight; the daemon worker still owns `session` and
+            # `response`, so neither may be closed from here.
+            abandoned = True
+            raise
     finally:
         try:
-            if response is not None:
-                response.close()
+            if not abandoned:
+                if response is not None:
+                    _close_quietly(response)
+                _close_quietly(session)
         finally:
             _NETWORK_TIMEOUT_SUBJECT.reset(subject_token)
             _DOWNLOAD_DEADLINE.reset(deadline_token)
@@ -831,9 +973,53 @@ def _json_object(resp: requests.Response, context: str) -> Dict[str, Any]:
     return data
 
 
+def _response_body(resp: requests.Response) -> Any:
+    body = _read_response_body(resp, MAX_API_RESPONSE_BYTES)
+    try:
+        return json.loads(body)
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        return {"raw": body.decode("UTF-8", errors="replace")}
+
+
+def _api_error_name(body: Any) -> Optional[str]:
+    if not isinstance(body, dict):
+        return None
+    error_name = body.get("error")
+    return error_name if isinstance(error_name, str) and error_name else None
+
+
+def _api_error_summary(body: Any) -> str:
+    """Render an XRPC error body as a short ` (Name: message)` suffix."""
+    error_name = _api_error_name(body)
+    if error_name is None:
+        return ""
+    message = body.get("message") if isinstance(body, dict) else None
+    if isinstance(message, str) and message.strip():
+        detail = _grapheme_safe_prefix(message.strip(), MAX_ERROR_DETAIL_CHARS)
+        return f" ({error_name}: {detail})"
+    return f" ({error_name})"
+
+
+# Login failures are the most common thing a first-time user hits, and the raw
+# XRPC error name rarely explains the fix.
+LOGIN_ERROR_HINTS = {
+    "authfactortokenrequired": (
+        "This account has email two-factor authentication enabled, which the "
+        "account password cannot bypass. Use an APP password instead, created "
+        "at https://bsky.app/settings/app-passwords."
+    ),
+    "authenticationrequired": (
+        "Check ATP_AUTH_HANDLE, and that ATP_AUTH_PASSWORD is a current, "
+        "unrevoked app password from https://bsky.app/settings/app-passwords."
+    ),
+    "accounttakedown": "This account has been taken down by its host.",
+    "ratelimitexceeded": "The PDS is rate limiting sign-ins; wait and retry.",
+}
+
+
 def bsky_login_session(pds_url: str, handle: str, password: str) -> Dict:
     with _open_api_response(
-        _SESSION.post,
+        "POST",
         _api_url(pds_url, "com.atproto.server.createSession"),
         timeout=30,
         operation="waiting for createSession response headers",
@@ -843,7 +1029,17 @@ def bsky_login_session(pds_url: str, handle: str, password: str) -> Dict:
             raise ValueError(
                 "Refusing redirect from credential-bearing createSession request"
             )
-        resp.raise_for_status()
+        if not resp.ok:
+            # Surface what the PDS actually said. Without this an expired app
+            # password and an account needing a 2FA code look identical.
+            body = _response_body(resp)
+            error_name = (_api_error_name(body) or "").lower()
+            hint = LOGIN_ERROR_HINTS.get(error_name)
+            raise ValueError(
+                f"Login failed with HTTP {resp.status_code}"
+                f"{_api_error_summary(body)}."
+                + (f"\n{hint}" if hint else "")
+            )
         data = _json_object(resp, "createSession")
     if not isinstance(data.get("accessJwt"), str) or not isinstance(data.get("did"), str):
         raise ValueError("createSession response is missing accessJwt or did")
@@ -976,6 +1172,10 @@ def parse_hashtags(text: str) -> List[Dict]:
         )
 
     for match in CASHTAG_REGEX.finditer(text):
+        # Unlike hashtags (whose byte span covers the leading '#' but whose tag
+        # value omits it, per the Bluesky convention), cashtags deliberately
+        # keep the leading '$' in both the span and the stored tag value, so the
+        # facet reads back as e.g. "$TSLA". This asymmetry is intentional.
         ticker = match.group(2).upper()
         start_character = match.start(2) - 1
         end_character = match.end(2)
@@ -999,7 +1199,7 @@ def make_facet(match: Dict, feature: Dict) -> Dict:
 def _resolve_handle(pds_url: str, handle: str) -> Optional[str]:
     try:
         with _open_api_response(
-            _SESSION.get,
+            "GET",
             _api_url(pds_url, "com.atproto.identity.resolveHandle"),
             timeout=10,
             operation="waiting for resolveHandle response headers",
@@ -1009,11 +1209,10 @@ def _resolve_handle(pds_url: str, handle: str) -> Optional[str]:
                 return None
             resp.raise_for_status()
             data = _json_object(resp, "resolveHandle")
-    except requests.Timeout:
-        # A timed-out header request can still be unwinding in its daemon
-        # worker. Abort the post instead of immediately reusing the Session.
-        raise
     except (requests.RequestException, ValueError):
+        # An unresolvable handle just stays plain text in the post. Timeouts are
+        # included: the abandoned worker holds a Session used by this request
+        # alone, so nothing later can be affected by letting it run on.
         return None
     did = data.get("did") if isinstance(data, dict) else None
     return did if isinstance(did, str) and DID_REGEX.fullmatch(did) else None
@@ -1191,7 +1390,7 @@ def parse_uri(uri: str) -> Dict:
 
 def get_record(record_service_url: str, uri: str) -> Dict:
     with _open_api_response(
-        _SESSION.get,
+        "GET",
         _api_url(record_service_url, "com.atproto.repo.getRecord"),
         timeout=10,
         operation="waiting for getRecord response headers",
@@ -1332,7 +1531,7 @@ def upload_file(
     # Guessing it from a filename or URL extension would let a remote page pick
     # the Content-Type of a blob we vouch for, so no such fallback exists.
     with _open_api_response(
-        _SESSION.post,
+        "POST",
         _api_url(pds_url, "com.atproto.repo.uploadBlob"),
         timeout=60,
         operation="waiting for uploadBlob response headers",
@@ -1387,6 +1586,13 @@ def _read_image_file(path: Path) -> bytes:
         with image_file:
             img_bytes = image_file.read(MAX_IMAGE_SIZE_BYTES + 1)
     except OSError as exc:
+        if have_nofollow and exc.errno == errno.ELOOP:
+            # O_NOFOLLOW reports a symlinked final component as ELOOP, whose
+            # stock message ("Too many levels of symbolic links") reads like a
+            # broken filesystem rather than the actual, fixable problem.
+            raise ValueError(
+                f"Image path must not be a symbolic link: {path}"
+            ) from exc
         raise ValueError(f"Could not read image file {path!s}: {exc}") from exc
     finally:
         if file_descriptor >= 0:
@@ -1487,9 +1693,16 @@ def _trim_card_text(value: Any, limit: int) -> str:
 
 
 def _meta_content(soup: BeautifulSoup, property_name: str) -> str:
-    tag = soup.find("meta", property=property_name) or soup.find(
+    # Match the attribute value case-insensitively: HTML attribute values are
+    # case-sensitive to the parser, but real pages do emit `property="OG:Title"`.
+    wanted = property_name.lower()
+
+    def matches(value: Any) -> bool:
+        return isinstance(value, str) and value.strip().lower() == wanted
+
+    tag = soup.find("meta", property=matches) or soup.find(
         "meta",
-        attrs={"name": property_name},
+        attrs={"name": matches},
     )
     content = tag.get("content") if tag else None
     return content if isinstance(content, str) else ""
@@ -1531,23 +1744,22 @@ def _attach_external_thumb(
     if not img_url:
         return
 
-    def warn_and_skip_thumb() -> None:
+    def warn_and_skip_thumb(reason: Exception) -> None:
         print(
-            f"warning: could not embed og:image {_url_for_log(img_url)!r}.",
+            f"warning: could not embed og:image {_url_for_log(img_url)!r} "
+            f"({type(reason).__name__}: {reason}); posting the card without it.",
             file=sys.stderr,
         )
 
     try:
         img_url = _absolute_url(page_url, img_url)
-        img_bytes, _ = _safe_download(img_url, MAX_EMBED_IMAGE_BYTES)
+        img_bytes, _, _ = _safe_download(img_url, MAX_EMBED_IMAGE_BYTES)
         image_info = inspect_image(img_bytes, img_url)
-    except (requests.RequestException, ValueError):
-        # Swallowing requests.Timeout here is safe (and intentional), unlike the
-        # API paths that must let it propagate: _safe_download uses its own
-        # freshly-created sessions, so an abandoned daemon worker from a timed-out
-        # download cannot be touching the shared _SESSION that createRecord reuses
-        # next. A failed thumbnail must not abort an otherwise valid post.
-        warn_and_skip_thumb()
+    except (requests.RequestException, ValueError) as exc:
+        # A failed thumbnail must not abort an otherwise valid post, and it
+        # cannot: every request owns its Session, so even an abandoned
+        # timed-out worker is isolated from the createRecord call that follows.
+        warn_and_skip_thumb(exc)
         return
 
     try:
@@ -1557,22 +1769,41 @@ def _attach_external_thumb(
             img_bytes,
             image_info["mimetype"],
         )
-    except requests.Timeout:
-        # uploadBlob runs on the shared _SESSION, so unlike the download above
-        # this timeout MUST propagate: the abandoned daemon worker may still be
-        # using _SESSION, which createRecord reuses next. See
-        # _run_before_download_deadline.
-        raise
-    except (requests.RequestException, ValueError):
-        # Any other upload failure (a rejected blob, an HTTP error) leaves the
-        # Session idle, so the card can still be posted without a thumbnail.
-        warn_and_skip_thumb()
+    except (requests.RequestException, ValueError) as exc:
+        # Upload failures (a rejected blob, an HTTP error, a timeout) are all
+        # recoverable here: the card is still posted, just without a thumbnail.
+        warn_and_skip_thumb(exc)
 
 
 def fetch_embed_url_card(pds_url: str, access_token: str, url: str) -> Dict:
-    html_bytes, final_url = _safe_download(url, MAX_EMBED_HTML_BYTES)
-    soup = BeautifulSoup(html_bytes, "html.parser")
-    card = _external_card_metadata(url, soup)
+    # A link card is a decoration on the post, so no failure reading the remote
+    # page is worth discarding the user's text. Anything that goes wrong past
+    # this point degrades to a bare card carrying just the URL, which clients
+    # still render as a link.
+    card: Dict[str, Any] = {"uri": url, "title": "", "description": ""}
+    try:
+        html_bytes, final_url, content_type = _safe_download(
+            url,
+            MAX_EMBED_HTML_BYTES,
+        )
+        # Prefer the server-declared charset; BeautifulSoup still falls back to
+        # a BOM, an in-document <meta charset>, and byte sniffing when it is
+        # absent or wrong, so a page served in a non-UTF-8 encoding is decoded
+        # correctly.
+        soup = BeautifulSoup(
+            html_bytes,
+            "html.parser",
+            from_encoding=_charset_from_content_type(content_type),
+        )
+        card = _external_card_metadata(url, soup)
+    except (requests.RequestException, ValueError) as exc:
+        print(
+            f"warning: could not read {_url_for_log(url)!r} for the link card "
+            f"({type(exc).__name__}: {exc}); posting a card with the URL only.",
+            file=sys.stderr,
+        )
+        return {"$type": "app.bsky.embed.external", "external": card}
+
     _attach_external_thumb(card, pds_url, access_token, final_url, soup)
     return {"$type": "app.bsky.embed.external", "external": card}
 
@@ -1636,14 +1867,6 @@ def _build_embed(args: argparse.Namespace, access_token: str) -> Optional[Dict]:
     return record_embed or media_embed
 
 
-def _response_body(resp: requests.Response) -> Any:
-    body = _read_response_body(resp, MAX_API_RESPONSE_BYTES)
-    try:
-        return json.loads(body)
-    except (UnicodeDecodeError, json.JSONDecodeError):
-        return {"raw": body.decode("UTF-8", errors="replace")}
-
-
 def create_post(args: argparse.Namespace) -> None:
     session = bsky_login_session(args.pds_url, args.handle, args.password)
     access_token = session["accessJwt"]
@@ -1656,7 +1879,7 @@ def create_post(args: argparse.Namespace) -> None:
         print(json.dumps(post, indent=2), file=sys.stderr)
 
     with _open_api_response(
-        _SESSION.post,
+        "POST",
         _api_url(args.pds_url, "com.atproto.repo.createRecord"),
         timeout=30,
         operation="waiting for createRecord response headers",
@@ -1671,10 +1894,9 @@ def create_post(args: argparse.Namespace) -> None:
             raise ValueError("Refusing redirect from createRecord request")
         resp_body = _response_body(resp)
         if not resp.ok:
-            error_name = resp_body.get("error") if isinstance(resp_body, dict) else None
-            summary = f" ({error_name})" if isinstance(error_name, str) else ""
             print(
-                f"createRecord failed with HTTP {resp.status_code}{summary}.",
+                f"createRecord failed with HTTP {resp.status_code}"
+                f"{_api_error_summary(resp_body)}.",
                 file=sys.stderr,
             )
             if getattr(args, "verbose", False):
@@ -1936,6 +2158,43 @@ def test_pinned_url_transport():
         adapter.close()
 
 
+def test_idn_host_resolves_by_its_a_label():
+    """DNS must be asked for the exact name the certificate is checked against.
+
+    Passing the raw Unicode name to getaddrinfo would encode it with CPython's
+    IDNA2003 codec, which disagrees with the IDNA2008/UTS46 encoding used for
+    SNI and assert_hostname on labels such as 'faß'.
+    """
+    original_getaddrinfo = socket.getaddrinfo
+    asked = []
+
+    def recording_getaddrinfo(host, port, **_kwargs):
+        asked.append(host)
+        return [
+            (socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP, "", ("8.8.8.8", port)),
+        ]
+
+    try:
+        socket.getaddrinfo = recording_getaddrinfo
+        parsed, addresses = _public_url_addresses("https://faß.example/x")
+    finally:
+        socket.getaddrinfo = original_getaddrinfo
+
+    _check_equal(addresses, ["8.8.8.8"])
+    expected = _ascii_hostname("faß.example")
+    _check_equal(asked, [expected])
+    _check_equal(_original_authority(parsed), expected)
+
+    adapter = _PinnedHTTPSAdapter(parsed.hostname or "")
+    try:
+        _check_equal(
+            adapter.poolmanager.connection_pool_kw["assert_hostname"],
+            expected,
+        )
+    finally:
+        adapter.close()
+
+
 def test_open_pinned_response_uses_validated_ip():
     class FakeResponse:
         closed = False
@@ -2014,7 +2273,11 @@ def test_safe_download_redirect_returns_final_url():
     class FakeResponse:
         def __init__(self, *, location: Optional[str] = None, body: bytes = b""):
             self.is_redirect = location is not None
-            self.headers = {"Location": location} if location is not None else {}
+            self.headers = (
+                {"Location": location}
+                if location is not None
+                else {"Content-Type": "text/html; charset=utf-8"}
+            )
             self._body = body
 
         def raise_for_status(self):
@@ -2038,7 +2301,7 @@ def test_safe_download_redirect_returns_final_url():
 
     try:
         globals()["_open_pinned_response"] = fake_open
-        body, final_url = _safe_download(
+        body, final_url, content_type = _safe_download(
             "https://example.com/start",
             100,
             timeout=7,
@@ -2048,15 +2311,81 @@ def test_safe_download_redirect_returns_final_url():
 
     _check_equal(body, b"finished")
     _check_equal(final_url, "https://example.com/new/page")
+    _check_equal(content_type, "text/html; charset=utf-8")
     _check_equal(opened, [
         ("https://example.com/start", 7),
         ("https://example.com/new/page", 7),
     ])
 
 
+class _FakeApiSession:
+    """Stand-in for a per-request Session used by the login self-tests."""
+
+    def __init__(self, response: Any):
+        self.headers: Dict[str, str] = {}
+        self.trust_env = True
+        self.response = response
+        self.calls: List[tuple[str, str, Dict[str, Any]]] = []
+        self.closed = False
+
+    def request(self, method: str, url: str, **kwargs: Any) -> Any:
+        self.calls.append((method, url, kwargs))
+        return self.response
+
+    def close(self) -> None:
+        self.closed = True
+
+
+@contextmanager
+def _patched_api_session(response: Any) -> Iterator[_FakeApiSession]:
+    session = _FakeApiSession(response)
+    original = globals()["_new_session"]
+    try:
+        globals()["_new_session"] = lambda: session
+        yield session
+    finally:
+        globals()["_new_session"] = original
+
+
+def test_safe_download_redirect_limit():
+    class FakeResponse:
+        is_redirect = True
+
+        def __init__(self, location: str):
+            self.headers = {"Location": location}
+
+        def raise_for_status(self):
+            raise AssertionError("a redirect must never be read as a body")
+
+    hops = []
+
+    @contextmanager
+    def fake_open(url: str, _timeout: float):
+        # Always a fresh target, so the redirect *limit* is what trips, not the
+        # loop detector.
+        hops.append(url)
+        yield FakeResponse(f"/hop{len(hops)}")
+
+    original_open = globals()["_open_pinned_response"]
+    try:
+        globals()["_open_pinned_response"] = fake_open
+        try:
+            _safe_download("https://example.com/a", 100, timeout=7)
+        except ValueError as exc:
+            _check("Too many redirects" in str(exc), str(exc))
+        else:
+            raise AssertionError("expected an endless redirect chain to fail")
+    finally:
+        globals()["_open_pinned_response"] = original_open
+
+    # MAX_REDIRECTS hops followed, so MAX_REDIRECTS + 1 requests were made.
+    _check_equal(len(hops), MAX_REDIRECTS + 1)
+
+
 def test_login_rejects_redirects():
     class FakeResponse:
         status_code = 307
+        ok = False
         closed = False
 
         def close(self):
@@ -2065,33 +2394,57 @@ def test_login_rejects_redirects():
         def raise_for_status(self):
             raise AssertionError("redirect must be rejected before status handling")
 
-    call_options = {}
-
     response = FakeResponse()
-
-    def fake_post(*_args, **kwargs):
-        call_options.update(kwargs)
-        return response
-
-    try:
-        # Shadow the bound method with an instance attribute, then delete it so
-        # the class method is restored rather than pinned to the instance.
-        _SESSION.post = fake_post
+    with _patched_api_session(response) as session:
         try:
             bsky_login_session("https://pds.example", "alice", "secret")
         except ValueError:
             pass
         else:
             raise AssertionError("expected createSession redirect to fail")
-    finally:
-        del _SESSION.post
 
-    _check(call_options["allow_redirects"] is False)
+    _check_equal(len(session.calls), 1)
+    method, url, options = session.calls[0]
+    _check_equal(method, "POST")
+    _check_equal(url, "https://pds.example/xrpc/com.atproto.server.createSession")
+    _check(options["allow_redirects"] is False)
     _check(response.closed)
-    _check_equal(
-        call_options["json"],
-        {"identifier": "alice", "password": "secret"},
-    )
+    _check(session.closed, "each API call must close the Session it created")
+    _check_equal(options["json"], {"identifier": "alice", "password": "secret"})
+
+
+def test_login_failure_reports_server_error():
+    class FakeResponse:
+        status_code = 401
+        ok = False
+        headers: Dict[str, str] = {}
+        closed = False
+
+        def close(self):
+            self.closed = True
+
+        def iter_content(self, _chunk_size: int):
+            yield json.dumps(
+                {
+                    "error": "AuthFactorTokenRequired",
+                    "message": "A sign in code has been sent to your email",
+                }
+            ).encode("UTF-8")
+
+    with _patched_api_session(FakeResponse()):
+        try:
+            bsky_login_session("https://pds.example", "alice", "secret")
+        except ValueError as exc:
+            message = str(exc)
+        else:
+            raise AssertionError("expected a failed login to raise")
+
+    _check("HTTP 401" in message, message)
+    _check("AuthFactorTokenRequired" in message, message)
+    _check("sign in code has been sent" in message, message)
+    # The remedy matters more than the error name for this one.
+    _check("app-passwords" in message, message)
+    _check("secret" not in message, "the password must never appear in an error")
 
 
 def test_embed_thumbnail_uses_final_page_url():
@@ -2104,6 +2457,7 @@ def test_embed_thumbnail_uses_final_page_url():
             b'<html><head><meta property="og:image" content="../thumb.png">'
             b'<meta property="og:title" content="Title"></head></html>',
             "https://cdn.example/articles/current/page.html",
+            "text/html; charset=utf-8",
         )
 
     def fake_attach(_card, _pds_url, _access_token, page_url, soup):
@@ -2132,7 +2486,13 @@ def test_embed_thumbnail_uses_final_page_url():
     })
 
 
-def test_thumbnail_failures_respect_session_safety():
+def test_thumbnail_failures_are_non_fatal():
+    """Every og:image failure, timeouts included, still posts the card.
+
+    Per-request Sessions are what make swallowing a timeout safe here: the
+    abandoned worker cannot be sharing state with the createRecord call that
+    follows.
+    """
     soup = BeautifulSoup(
         b'<meta property="og:image" content="https://cdn.example/thumb.png">',
         "html.parser",
@@ -2157,7 +2517,7 @@ def test_thumbnail_failures_respect_session_safety():
             sys.stderr = original_stderr
 
     def raise_timeout(*_args, **_kwargs):
-        raise requests.Timeout("timed out")
+        raise DeadlineExceeded("timed out")
 
     try:
         globals()["inspect_image"] = lambda *_a: {
@@ -2166,26 +2526,21 @@ def test_thumbnail_failures_respect_session_safety():
             "mimetype": "image/png",
         }
 
-        # A download timeout uses throwaway sessions, so the post still goes out.
         globals()["_safe_download"] = raise_timeout
         card: Dict = {}
         attach(card)
         _check("thumb" not in card, "download timeout must not attach a thumb")
 
-        globals()["_safe_download"] = lambda *_a: (b"bytes", "https://cdn.example/")
+        globals()["_safe_download"] = lambda *_a: (
+            b"bytes",
+            "https://cdn.example/",
+            None,
+        )
 
-        # An uploadBlob timeout may leave a daemon worker on the shared _SESSION,
-        # so it must abort the post rather than fall through to createRecord.
         globals()["upload_file"] = raise_timeout
-        try:
-            attach(card)
-        except requests.Timeout:
-            pass
-        else:
-            raise AssertionError("expected uploadBlob timeout to abort the post")
+        attach(card)
         _check("thumb" not in card, "timed-out upload must not attach a thumb")
 
-        # Other upload failures leave the Session idle and stay non-fatal.
         def reject_blob(*_args, **_kwargs):
             raise requests.RequestException("blob rejected")
 
@@ -2198,6 +2553,37 @@ def test_thumbnail_failures_respect_session_safety():
         _check_equal(card["thumb"], {"$type": "blob"})
     finally:
         globals().update(originals)
+
+
+def test_embed_card_degrades_when_page_unreadable():
+    original_download = globals()["_safe_download"]
+
+    def fail_download(*_args, **_kwargs):
+        raise ValueError("Remote response exceeds 4000000 bytes")
+
+    original_stderr, sys.stderr = sys.stderr, io.StringIO()
+    try:
+        globals()["_safe_download"] = fail_download
+        embed = fetch_embed_url_card(
+            "https://pds.example",
+            "token",
+            "https://example.com/huge",
+        )
+        warning = sys.stderr.getvalue()
+    finally:
+        sys.stderr = original_stderr
+        globals()["_safe_download"] = original_download
+
+    # An unreadable page costs the card's metadata, never the whole post.
+    _check_equal(embed, {
+        "$type": "app.bsky.embed.external",
+        "external": {
+            "uri": "https://example.com/huge",
+            "title": "",
+            "description": "",
+        },
+    })
+    _check("warning:" in warning, warning)
 
 
 def test_inspect_image():
@@ -2214,6 +2600,36 @@ def test_inspect_image():
         pass
     else:
         raise AssertionError("expected invalid image to fail")
+
+
+def test_read_image_file_rejects_symlinks():
+    with tempfile.TemporaryDirectory() as directory:
+        root = Path(directory)
+        target = root / "real.png"
+        Image.new("RGB", (1, 1)).save(target, format="PNG")
+        _check(len(_read_image_file(target)) > 0)
+
+        link = root / "link.png"
+        try:
+            link.symlink_to(target)
+        except (OSError, NotImplementedError):
+            return  # No symlink support (e.g. unprivileged Windows); nothing to test.
+        try:
+            _read_image_file(link)
+        except ValueError as exc:
+            # ELOOP from O_NOFOLLOW must not surface as "Too many levels of
+            # symbolic links", which reads like a broken filesystem.
+            _check("must not be a symbolic link" in str(exc), str(exc))
+        else:
+            raise AssertionError("expected a symlinked image path to be rejected")
+
+        _check(root.joinpath("missing.png").exists() is False)
+        try:
+            _read_image_file(root / "missing.png")
+        except ValueError as exc:
+            _check("Could not read image file" in str(exc), str(exc))
+        else:
+            raise AssertionError("expected a missing image path to be rejected")
 
 
 def test_read_response_body_limits():
@@ -2241,6 +2657,48 @@ def test_read_response_body_limits():
         pass
     else:
         raise AssertionError("expected streamed oversized response to fail")
+
+
+def test_read_response_body_content_encodings():
+    class FakeResponse:
+        def __init__(self, encoding: str, declared: str = ""):
+            self.headers = {"Content-Encoding": encoding}
+            if declared:
+                self.headers["Content-Length"] = declared
+
+        def iter_content(self, _chunk_size: int):
+            # iter_content yields decoded bytes, so the cap applies post-decode.
+            yield b"decoded"
+
+    # urllib3 unwraps gzip/deflate transparently, so those bodies are usable.
+    for encoding in ("", "identity", "gzip", "GZIP", " deflate "):
+        _check_equal(_read_response_body(FakeResponse(encoding), 16), b"decoded")
+
+    # A declared length describes the *encoded* body, so it must not be used as
+    # a decoded-size bound when a coding was applied.
+    _check_equal(_read_response_body(FakeResponse("gzip", "999999"), 16), b"decoded")
+    try:
+        _read_response_body(FakeResponse("identity", "999999"), 16)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("expected declared oversized identity body to fail")
+
+    # The streaming cap still stops a body that inflates past the limit.
+    try:
+        _read_response_body(FakeResponse("gzip"), 3)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("expected oversized decoded body to fail")
+
+    # Anything urllib3 cannot unwrap would reach the parser still encoded.
+    try:
+        _read_response_body(FakeResponse("br-unsupported"), 16)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("expected undecodable Content-Encoding to fail")
 
 
 def test_get_reply_refs_reuses_root_ref():
@@ -2302,6 +2760,48 @@ def test_trim_card_text():
     _check_equal(_trim_card_text("abc\ufe0f", 3), "ab")
 
 
+def test_meta_content_matches_case_insensitively():
+    soup = BeautifulSoup(
+        b'<meta PROPERTY=" OG:Title " content="Cased title">'
+        b'<meta name="Description" content="Cased description">'
+        b'<meta property="og:image" content="/thumb.png">',
+        "html.parser",
+    )
+    _check_equal(_meta_content(soup, "og:title"), "Cased title")
+    _check_equal(_meta_content(soup, "description"), "Cased description")
+    _check_equal(_meta_content(soup, "og:image"), "/thumb.png")
+    _check_equal(_meta_content(soup, "og:video"), "")
+
+
+def test_charset_from_content_type():
+    _check_equal(
+        _charset_from_content_type("text/html; charset=ISO-8859-1"),
+        "ISO-8859-1",
+    )
+    _check_equal(
+        _charset_from_content_type('text/html; charset="utf-8"'),
+        "utf-8",
+    )
+    _check_equal(_charset_from_content_type("text/html"), None)
+    _check_equal(_charset_from_content_type(None), None)
+    _check_equal(_charset_from_content_type("text/html; charset="), None)
+
+
+def test_ascii_hostname():
+    _check_equal(_ascii_hostname("example.com"), "example.com")
+    # Underscore labels are not valid IDNA2003 but resolve in practice; the
+    # ASCII passthrough keeps them usable instead of raising.
+    _check_equal(_ascii_hostname("my_cdn.example.com"), "my_cdn.example.com")
+    _check_equal(_ascii_hostname("münchen.de"), "xn--mnchen-3ya.de")
+    _check_equal(_ascii_hostname("8.8.8.8"), "8.8.8.8")
+    try:
+        _ascii_hostname("\u2764.example")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("expected invalid internationalized host to fail")
+
+
 def run_self_tests() -> None:
     for test in (
         test_parse_mentions,
@@ -2313,15 +2813,24 @@ def run_self_tests() -> None:
         test_normalize_pds_url,
         test_url_security_checks,
         test_pinned_url_transport,
+        test_idn_host_resolves_by_its_a_label,
         test_open_pinned_response_uses_validated_ip,
         test_safe_download_redirect_returns_final_url,
+        test_safe_download_redirect_limit,
         test_login_rejects_redirects,
+        test_login_failure_reports_server_error,
         test_embed_thumbnail_uses_final_page_url,
-        test_thumbnail_failures_respect_session_safety,
+        test_thumbnail_failures_are_non_fatal,
+        test_embed_card_degrades_when_page_unreadable,
         test_inspect_image,
+        test_read_image_file_rejects_symlinks,
         test_read_response_body_limits,
+        test_read_response_body_content_encodings,
         test_get_reply_refs_reuses_root_ref,
         test_trim_card_text,
+        test_meta_content_matches_case_insensitively,
+        test_charset_from_content_type,
+        test_ascii_hostname,
     ):
         test()
 
@@ -2499,6 +3008,30 @@ def validate_args(args: argparse.Namespace) -> None:
     _validate_text_length(args.text)
 
 
+def _missing_content_usage(prog: str) -> tuple[str, ...]:
+    return (
+        "Error: Post text or an embed is required.",
+        "",
+        "First, set your credentials as environment variables:",
+        "  $ export ATP_AUTH_HANDLE='your-handle.bsky.social'",
+        "  $ export ATP_AUTH_PASSWORD='xxxx-xxxx-xxxx-xxxx'",
+        "",
+        "ATP_AUTH_PASSWORD must be an APP password, created at",
+        "https://bsky.app/settings/app-passwords - do NOT use your main",
+        "account password.",
+        "",
+        "Then create a post. For example, an image post with alt text and",
+        "standard post body text:",
+        f'  $ python3 {prog} "Sunset over the bay" --image sunset.jpg --alt-text "Orange sunset over a calm bay"',
+        "",
+        "Other examples:",
+        f'  $ python3 {prog} "Hello, Bluesky! #greetings"',
+        f'  $ python3 {prog} "Worth a read" --embed-url "https://example.com/article"',
+        "",
+        f"Run 'python3 {prog} --help' for the full list of options.",
+    )
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Create a Bluesky post with optional facets, replies, and embeds",
@@ -2510,11 +3043,17 @@ def main():
             '  %(prog)s "Replying" --reply-to "at://did:plc:xxx/app.bsky.feed.post/yyy"'
         ),
     )
-    parser.add_argument("--pds-url", default=os.environ.get("ATP_PDS_HOST", DEFAULT_PDS_URL),
+    # `or DEFAULT` rather than a get() default: a variable exported as empty
+    # ("export ATP_PDS_HOST=") should mean "unset", not an empty URL that fails
+    # later with an unattributable "Invalid URL".
+    parser.add_argument("--pds-url",
+                        default=os.environ.get("ATP_PDS_HOST") or DEFAULT_PDS_URL,
                         help=f"PDS URL (default: {DEFAULT_PDS_URL} or ATP_PDS_HOST env var)")
     parser.add_argument(
         "--record-service-url",
-        default=os.environ.get("ATP_RECORD_SERVICE_HOST", DEFAULT_RECORD_SERVICE_URL),
+        default=(
+            os.environ.get("ATP_RECORD_SERVICE_HOST") or DEFAULT_RECORD_SERVICE_URL
+        ),
         help=(
             "Network-wide record lookup service used for replies and quotes "
             f"(default: {DEFAULT_RECORD_SERVICE_URL} or ATP_RECORD_SERVICE_HOST)"
@@ -2522,7 +3061,7 @@ def main():
     )
     parser.add_argument("--allow-insecure-pds", action="store_true",
                         help="Allow HTTP service URLs on localhost/loopback only")
-    parser.add_argument("--handle", default=os.environ.get("ATP_AUTH_HANDLE"),
+    parser.add_argument("--handle", default=os.environ.get("ATP_AUTH_HANDLE") or None,
                         help="Bluesky handle (or ATP_AUTH_HANDLE env var)")
     parser.add_argument("--password", default=None,
                         help="Bluesky app password (prefer ATP_AUTH_PASSWORD env var; "
@@ -2544,7 +3083,8 @@ def main():
     parser.add_argument(
         "--verbose",
         action="store_true",
-        help="Print the complete pending record and API error bodies to stderr",
+        help="Print the complete pending record, and the body of a failed "
+             "createRecord, to stderr",
     )
     parser.add_argument("--self-test", "--test", action="store_true", dest="self_test",
                         help="Run local parser/validation tests and exit")
@@ -2555,6 +3095,9 @@ def main():
         run_self_tests()
         print("self-tests passed")
         return
+
+    if not args.text.strip() and not _selected_embed_sources(args):
+        exit_error(*_missing_content_usage(parser.prog))
 
     try:
         validate_args(args)
@@ -2568,7 +3111,7 @@ def main():
             file=sys.stderr,
         )
     else:
-        args.password = os.environ.get("ATP_AUTH_PASSWORD")
+        args.password = os.environ.get("ATP_AUTH_PASSWORD") or None
 
     if not args.handle or not args.password:
         exit_error(
