@@ -9,7 +9,7 @@ An experimental ***Rust*** port [***jdvrif-rs***](https://github.com/CleasbyCode
 ![Demo Image](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/jrif_323291.jpg)  
 *Demo Image: **"A place of concealment"** / ***PIN: 2190398302048725932****
 
-Unlike the common [***LSB steganography method***](https://ctf101.org/forensics/what-is-stegonagraphy/) of concealing data within the pixels of a cover image, ***jdvrif*** mostly hides data within ***application segments*** of a ***JPG*** image.  
+Unlike the common [***LSB steganography method***](https://ctf101.org/forensics/what-is-stegonagraphy/) of concealing data within the pixels of a cover image, ***jdvrif*** mostly hides data within ***application segments*** of a ***JPG*** image (ICC, EXIF, XMP, etc).  
 
 The exception to this is the ***Reddit*** platform conceal mode (-r), where we use the [***QIM steganography method***](https://ieeexplore.ieee.org/document/4804513) (JPEG DCT-domain Quantization Index Modulation), as this is the only storage method that currently works for ***Reddit***.
 
@@ -93,7 +93,7 @@ For example, with ***Mastodon***, if your cover image is **1MB** you can still e
 
 **Other: The ***Bluesky*** platform has ***separate*** size limits for the ***cover image*** and the ***compressed hidden data file:****  
 
-● ***Bluesky*** (***-b option***). Cover image max size limit (**2,000,000 bytes / ~1.9MB**). Your compressed hidden data file (payload) max size limit (**~171KB**).  The final embedded cover image (cover image + hidden file) must not exceed 2,000,000 bytes (~1.9MB).  "***create_bsky_post.py***" script is required to post images on ***Bluesky***. *More info on this further down the page.*
+● ***Bluesky*** (***-b option***). Cover image max size limit (**2,000,000 bytes / ~1.9MB**). Your compressed hidden data file (payload) max size limit (**~171KB**).  The final embedded cover image (cover image + hidden file) must not exceed 2,000,000 bytes (~1.9MB).  "***create_bsky_post.py***" script is required to post images on ***Bluesky***. *More info on this script further down the page.*
 
 ● ***Reddit*** (***-r option***). While the ***Reddit*** platform has an image upload size limit of **20MB**, the data storage capacity for the cover image is ***much smaller*** and depends on image dimension size.  
 
