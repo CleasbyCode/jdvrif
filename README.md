@@ -67,8 +67,8 @@ Complete! Please check your file.
 \******************   
 Note: ***Bluesky*** now saves images as ***WEBP*** by default. 
 
-To save an image as ***JPG***, so that you can still recover concealed data with ***jdvrif***,  
-first click the image in the post to open it, then right-click on the image. From the menu, select ***Open image in new tab***.  
+To save an image as ***JPG***, so that you can still recover concealed data with ***jdvrif***.  
+First click the image in the post to open it, then right-click on the image. From the menu, select ***Open image in new tab***.  
 
 Select the new tab and within the address bar, move to the end of the address and add ***@jpg*** then hit enter.  
 Right-click the image and from the menu select ***Save image...***  
@@ -95,7 +95,9 @@ For example, with ***Mastodon***, if your cover image is **1MB** you can still e
 
 ● "***create_bsky_post.py***" script is required to post images on ***Bluesky***. *More info on this further down the page.*
 
-For platforms such as ***X-Twitter*** & ***Tumblr***, which have small size limits, you may want to focus on data that compresses well, such as text files, etc.  
+● ***Reddit*** (***-r option***). While the ***Reddit*** platform has am image upload size limit of **20MB**, the data storage capacity for the cover image is ***much smaller*** and depends on image dimension size. For example, a cover image with **1024x1024** dimensions can store only **~6KB** of data, an image with **4096x4096*** dimensions can store **~109KB*** and an image with **6324×6324** max dimensions can store **~254KB**. 
+
+For platforms such as ***X-Twitter***, ***Reddit*** & ***Tumblr***, which have small data size limits, you may want to focus on data that compresses well, such as text files, etc.  
 
 https://github.com/user-attachments/assets/c8c38e6d-ea23-4d67-98d9-cebdcd82b449
 
