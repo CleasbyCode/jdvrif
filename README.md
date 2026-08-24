@@ -119,7 +119,9 @@ jdvrif ***conceal*** mode ***platform*** options:
 
   These images are only compatible for posting on ***Reddit***. Your embedded data file will be removed if posted on a different platform.  
   
-  When saving/downloading an image from ***Reddit*** make sure to click on the image within the post to fully expand it before saving.
+  When saving/downloading an image from ***Reddit*** make sure to click on the image within the post to fully expand it before saving.  
+
+https://github.com/user-attachments/assets/906d5099-3c45-46ab-891d-caefc2b93c7e
 
   "***-b***" To create compatible "*file-embedded*" ***JPG*** images for posting on the ***Bluesky*** platform, you must use the ***-b*** option with ***conceal*** mode.
   ```console
