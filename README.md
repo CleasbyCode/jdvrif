@@ -91,11 +91,11 @@ For example, with ***Mastodon***, if your cover image is **1MB** you can still e
 
 **Other: The ***Bluesky*** platform has ***separate*** size limits for the ***cover image*** and the ***compressed hidden data file:****  
 
-● ***Bluesky*** (***-b option***). Cover image max size limit (**2,000,000 bytes / ~1.9MB**). Your compressed hidden data file (payload) max size limit (**~171KB**).  The final embedded cover image (cover image + hidden file) must not exceed 2,000,000 bytes (~1.9MB).  
+● ***Bluesky*** (***-b option***). Cover image max size limit (**2,000,000 bytes / ~1.9MB**). Your compressed hidden data file (payload) max size limit (**~171KB**).  The final embedded cover image (cover image + hidden file) must not exceed 2,000,000 bytes (~1.9MB).  "***create_bsky_post.py***" script is required to post images on ***Bluesky***. *More info on this further down the page.*
 
-● "***create_bsky_post.py***" script is required to post images on ***Bluesky***. *More info on this further down the page.*
+● ***Reddit*** (***-r option***). While the ***Reddit*** platform has an image upload size limit of **20MB**, the data storage capacity for the cover image is ***much smaller*** and depends on image dimension size.  
 
-● ***Reddit*** (***-r option***). While the ***Reddit*** platform has am image upload size limit of **20MB**, the data storage capacity for the cover image is ***much smaller*** and depends on image dimension size. For example, a cover image with **1024x1024** dimensions can store only **~6KB** of data, an image with **4096x4096*** dimensions can store **~109KB*** and an image with **6324×6324** max dimensions can store **~254KB**. 
+For example, a cover image with **1024x1024** dimensions can store only **~6KB** of data, an image with **4096x4096** dimensions can store **~109KB** and an image with **6324×6324** max dimensions can store **~254KB**. 
 
 For platforms such as ***X-Twitter***, ***Reddit*** & ***Tumblr***, which have small data size limits, you may want to focus on data that compresses well, such as text files, etc.  
 
