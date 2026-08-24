@@ -121,7 +121,9 @@ jdvrif ***conceal*** mode ***platform*** options:
   
   When saving/downloading an image from ***Reddit*** make sure to click on the image within the post to fully expand it before saving.  
 
-https://github.com/user-attachments/assets/906d5099-3c45-46ab-891d-caefc2b93c7e
+
+https://github.com/user-attachments/assets/051f3839-5998-479e-9395-27038f3734ff
+
 
   "***-b***" To create compatible "*file-embedded*" ***JPG*** images for posting on the ***Bluesky*** platform, you must use the ***-b*** option with ***conceal*** mode.
   ```console
