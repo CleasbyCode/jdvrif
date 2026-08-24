@@ -9,7 +9,7 @@ An experimental ***Rust*** port [***jdvrif-rs***](https://github.com/CleasbyCode
 ![Demo Image](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/jrif_323291.jpg)  
 *Demo Image: **"A place of concealment"** / ***PIN: 2190398302048725932****
 
-Unlike the common steganography method ([***LSB***](https://ctf101.org/forensics/what-is-stegonagraphy/)) of concealing data within the pixels of a cover image, ***jdvrif*** hides files within ***application segments*** of a ***JPG*** image. 
+Unlike the common ([***LSB steganography method***](https://ctf101.org/forensics/what-is-stegonagraphy/)) of concealing data within the pixels of a cover image, ***jdvrif*** mostly hides data within ***application segments*** of a ***JPG*** image. The exception to this is the ***Reddit*** platform conceal mode (-r), where we use the ***QIM steganography method*** (JPEG DCT-domain Quantization Index Modulation), as this is the only storage method that currently works for ***Reddit***.
 
 You can conceal any file type up to ***2GB***, although compatible sites (*listed below*) have their own ***much smaller*** size limits and *other requirements.  
 
