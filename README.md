@@ -111,7 +111,16 @@ jdvrif ***mode*** arguments:
   ***recover*** - Decrypts, uncompresses and extracts the concealed data file from a ***JPG*** cover image.
  
 jdvrif ***conceal*** mode ***platform*** options:
- 
+
+ "***-r***" To create compatible "*file-embedded*" ***JPG*** images for posting on the ***Reddit*** platform, you must use the ***-r*** option with ***conceal*** mode.
+  ```console
+  $ jdvrif conceal -r my_image.jpg hidden.doc
+```
+
+  These images are only compatible for posting on ***Reddit***. Your embedded data file will be removed if posted on a different platform.  
+  
+  When saving/downloading an image from ***Reddit*** make sure to click on the image within the post to fully expand it before saving.
+
   "***-b***" To create compatible "*file-embedded*" ***JPG*** images for posting on the ***Bluesky*** platform, you must use the ***-b*** option with ***conceal*** mode.
   ```console
   $ jdvrif conceal -b my_image.jpg hidden.doc
