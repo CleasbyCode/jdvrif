@@ -99,7 +99,7 @@ The final embedded cover image (cover image + hidden file) must not exceed 2,000
 
 ● ***Reddit*** (***-r option***). While the ***Reddit*** platform has an image upload size limit of **20MB**, the data storage capacity for the cover image is ***much smaller*** and depends on image dimension size.  
 
-For example, a cover image with **1024x1024** dimensions can store only **~6KB** of data, an image with **4096x4096** dimensions can store **~109KB** and an image with **6324×6324** max dimensions can store **~254KB**. 
+For example, a cover image with **1024x1024** dimensions can store only **~6KB** of data, ***2048x2048*** can store **~27KB**, **4096x4096** can store **~109KB** and an image with **6324×6324** max dimensions can store **~254KB**. 
 
 For platforms such as ***X-Twitter***, ***Reddit*** & ***Tumblr***, which have small data size limits, you may want to focus on data that compresses well, such as text files, etc.  
 
