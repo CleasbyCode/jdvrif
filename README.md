@@ -31,7 +31,7 @@ $ ./compile_jdvrif.sh
 $ sudo cp jdvrif /usr/bin
 $ jdvrif 
 
-Usage: jdvrif conceal [-b] <cover_image> <secret_file>
+Usage: jdvrif conceal [-b|r] <cover_image> <secret_file>
        jdvrif recover <cover_image>  
        jdvrif --info
 
