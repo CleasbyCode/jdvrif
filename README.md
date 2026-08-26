@@ -119,7 +119,7 @@ To create compatible "*file-embedded*" ***JPG*** images for posting on the ***Re
   $ jdvrif conceal -r my_image.jpg hidden.doc
 ```
 
-  These images are only compatible for posting on ***Reddit***. Your embedded data file will be removed if posted on a different platform.  
+  These images are only compatible for posting on ***Reddit***. Your embedded data file will be lost if posted on a different platform.  
   
   When saving/downloading an image from ***Reddit*** make sure to click on the image within the post to fully expand it before saving.  
 
