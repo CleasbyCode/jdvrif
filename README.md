@@ -21,16 +21,23 @@ The two exceptions to the above method are the ***Reddit*** and ***X-Twitter*** 
 
 For the ***Reddit*** conceal mode (***-r***), we use the [***QIM steganography method***](https://ieeexplore.ieee.org/document/4804513) (*JPEG DCT-domain Quantization Index Modulation*), as this is the only storage method that currently works for ***Reddit***.  
 
-To maximise storage capacity for the ***Reddit*** platform, use a cover image with large dimension sizes, 2048x2048, 4096x4096, 8192x8192, etc.  
+To maximise storage capacity for the ***Reddit*** platform, use a cover image with large dimension sizes, **2048x2048**, **4096x4096**, **8192x8192**, etc.  
 
 To check your cover image's storage capacity using the ***QIM*** method, run the following command:- 
 ```console
 $ jdvrif capsize -r my_cover.jpg
 ```
 
-While the ***X-Twitter*** platform can use the default method provided by ***jdvrif***, where data is concealed within APP2/ICC segments, ***X-Twitter*** limits this to a single ICC segment with a maximum size of just ~10KB. 
+While the ***X-Twitter*** platform can use the default method provided by ***jdvrif***, where data is concealed within APP2/ICC segments, ***X-Twitter*** limits this to a single ICC segment with a maximum size of just **~10KB**. 
 
-To potentially increase the storage capacity for your cover image, you can use the ***X-Twitter*** platform conceal mode (***-x***), which  
+To potentially increase the storage capacity for your cover image, greater than the **~10KB** ICC limit, you can use the ***X-Twitter*** platform conceal mode (***-x***), which will use the [***adaptive J-UNIWARD steganography method with Syndrome-Trellis Coding (STC)***](https://www.researchgate.net/publication/338418181_Fast_and_Secure_Steganography_Based_on_J-UNIWARD).  
+
+To maximise storage capacity for the ***Reddit*** platform, use a high quality cover image with large dimension sizes, **2048x2048**, **4096x4096**, etc.  
+
+To check your cover image's storage capacity using the ***J-UNIWARD*** method, run the following command:- 
+```console
+$ jdvrif capsize -x my_cover.jpg
+```
 
 ## Compilation & Usage (Linux)
 
