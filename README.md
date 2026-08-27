@@ -19,7 +19,7 @@ Unlike the common [***LSB***](https://ctf101.org/forensics/what-is-stegonagraphy
 
 The two exceptions to the above method are the ***Reddit*** and ***X-Twitter*** platforms. For the ***Reddit*** conceal mode, we use the [***QIM steganography method***](https://ieeexplore.ieee.org/document/4804513) (JPEG DCT-domain Quantization Index Modulation), as this is the only storage method that currently works for ***Reddit***.  
 
-For the ***Reddit*** platform, to maximise storage capacity use a cover image with large dimension sizes, 2048x2048, 4096x4096, 8192x8192, etc. To check your cover image's storage capacity for ***Reddit***, run the following command:- 
+To maximise storage capacity for the ***Reddit*** platform, use a cover image with large dimension sizes, 2048x2048, 4096x4096, 8192x8192, etc. To check your cover image's storage capacity using the ***QIM*** method, run the following command:- 
 ```console
 $ jdvrif capsize -r my_cover.jpg
 ```
