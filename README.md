@@ -133,9 +133,9 @@ jdvrif ***mode*** arguments:
   ***conceal*** - Compresses, encrypts and embeds your secret data file within a ***JPG*** cover image.  
   ***recover*** - Decrypts, uncompresses and extracts the concealed data file from a ***JPG*** cover image.
  
-jdvrif ***conceal*** mode ***platform*** options "***-r***" and "***-b***":
+jdvrif ***conceal*** mode ***platform*** options "***-b***", "***-r***" and "***-x***":
 
-To create compatible "*file-embedded*" ***JPG*** images for posting on the ***Reddit*** platform, you must use the ***-r*** option with ***conceal*** mode.
+To create compatible "*data-conclealed*" ***JPG*** images for posting on the ***Reddit*** platform, you must use the ***-r*** option with ***conceal*** mode.
   ```console
   $ jdvrif conceal -r my_image.jpg hidden.doc
 ```
@@ -144,7 +144,16 @@ To create compatible "*file-embedded*" ***JPG*** images for posting on the ***Re
   
   When saving/downloading an image from ***Reddit*** make sure to click on the image within the post to fully expand it before saving.  
 
-https://github.com/user-attachments/assets/9f1b4607-e7f1-4c5f-8929-b42c1a85bb88
+https://github.com/user-attachments/assets/9f1b4607-e7f1-4c5f-8929-b42c1a85bb88  
+
+To create compatible "*data-conclealed*" ***JPG*** images for posting on the ***X-Twitter*** platform, you must use the ***-x*** option with ***conceal*** mode.
+  ```console
+  $ jdvrif conceal -x my_image.jpg hidden.doc
+```
+
+  These images are only compatible for posting on ***X-Twitter***. Your embedded data file will be lost if posted on a different platform.  
+  
+  When saving/downloading an image from ***X-Twitter*** make sure to click on the image within the post to fully expand it before saving.  
 
 To create compatible "*file-embedded*" ***JPG*** images for posting on the ***Bluesky*** platform, you must use the ***-b*** option with ***conceal*** mode.
   ```console
