@@ -4,6 +4,10 @@
 
 You can conceal any file type up to ***2GB*** using the ***default conceal mode***, although other platform conceal modes and compatible social media sites (*listed below*) have their own ***much smaller*** size limits and *other requirements.  
 
+For increased storage capacity and better security, your embedded data file is compressed with ***libdeflate/zlib*** — unless it's already a compressed file type over 10 MB — and encrypted with ***XChaCha20-Poly1305*** using the ***libsodium*** cryptographic library.
+
+***jdvrif*** partly derives from the ***[technique implemented](https://www.vice.com/en/article/bj4wxm/tiny-picture-twitter-complete-works-of-shakespeare-steganography)*** by security researcher ***[David Buchanan](https://www.da.vidbuchanan.co.uk/).*** 
+
 There is a [***Web edition***](https://cleasbycode.co.uk/jdvrif/app/) of ***jdvrif***, which you can use immediately, as a convenient alternative to downloading and compiling the CLI source code. Web file uploads are limited to **20MB**.    
 
 An experimental ***Rust*** port [***jdvrif-rs***](https://github.com/CleasbyCode/jdvrif-rs) is also available for those interested in that language. 
@@ -13,11 +17,7 @@ An experimental ***Rust*** port [***jdvrif-rs***](https://github.com/CleasbyCode
 
 Unlike the common [***LSB***](https://ctf101.org/forensics/what-is-stegonagraphy/) (*Least Significant Bit*) steganography method of concealing data within the pixels of a cover image, ***jdvrif*** mostly hides data within ***application segments*** of a ***JPG*** image (ICC, EXIF, XMP, etc).  
 
-The exception to this is the ***Reddit*** platform conceal mode (***-r***), where we use the [***QIM steganography method***](https://ieeexplore.ieee.org/document/4804513) (JPEG DCT-domain Quantization Index Modulation), as this is the only storage method that currently works for ***Reddit***.
-
-For increased storage capacity and better security, your embedded data file is compressed with ***libdeflate/zlib*** — unless it's already a compressed file type over 10 MB — and encrypted with ***XChaCha20-Poly1305*** using the ***libsodium*** cryptographic library.
-
-***jdvrif*** partly derives from the ***[technique implemented](https://www.vice.com/en/article/bj4wxm/tiny-picture-twitter-complete-works-of-shakespeare-steganography)*** by security researcher ***[David Buchanan](https://www.da.vidbuchanan.co.uk/).*** 
+The two exceptions to the above method are the ***Reddit*** and ***X-Twitter*** platforms. For the ***Reddit*** conceal mode (***-r***), we use the [***QIM steganography method***](https://ieeexplore.ieee.org/document/4804513) (JPEG DCT-domain Quantization Index Modulation), as this is the only storage method that currently works for ***Reddit***.
 
 ## Compilation & Usage (Linux)
 
