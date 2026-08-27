@@ -19,7 +19,7 @@ Unlike the common [***LSB***](https://ctf101.org/forensics/what-is-stegonagraphy
 
 The two exceptions to the above method are the ***Reddit*** and ***X-Twitter*** platforms.  
 
-For the ***Reddit*** conceal mode, we use the [***QIM steganography method***](https://ieeexplore.ieee.org/document/4804513) (*JPEG DCT-domain Quantization Index Modulation*), as this is the only storage method that currently works for ***Reddit***.  
+For the ***Reddit*** conceal mode (***-r***), we use the [***QIM steganography method***](https://ieeexplore.ieee.org/document/4804513) (*JPEG DCT-domain Quantization Index Modulation*), as this is the only storage method that currently works for ***Reddit***.  
 
 To maximise storage capacity for the ***Reddit*** platform, use a cover image with large dimension sizes, 2048x2048, 4096x4096, 8192x8192, etc.  
 
@@ -27,6 +27,10 @@ To check your cover image's storage capacity using the ***QIM*** method, run the
 ```console
 $ jdvrif capsize -r my_cover.jpg
 ```
+
+While the ***X-Twitter*** platform can use the default method provided by ***jdvrif***, where data is concealed within APP2/ICC segments, ***X-Twitter*** limits this to a single ICC segment with a maximum size of just ~10KB. 
+
+To potentially increase the storage capacity for your cover image, you can use the ***X-Twitter*** platform conceal mode (***-x***), which  
 
 ## Compilation & Usage (Linux)
 
@@ -97,7 +101,7 @@ If you want a tool to conceal data using ***WEBP*** images to post on ***Bluesky
 
 *Size limit measured ***only*** by the ***compressed data file size:****  
 
-● ***Mastodon*** (**~6MB**), ***Tumblr*** (**~64KB**), ***X-Twitter*** (**~10KB**).  
+● ***Mastodon*** (**~6MB**), ***Tumblr*** (**~64KB**), ***X-Twitter*** (**~10KB / default method**).  
 
 For example, with ***Mastodon***, if your cover image is **1MB** you can still embed a data file up to the **~6MB** size limit.
 
