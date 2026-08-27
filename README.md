@@ -146,7 +146,7 @@ To create compatible "*data-conclealed*" ***JPG*** images for posting on the ***
 
 https://github.com/user-attachments/assets/9f1b4607-e7f1-4c5f-8929-b42c1a85bb88  
 
-To create compatible "*data-conclealed*" ***JPG*** images for posting on the ***X-Twitter*** platform, you must use the ***-x*** option with ***conceal*** mode.
+To create compatible "*data-conclealed*" ***JPG*** images for posting on the ***X-Twitter*** platform using the J-UNIWARD steganography method, you must use the ***-x*** option with ***conceal*** mode.
   ```console
   $ jdvrif conceal -x my_image.jpg hidden.doc
 ```
