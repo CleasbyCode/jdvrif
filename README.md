@@ -32,7 +32,7 @@ While the ***X-Twitter*** platform can use the default method provided by ***jdv
 
 To potentially increase the storage capacity for your cover image, greater than the **~10KB** ICC limit, you can use the ***X-Twitter*** platform conceal mode (***-x***), which will use the [***adaptive J-UNIWARD steganography method with Syndrome-Trellis Coding (STC)***](https://www.researchgate.net/publication/338418181_Fast_and_Secure_Steganography_Based_on_J-UNIWARD).  
 
-To maximise storage capacity for the ***Reddit*** platform, use a high quality cover image with large dimension sizes, **2048x2048**, **4096x4096**, etc.  
+To maximise storage capacity for the ***X-Twitter*** platform, use a high quality cover image with large dimension sizes, **2048x2048**, **4096x4096**, etc.  
 
 To check your cover image's storage capacity using the ***J-UNIWARD*** method, run the following command:- 
 ```console
