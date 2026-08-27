@@ -118,9 +118,9 @@ For example, with ***Mastodon***, if your cover image is **1MB** you can still e
 
 The final embedded cover image (cover image + hidden file) must not exceed 2,000,000 bytes (~1.9MB).  "***create_bsky_post.py***" script is required to post images on ***Bluesky***. *More info on this script further down the page.*
 
-● ***Reddit*** (***-r option***). While the ***Reddit*** platform has an image upload size limit of **20MB**, the data storage capacity for the cover image is ***much smaller*** and depends on image dimension size.  
+● ***Reddit*** (***-r option***). While ***Reddit*** has a post size limit of **20MB**, the data storage capacity for the cover image is ***much smaller*** and capacity depends on image dimension size.  
 
-For example, a cover image with **1024x1024** dimensions can store only **~6KB** of data, ***2048x2048*** can store **~27KB**, **4096x4096** can store **~109KB** and an image with **6324×6324** max dimensions can store **~254KB**. 
+● ***X-Twitter*** (***-x option***). While ***X-Twitter*** has a post size limit of **5MB**, the data storage capacity for the cover image is ***much smaller*** and capacity depends on image quality and dimension size.  
 
 For platforms such as ***X-Twitter***, ***Reddit*** & ***Tumblr***, which have small data size limits, you may want to focus on data that compresses well, such as text files, etc.  
 
