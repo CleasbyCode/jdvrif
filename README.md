@@ -90,7 +90,8 @@ Complete! Please check your file.
 \******************   
 Note: ***Bluesky*** now saves images as ***WEBP*** by default. 
 
-To save an image as ***JPG***, so that you can still recover concealed data with ***jdvrif***.  
+To save an image as ***JPG***, so that you can still recover concealed data with ***jdvrif***:-  
+
 First click the image in the post to open it, then right-click on the image. From the menu, select ***Open image in new tab***.  
 
 Select the new tab and within the address bar, move to the end of the address and add ***@jpg*** then hit enter.  
