@@ -17,7 +17,12 @@ An experimental ***Rust*** port [***jdvrif-rs***](https://github.com/CleasbyCode
 
 Unlike the common [***LSB***](https://ctf101.org/forensics/what-is-stegonagraphy/) (*Least Significant Bit*) steganography method of concealing data within the pixels of a cover image, ***jdvrif*** mostly hides data within ***application segments*** of a ***JPG*** image (ICC, EXIF, XMP, etc).  
 
-The two exceptions to the above method are the ***Reddit*** and ***X-Twitter*** platforms. For the ***Reddit*** conceal mode, we use the [***QIM steganography method***](https://ieeexplore.ieee.org/document/4804513) (JPEG DCT-domain Quantization Index Modulation), as this is the only storage method that currently works for ***Reddit***. To maximise storage capacity for your concealed data, use cover images with large dimension sizes: 2048x2048, 4096x4096, 8192x8192, etc. To check your cover image's storage capacity for the Reddit platform, run the following command:-    
+The two exceptions to the above method are the ***Reddit*** and ***X-Twitter*** platforms. For the ***Reddit*** conceal mode, we use the [***QIM steganography method***](https://ieeexplore.ieee.org/document/4804513) (JPEG DCT-domain Quantization Index Modulation), as this is the only storage method that currently works for ***Reddit***.  
+
+To maximise storage capacity for your concealed data, use a cover image with large dimension sizes, 2048x2048, 4096x4096, 8192x8192, etc. To check your cover image's storage capacity for the ***Reddit*** platform, run the following command:- 
+```console
+jdvrif capsize -r my_cover.jpg
+```
 
 ## Compilation & Usage (Linux)
 
