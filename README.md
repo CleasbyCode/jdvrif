@@ -2,7 +2,7 @@
 
 ***jdvrif*** is a fast, easy-to-use steganography command-line tool for concealing and extracting any file type via a **JPG** image.  
 
-You can conceal any file type up to ***2GB*** for the default conceal mode, although other platform conceal modes and compatible sites (*listed below*) have their own ***much smaller*** size limits and *other requirements.  
+You can conceal any file type up to ***2GB*** for the ***default conceal mode***, although other platform conceal modes and compatible social media sites (*listed below*) have their own ***much smaller*** size limits and *other requirements.  
 
 There is also a [***Web edition***](https://cleasbycode.co.uk/jdvrif/app/), which you can use immediately, as a convenient alternative to downloading and compiling the CLI source code. Web file uploads are limited to **20MB**.    
 
