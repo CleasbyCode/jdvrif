@@ -21,7 +21,7 @@ The two exceptions to the above method are the ***Reddit*** and ***X-Twitter*** 
 
 To maximise storage capacity for your concealed data, use a cover image with large dimension sizes, 2048x2048, 4096x4096, 8192x8192, etc. To check your cover image's storage capacity for the ***Reddit*** platform, run the following command:- 
 ```console
-jdvrif capsize -r my_cover.jpg
+$ jdvrif capsize -r my_cover.jpg
 ```
 
 ## Compilation & Usage (Linux)
@@ -36,8 +36,9 @@ $ ./compile_jdvrif.sh
 $ sudo cp jdvrif /usr/bin
 $ jdvrif 
 
-Usage: jdvrif conceal [-b|-r] <cover_image> <secret_file>
-       jdvrif recover <cover_image>  
+Usage: jdvrif conceal [-b|-r|-x] <cover_image> <secret_file>
+       jdvrif recover <cover_image>
+       jdvrif capsize [-r|-x] <cover_image>
        jdvrif --info
 
 $ jdvrif conceal your_cover_image.jpg your_secret_file.doc
