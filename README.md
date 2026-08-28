@@ -19,7 +19,7 @@ Unlike the common [***LSB***](https://ctf101.org/forensics/what-is-stegonagraphy
 
 The two platform exceptions to the above default storage method are ***Reddit*** and ***X-Twitter***.  
 
-For the ***Reddit*** conceal mode (***-r***), we use the [***QIM steganography method***](https://ieeexplore.ieee.org/document/4804513) (*JPEG DCT-domain Quantization Index Modulation*), as this is the only storage method that currently works for ***Reddit***.  
+For the ***Reddit*** conceal mode (***-r***), we use the [***QIM steganography method***](https://www.google.com/search?q=QIM+steganography+method&sourceid=chrome&ie=UTF-8&source=chrome.ctxt) (*JPEG DCT-domain Quantization Index Modulation*), as this is the only storage method that currently works for ***Reddit***.  
 
 To maximise storage capacity for the ***Reddit*** platform, use a cover image with large dimension sizes, **2048x2048**, **4096x4096**, **8192x8192**, etc.  
 
