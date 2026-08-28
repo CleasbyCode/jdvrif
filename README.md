@@ -30,7 +30,7 @@ $ jdvrif capsize -r my_cover.jpg
 
 While the ***X-Twitter*** platform can use the default method provided by ***jdvrif***, where data is concealed within APP2/ICC segments, ***X-Twitter*** limits this to a single ICC segment with a maximum size of just **~10KB**. 
 
-To potentially increase the storage capacity for your cover image, greater than the **~10KB** ICC limit, you can use the ***X-Twitter*** platform conceal mode (***-x***), which will use the [***adaptive J-UNIWARD steganography method with Syndrome-Trellis Coding (STC)***](https://www.researchgate.net/publication/338418181_Fast_and_Secure_Steganography_Based_on_J-UNIWARD).  
+To potentially increase the storage capacity for your cover image, greater than the **~10KB** ICC limit, you can use the ***X-Twitter*** platform conceal mode (***-x***), which will use the [***adaptive J-UNIWARD steganography method with Syndrome-Trellis Coding (STC)***](https://www.google.com/search?q=adaptive+J-UNIWARD+steganography+method+with+Syndrome-Trellis+Coding+(STC)&oq=adaptive+J-UNIWARD+steganography+method+with+Syndrome-Trellis+Coding+(STC)&gs_lcrp=EgZjaHJvbWUyBggAEEUYOTIHCAEQIRiPAtIBCDI1NDNqMGo3qAIAsAIA&sourceid=chrome&source=chrome.ob&ie=UTF-8).  
 
 To maximise storage capacity for the ***X-Twitter*** platform, use a high quality cover image with large dimension sizes, **2048x2048**, **4096x4096**, etc.  
 
