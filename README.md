@@ -2,11 +2,11 @@
 
 ***jdvrif*** is a fast, easy-to-use steganography command-line tool for concealing and extracting any file type via a **JPG** image.  
 
-You can conceal any file type up to ***2GB*** using the ***default conceal mode***, although other platform conceal modes and compatible social media sites (*listed below*) have their own ***much smaller*** size limits and *other requirements.  
+You can conceal any file type up to ***2GiB*** using the ***default conceal mode***, although other platform conceal modes and compatible social media sites (*listed below*) have their own ***much smaller*** size limits and *other requirements.  
 
 For increased storage capacity and better security, your embedded data file is compressed with ***libdeflate/zlib*** — unless it's already a compressed file type over 10 MB — and encrypted with ***XChaCha20-Poly1305*** using the ***libsodium*** cryptographic library.
 
-There is a [***Web edition***](https://cleasbycode.co.uk/jdvrif/app/) of ***jdvrif***, which you can use immediately, as a convenient alternative to downloading and compiling the CLI source code. Web file uploads are limited to **20MB**.    
+There is a [***Web edition***](https://cleasbycode.co.uk/jdvrif/app/) of ***jdvrif***, which you can use immediately, as a convenient alternative to downloading and compiling the CLI source code. Web file uploads are limited to **20MiB**.    
 
 An experimental ***Rust*** port [***jdvrif-rs***](https://github.com/CleasbyCode/jdvrif-rs) is also available for those interested in that language. 
 
@@ -21,18 +21,18 @@ The two platform exceptions to the above default storage method are ***Reddit***
 
 For the ***Reddit*** conceal mode (***-r***), we use the [***QIM steganography method***](https://www.google.com/search?q=QIM+steganography+method&sourceid=chrome&ie=UTF-8&source=chrome.ctxt) (*JPEG DCT-domain Quantization Index Modulation*), as this is the only storage method that currently works for ***Reddit***.  
 
-To maximise storage capacity for the ***Reddit*** platform, use a cover image with large dimension sizes, **2048x2048**, **4096x4096**, **8192x8192**, etc.  
+To maximise storage capacity for the ***Reddit*** platform, use a cover image with large dimension sizes, **2048x2048**, **4096x4096**, **8192x8192 (max)**, etc.  
 
 To check your cover image's storage capacity using the ***QIM*** method, run the following command:- 
 ```console
 $ jdvrif capsize -r my_cover.jpg
 ```
 
-While the ***X-Twitter*** platform can use the default method provided by ***jdvrif***, where data is concealed within APP2/ICC segments, ***X-Twitter*** limits this to a single ICC segment with a maximum size of just **~10KB**. 
+While the ***X-Twitter*** platform can use the default method provided by ***jdvrif***, where data is concealed within APP2/ICC segments, ***X-Twitter*** limits this to a single ICC segment with a maximum size of just **~10KiB**. 
 
 To potentially increase the storage capacity for your cover image, greater than the **~10KB** ICC limit, you can use the ***X-Twitter*** platform conceal mode (***-x***), which will use the [***adaptive J-UNIWARD steganography method with Syndrome-Trellis Coding (STC)***](https://www.google.com/search?q=adaptive+J-UNIWARD+steganography+method+with+Syndrome-Trellis+Coding+(STC)&oq=adaptive+J-UNIWARD+steganography+method+with+Syndrome-Trellis+Coding+(STC)&gs_lcrp=EgZjaHJvbWUyBggAEEUYOTIHCAEQIRiPAtIBCDI1NDNqMGo3qAIAsAIA&sourceid=chrome&source=chrome.ob&ie=UTF-8).  
 
-To maximise storage capacity for the ***X-Twitter*** platform, use a high quality cover image with large dimension sizes, **2048x2048**, **4096x4096**, etc.  
+To maximise storage capacity for the ***X-Twitter*** platform, use a high quality cover image with large dimension sizes, **1024x1024, 2048x2048**, **4096x4096 (max)**, etc.  
 
 To check your cover image's storage capacity using the ***J-UNIWARD*** method, run the following command:- 
 ```console
@@ -104,23 +104,23 @@ If you want a tool to conceal data using ***WEBP*** images to post on ***Bluesky
 
 *Posting size limit measured by the ***combined*** size of the ***cover image*** + ***compressed data file:****  
 
-● ***Flickr*** (**200MB**), ***ImgPile*** (**100MB**), ***ImgBB*** (**32MB**), ***PostImage*** (**32MB**), ***Pixelfed*** (**15MB**).
+● ***Flickr*** (**200MiB**), ***ImgPile*** (**100MiB**), ***ImgBB*** (**32MiB**), ***PostImage*** (**32MiB**), ***Pixelfed*** (**15MiB**).
 
 *Size limit measured ***only*** by the ***compressed data file size:****  
 
-● ***Mastodon*** (**~6MB**), ***Tumblr*** (**~64KB**), ***X-Twitter*** (**~10KB / default method**).  
+● ***Mastodon*** (**~6MiB**), ***Tumblr*** (**~64KiB**), ***X-Twitter*** (**~10KiB / default method**).  
 
-For example, with ***Mastodon***, if your cover image is **1MB** you can still embed a data file up to the **~6MB** size limit.
+For example, with ***Mastodon***, if your cover image is **1MiB** you can still embed a data file up to the **~6MiB** size limit.
 
 **Other: The ***Bluesky*** platform has ***separate*** size limits for the ***cover image*** and the ***compressed hidden data file:****  
 
-● ***Bluesky*** (***-b option***). Cover image max size limit (**2,000,000 bytes / ~1.9MB**). Your compressed hidden data file's max size limit (**~171KB**).  
+● ***Bluesky*** (***-b option***). Cover image max size limit (**2,000,000 bytes / ~1.9MiB**). Your compressed hidden data file's max size limit (**~171KiB**).  
 
-The final embedded cover image (cover image + hidden file) must not exceed 2,000,000 bytes (~1.9MB).  "***create_bsky_post.py***" script is required to post images on ***Bluesky***. *More info on this script further down the page.*
+The final embedded cover image (cover image + hidden file) must not exceed 2,000,000 bytes (~1.9MiB).  "***create_bsky_post.py***" script is required to post images on ***Bluesky***. *More info on this script further down the page.*
 
-● ***Reddit*** (***-r option***). While ***Reddit*** has a post size limit of **20MB**, the data storage capacity for the cover image is ***much smaller*** and capacity depends on image dimension size.  
+● ***Reddit*** (***-r option***). While ***Reddit*** has a post size limit of **20MiB**, the data storage capacity for the cover image is ***much smaller*** and capacity depends on image dimension size.  
 
-● ***X-Twitter*** (***-x option***). While ***X-Twitter*** has a post size limit of **5MB**, the data storage capacity for the cover image is ***much smaller*** and capacity depends on image quality and dimension size.  
+● ***X-Twitter*** (***-x option***). While ***X-Twitter*** has a post size limit of **5MiB**, the data storage capacity for the cover image is ***much smaller*** and capacity depends on image quality and dimension size.  
 
 For platforms such as ***X-Twitter***, ***Reddit*** & ***Tumblr***, which have small data size limits, you may want to focus on data that compresses well, such as text files, etc.  
 
