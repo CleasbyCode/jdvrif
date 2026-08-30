@@ -4,7 +4,7 @@
 
 You can conceal any file type up to ***2GiB*** using the ***default conceal mode***, although other platform conceal modes and compatible social media sites (*listed below*) have their own ***much smaller*** size limits and *other requirements.  
 
-For increased storage capacity and better security, your embedded data file is compressed with ***libdeflate/zlib*** — unless it's already a compressed file type over 10 MiB — and encrypted with ***XChaCha20-Poly1305*** using the ***libsodium*** cryptographic library.
+For increased storage capacity and better security, your embedded data file is compressed with ***libdeflate/zlib*** — unless it's already a compressed file type over 10MiB — and encrypted with ***XChaCha20-Poly1305*** using the ***libsodium*** cryptographic library.
 
 There is a [***Web edition***](https://cleasbycode.co.uk/jdvrif/app/) of ***jdvrif***, which you can use immediately, as a convenient alternative to downloading and compiling the CLI source code. Web file uploads are limited to **20MiB**.    
 
