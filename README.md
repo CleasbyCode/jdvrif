@@ -1,82 +1,102 @@
 # jdvrif
 
-***jdvrif*** is a fast, easy-to-use steganography command-line tool for concealing and extracting any file type via a **JPG** image.  
+***jdvrif*** (*JPG Data Vehicle*, **v9.0**) is a fast, easy-to-use steganography command-line tool for concealing and extracting any file type via a **JPG** image. ***Linux only***.
 
-You can conceal any file type up to ***2GiB*** using the ***default conceal mode***, although other platform conceal modes and compatible social media sites (*listed below*) have their own ***much smaller*** size limits and *other requirements.  
+Your data file is compressed with ***libdeflate/zlib***, then encrypted with ***XChaCha20-Poly1305*** (***libsodium*** secretstream) under a key derived by ***Argon2id*** from a randomly generated ***recovery PIN***, and finally embedded in the cover image. The PIN is displayed once, at the end of ***conceal***, and is never stored anywhere: without it the concealed file cannot be recovered.
 
-For increased storage capacity and better security, your embedded data file is compressed with ***libdeflate/zlib*** — unless it's already a compressed file type over 10MiB — and encrypted with ***XChaCha20-Poly1305*** using the ***libsodium*** cryptographic library.
+Using the ***default conceal mode***, you can conceal any file type up to ***2GiB***. The platform conceal modes and the compatible social media sites (*listed below*) have their own ***much smaller*** size limits and other requirements.
 
-There is a [***Web edition***](https://cleasbycode.co.uk/jdvrif/app/) of ***jdvrif***, which you can use immediately, as a convenient alternative to downloading and compiling the CLI source code. Web file uploads are limited to **20MiB**.    
+There is a [***Web edition***](https://cleasbycode.co.uk/jdvrif/app/) of ***jdvrif***, which you can use immediately, as a convenient alternative to downloading and compiling the CLI source code. Web file uploads are limited to **20MiB**.
 
-An experimental ***Rust*** port [***jdvrif-rs***](https://github.com/CleasbyCode/jdvrif-rs) is also available for those interested in that language. 
+An experimental ***Rust*** port [***jdvrif-rs***](https://github.com/CleasbyCode/jdvrif-rs) is also available for those interested in that language. It is format-compatible: either build can recover the other's images.
 
-***jdvrif*** partly derives from the ***[technique implemented](https://www.vice.com/en/article/bj4wxm/tiny-picture-twitter-complete-works-of-shakespeare-steganography)*** by security researcher ***[David Buchanan](https://www.da.vidbuchanan.co.uk/).*** 
+***jdvrif*** partly derives from the ***[technique implemented](https://www.vice.com/en/article/bj4wxm/tiny-picture-twitter-complete-works-of-shakespeare-steganography)*** by security researcher ***[David Buchanan](https://www.da.vidbuchanan.co.uk/).***
 
 ![Demo Image](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/jrif_323291.jpg)  
 *Demo Image: **"A place of concealment"** / ***PIN: 2190398302048725932****
 
-Unlike the common [***LSB***](https://ctf101.org/forensics/what-is-stegonagraphy/) (*Least Significant Bit*) steganography method of concealing data within the pixels of a cover image, ***jdvrif*** mostly hides data within ***application segments*** of a ***JPG*** image (ICC, EXIF, XMP, etc).  
+## How jdvrif conceals data
 
-The two platform exceptions to the above default storage method are ***Reddit*** and ***X-Twitter***.  
+Unlike the common [***LSB***](https://ctf101.org/forensics/what-is-stegonagraphy/) (*Least Significant Bit*) steganography method of concealing data within the pixels of a cover image, ***jdvrif*** mostly hides data within ***application segments*** of a ***JPG*** image (ICC, EXIF, XMP, etc).
 
-For the ***Reddit*** conceal mode (***-r***), we use the [***QIM steganography method***](https://www.google.com/search?q=QIM+steganography+method&sourceid=chrome&ie=UTF-8&source=chrome.ctxt) (*JPEG DCT-domain Quantization Index Modulation*), as this is the only storage method that currently works for ***Reddit***.  
+| Conceal mode | Where the data goes | Share the output image on |
+| --- | --- | --- |
+| *(no option)* | APP2/ICC profile segments | X-Twitter, Tumblr, Mastodon, Pixelfed, PostImage, ImgBB, ImgPile, Flickr |
+| ***-b*** | framed EXIF / Photoshop / XMP segments | ***Bluesky*** only |
+| ***-r*** | JPEG DCT coefficients (***QIM***) | ***Reddit*** only |
+| ***-x*** | JPEG DCT coefficients (***J-UNIWARD/STC***) | ***X-Twitter*** only |
+
+The two platform exceptions to the default segment storage method are ***Reddit*** and ***X-Twitter***. Both have their own conceal mode, and neither of those modes uses metadata segments at all: ***-r*** and ***-x*** carry the payload in the ***JPG*** image's DCT coefficients instead. ***Reddit*** re-encodes uploaded images and discards the metadata segments the default mode relies on, so ***-r*** is the only mode that works there. ***X-Twitter*** does preserve a single, small ICC segment, so the default mode still works on that platform, but only for a tiny payload.
+
+For the ***Reddit*** conceal mode (***-r***), we use the [***QIM steganography method***](https://www.google.com/search?q=QIM+steganography+method&sourceid=chrome&ie=UTF-8&source=chrome.ctxt) (*JPEG DCT-domain Quantization Index Modulation*), as this is the only storage method that currently works for ***Reddit***. The cover is transcoded to baseline Q75 4:2:0 and the payload is carried in its luminance DCT blocks.
 
 To maximise storage capacity for the ***Reddit*** platform, use a cover image with large dimension sizes, **2048x2048**, **4096x4096**, **8192x8192 (max)**, etc.  
+Quality of cover image is not important for this method and should be kept basic for the largest dimensions to help minimise cover image file size.
 
-To check your cover image's storage capacity using the ***QIM*** method, run the following command:- 
-```console
-$ jdvrif capsize -r my_cover.jpg
-```
+While the ***X-Twitter*** platform can use the default method provided by ***jdvrif***, where data is concealed within APP2/ICC segments, ***X-Twitter*** limits this to a single ICC segment with a maximum size of just **~10KiB**.
 
-While the ***X-Twitter*** platform can use the default method provided by ***jdvrif***, where data is concealed within APP2/ICC segments, ***X-Twitter*** limits this to a single ICC segment with a maximum size of just **~10KiB**. 
+To carry more than that **~10KiB**, use the ***X-Twitter*** platform conceal mode (***-x***). It abandons metadata segments entirely — nothing is written to an ICC profile — and instead uses the [***adaptive J-UNIWARD steganography method with Syndrome-Trellis Coding (STC)***](https://www.google.com/search?q=adaptive+J-UNIWARD+steganography+method+with+Syndrome-Trellis+Coding+(STC)&oq=adaptive+J-UNIWARD+steganography+method+with+Syndrome-Trellis+Coding+(STC)&gs_lcrp=EgZjaHJvbWUyBggAEEUYOTIHCAEQIRiPAtIBCDI1NDNqMGo3qAIAsAIA&sourceid=chrome&source=chrome.ob&ie=UTF-8). The cover is transcoded to progressive 4:2:0 at its source-derived quality (capped at **Q97**).
 
-To potentially increase the storage capacity for your cover image, greater than the **~10KB** ICC limit, you can use the ***X-Twitter*** platform conceal mode (***-x***), which will use the [***adaptive J-UNIWARD steganography method with Syndrome-Trellis Coding (STC)***](https://www.google.com/search?q=adaptive+J-UNIWARD+steganography+method+with+Syndrome-Trellis+Coding+(STC)&oq=adaptive+J-UNIWARD+steganography+method+with+Syndrome-Trellis+Coding+(STC)&gs_lcrp=EgZjaHJvbWUyBggAEEUYOTIHCAEQIRiPAtIBCDI1NDNqMGo3qAIAsAIA&sourceid=chrome&source=chrome.ob&ie=UTF-8).  
+To maximise storage capacity for the ***X-Twitter*** platform, use a high quality cover image with large dimension sizes, **1024x1024**, **2048x2048**, **4096x4096 (max)**, etc.
 
-To maximise storage capacity for the ***X-Twitter*** platform, use a high quality cover image with large dimension sizes, **1024x1024, 2048x2048**, **4096x4096 (max)**, etc.  
+Both DCT modes carry far less data than the default mode, so use ***capsize*** to measure a cover image before choosing a payload (see [Checking capacity](#checking-capacity-with-capsize)).
 
-To check your cover image's storage capacity using the ***J-UNIWARD*** method, run the following command:- 
-```console
-$ jdvrif capsize -x my_cover.jpg
-```
+## Requirements & Compilation (Linux)
 
-## Compilation & Usage (Linux)
+Building requires **CMake 3.20 or newer**, `flock` from **util-linux**, and either **Ninja** (preferred) or **Make**. The compiler must be **GCC 14 or newer**, or **Clang 18 or newer** paired with a C++23 standard library that implements features such as `std::format` and `std::print`. The native libraries required are **libsodium**, **libjpeg-turbo** (*both the `turbojpeg` and `libjpeg` APIs*), **zlib** and **libdeflate**. **OpenMP** is optional: when present it parallelises the ***-x*** J-UNIWARD cost pass.
 
 ```console
 $ sudo apt update
-$ sudo apt install g++ cmake ninja-build util-linux libsodium-dev libturbojpeg0-dev zlib1g-dev libdeflate-dev
+$ sudo apt install g++ cmake ninja-build util-linux libsodium-dev libturbojpeg0-dev libjpeg-dev zlib1g-dev libdeflate-dev
+
+$ g++ --version   # confirm the reported version is 14 or newer
 
 $ chmod +x compile_jdvrif.sh
 $ ./compile_jdvrif.sh
 
 $ sudo cp jdvrif /usr/bin
-$ jdvrif 
+```
+
+If your distribution ships GCC 14 as a versioned package, install `g++-14` and build with `CXX=g++-14 ./compile_jdvrif.sh`.
+
+The wrapper keeps dependency-tracked object files under `src/build/`, so later invocations rebuild only what changed, and it replaces the published `jdvrif` binary only after a complete, successful build. Set `JDVRIF_JOBS=<count>` to change the parallelism limit (default: CPU count, capped at 8), `JDVRIF_BUILD_DIR=<path>` to use a separate build cache, or `BUILD_MODE=sanitize` for an ASan/UBSan build.
+
+## Usage
+
+```console
+$ jdvrif
 
 Usage: jdvrif conceal [-b|-r|-x] <cover_image> <secret_file>
        jdvrif recover <cover_image>
        jdvrif capsize [-r|-x] <cover_image>
        jdvrif --info
+```
 
+Run `jdvrif --info` for the full built-in guide to modes, platform options and size limits.
+
+```console
 $ jdvrif conceal your_cover_image.jpg your_secret_file.doc
- 
+
 Platform compatibility for output image:-
 
-  ✓ X-Twitter
-  ✓ Tumblr
-  ✓ Mastodon
-  ✓ Pixelfed
-  ✓ PostImage
-  ✓ ImgBB
-  ✓ ImgPile
-  ✓ Flickr
-  
-Saved "file-embedded" JPG image: jrif_4e87c566c.jpg (143029 bytes).
+ ✓ X-Twitter
+ ✓ Tumblr
+ ✓ Mastodon
+ ✓ Pixelfed
+ ✓ PostImage
+ ✓ ImgBB
+ ✓ ImgPile
+ ✓ Flickr
 
 Recovery PIN: [***2166776980318349924***]
 
 Important: Keep your PIN safe, so that you can extract the hidden file.
 
+
+Saved "file-embedded" JPG image: jrif_4e87c566c.jpg (143029 bytes).
+
 Complete!
-        
+
 $ jdvrif recover jrif_4e87c566c.jpg
 
 PIN: *******************
@@ -86,7 +106,29 @@ Extracted hidden file: your_secret_file.doc (6165 bytes).
 Complete! Please check your file.
 
 ```
+
+jdvrif ***mode*** arguments:
+
+  ***conceal*** - Compresses, encrypts and embeds your secret data file within a ***JPG*** cover image.  
+  ***recover*** - Decrypts, uncompresses and extracts the concealed data file from a ***JPG*** cover image (*recovery PIN required*).  
+  ***capsize*** - Reports the carrier capacity of a cover image for ***-r*** or ***-x*** mode. No image is saved.
+
+Requirements for the cover image:
+
+● JPEG only, at least **400x400** pixels, and either grayscale or YCbCr colour — CMYK/YCCK images must be converted to RGB first.
+
+● Default and ***-b*** upper dimensions are **4096x4096px**; ***-r*** uses **8192x8192px**, while ***-x*** is also capped at **4096x4096px**.
+
+● The default mode (*no option*) also rejects cover images whose estimated JPEG quality is above **Q97**; re-save the image at a lower quality if it is refused.
+
+Requirements for the secret data file:
+
+● The embedded filename must be no longer than **20 characters** and must not begin with `.` or `-`. The name is stored in the image and restored on ***recover***.
+
+● Your data file is compressed before encryption, except for recognised already-compressed file types (`.zip`, `.7z`, `.mp4`, `.jpg`, `.png`, etc). In the default and ***-b*** modes those types skip compression only when larger than **10MiB**; in ***-r*** and ***-x*** modes they always skip it. For anything else destined for a small platform limit, consider compressing it yourself first (*zip, rar, 7z, etc.*) so that you know its exact stored size.
+
 ## Compatible Platforms
+
 \******************   
 Note: ***Bluesky*** now saves images as ***WEBP*** by default. 
 
@@ -112,30 +154,43 @@ If you want a tool to conceal data using ***WEBP*** images to post on ***Bluesky
 
 For example, with ***Mastodon***, if your cover image is **1MiB** you can still embed a data file up to the **~6MiB** size limit.
 
-**Other: The ***Bluesky*** platform has ***separate*** size limits for the ***cover image*** and the ***compressed hidden data file:****  
+**Other: platforms with their own conceal mode:**
 
-● ***Bluesky*** (***-b option***). Cover image max size limit (**2,000,000 bytes / ~1.9MiB**). Your compressed hidden data file's max size limit (**~171KiB**).  
+● ***Bluesky*** (***-b option***). The finished "*file-embedded*" ***JPG*** must not exceed **2,000,000 bytes (~1.9MiB)**, so the cover image and the compressed data file share one budget. The compressed data file on its own must not exceed **~171KiB**. A cover image already at 2,000,000 bytes leaves no room at all, so keep the cover smaller than the limit by at least the size of your compressed data file. The "***create_bsky_post.py***" script is required to post these images on ***Bluesky***. *More info on this script further down the page.*
 
-The final embedded cover image (cover image + hidden file) must not exceed 2,000,000 bytes (~1.9MiB).  "***create_bsky_post.py***" script is required to post images on ***Bluesky***. *More info on this script further down the page.*
+● ***Reddit*** (***-r option***). The cover image and the data file must each be no larger than **20MiB**, but the actual carrier capacity of the cover image is ***much smaller*** and depends on its dimension sizes. Use `jdvrif capsize -r` to measure it.
 
-● ***Reddit*** (***-r option***). While ***Reddit*** has a post size limit of **20MiB**, the data storage capacity for the cover image is ***much smaller*** and capacity depends on image dimension size.  
+● ***X-Twitter*** (***-x option***). The cover image and the data file must each be no larger than **5MiB**, and the cover must not exceed **4096x4096** pixels. The actual carrier capacity is ***much smaller*** and depends on image quality and dimension sizes. Use `jdvrif capsize -x` to measure it.
 
-● ***X-Twitter*** (***-x option***). While ***X-Twitter*** has a post size limit of **5MiB**, the data storage capacity for the cover image is ***much smaller*** and capacity depends on image quality and dimension size.  
+In the default and ***-b*** modes, the cover image is also losslessly optimized before use and must not exceed **4MiB** after that step.
 
 For platforms such as ***X-Twitter***, ***Reddit*** & ***Tumblr***, which have small data size limits, you may want to focus on data that compresses well, such as text files, etc.  
 
 https://github.com/user-attachments/assets/c8c38e6d-ea23-4d67-98d9-cebdcd82b449
 
 https://github.com/user-attachments/assets/88aaa5f7-3272-4d0c-aa59-1a5bfe2f08dc
-  
-jdvrif ***mode*** arguments:
- 
-  ***conceal*** - Compresses, encrypts and embeds your secret data file within a ***JPG*** cover image.  
-  ***recover*** - Decrypts, uncompresses and extracts the concealed data file from a ***JPG*** cover image.
- 
-jdvrif ***conceal*** mode ***platform*** options "***-b***", "***-r***" and "***-x***":
 
-To create compatible "*data-conclealed*" ***JPG*** images for posting on the ***Reddit*** platform, you must use the ***-r*** option with ***conceal*** mode.
+## Checking capacity with capsize
+
+***capsize*** prepares the cover image exactly as ***conceal*** would, then reports how much encrypted payload it can carry. Nothing is written to disk. Use ***-r*** for the ***Reddit*** carrier and ***-x*** for the ***X-Twitter*** carrier (***-x*** is the default if no option is given).
+
+```console
+$ jdvrif capsize -r basic_img_large_dims.jpg
+
+Reddit capacity check for conceal -r mode only.
+
+Cover Image: 384KiB, 8192x8192, Baseline YCbCr 4:2:0, Standard Q75 quantization (C3).
+
+Theoretical C3 capacity limit for this cover image:                    436906 bytes (~426KiB).
+Conservative maximum compressed capacity with a 20-character filename: 436792 bytes (~426KiB).
+Recommended  maximum compressed capacity with a 20-character filename: 435768 bytes (~425KiB).
+```
+
+The figure reported is the total encrypted ***envelope*** capacity, not a raw secret-file limit: the filename, encryption and recovery metadata consume 95 to 114 bytes for a single-frame payload, and larger payloads add framing overhead. Don't aim at the theoretical limit — where capacity allows, keep the compressed payload at least **1KiB** below the conservative maximum. The size check performed by ***conceal*** is the authoritative one.
+
+## Conceal mode platform options
+
+To create compatible "*data-concealed*" ***JPG*** images for posting on the ***Reddit*** platform, you must use the ***-r*** option with ***conceal*** mode.
   ```console
   $ jdvrif conceal -r my_image.jpg hidden.doc
 ```
@@ -146,7 +201,7 @@ To create compatible "*data-conclealed*" ***JPG*** images for posting on the ***
 
 https://github.com/user-attachments/assets/9f1b4607-e7f1-4c5f-8929-b42c1a85bb88  
 
-To create compatible "*data-conclealed*" ***JPG*** images for posting on the ***X-Twitter*** platform using the J-UNIWARD steganography method, you must use the ***-x*** option with ***conceal*** mode.
+To create compatible "*data-concealed*" ***JPG*** images for posting on the ***X-Twitter*** platform using the J-UNIWARD steganography method, you must use the ***-x*** option with ***conceal*** mode.
   ```console
   $ jdvrif conceal -x my_image.jpg hidden.doc
 ```
@@ -165,12 +220,38 @@ To create compatible "*file-embedded*" ***JPG*** images for posting on the ***Bl
   You are also required to use the Python script [create_bsky_post.py](https://github.com/CleasbyCode/jdvrif/blob/main/src/bsky/create_bsky_post.py) (found in the repo ***src/bsky*** folder) to post the image to ***Bluesky***.
   It will not work if you post images to ***Bluesky*** via the browser site or mobile app.  
 
-  To use the script, you will need to create an [***app password***](https://bsky.app/settings/app-passwords) from your ***Bluesky*** account.  
+  To use the script, you will need to create an [***app password***](https://bsky.app/settings/app-passwords) from your ***Bluesky*** account. Pass your credentials through the environment rather than on the command line, where they would be visible to other local users via tools such as `ps`:
 
-  See the [create_bsky_post.py](https://github.com/CleasbyCode/jdvrif/blob/main/src/bsky/create_bsky_post.py) script in the src/bsky folder for some basic usage examples.
-  
+  ```console
+  $ pip install -r bsky/requirements.txt
+
+  $ export ATP_AUTH_HANDLE='you.bsky.social'
+  $ read -rsp 'Bluesky app password: ' ATP_AUTH_PASSWORD && export ATP_AUTH_PASSWORD
+
+  $ python3 bsky/create_bsky_post.py \
+      --image jrif_4e87c566c.jpg \
+      --alt-text "alt-text here [optional]" \
+      "standard post text here [required]"
+
+  $ unset ATP_AUTH_PASSWORD
+```
+
+  See [src/bsky/README.md](https://github.com/CleasbyCode/jdvrif/blob/main/src/bsky/README.md) for the full set of options (*multiple images, replies, quote posts, link cards*) and for what the hardened fork of the script protects against.
 
 https://github.com/user-attachments/assets/b4c72ea7-40e3-49b0-89aa-ae2dd8ccccb9   
+
+## Tests
+
+The test scripts in `src/tests` each take the binary to exercise:
+
+```console
+$ bash tests/run_golden_tests.sh --bin ./jdvrif        # recover pre-built images with known PINs
+$ bash tests/run_roundtrip_tests.sh --bin ./jdvrif     # fresh conceal/recover round-trips
+$ bash tests/run_security_smoke.sh --bin ./jdvrif      # negative-path and boundary checks
+$ bash tests/run_reddit_tests.sh --bin ./jdvrif        # -r QIM carrier
+$ bash tests/run_twitter_tests.sh --bin ./jdvrif       # -x J-UNIWARD/STC carrier
+$ bash tests/run_bsky_tests.sh                         # Bluesky posting helper
+```
 
 ## Third-Party Software and Assets
 
