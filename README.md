@@ -171,7 +171,7 @@ For platforms such as ***X-Twitter***, ***Reddit*** & ***Tumblr***, which have s
 
 https://github.com/user-attachments/assets/c8c38e6d-ea23-4d67-98d9-cebdcd82b449
 
-https://github.com/user-attachments/assets/88aaa5f7-3272-4d0c-aa59-1a5bfe2f08dc
+https://github.com/user-attachments/assets/fc454d42-0240-4864-b44b-ce5ef7cfd94c
 
 ## Checking capacity with capsize
 
