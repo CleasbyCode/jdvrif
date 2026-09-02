@@ -202,7 +202,7 @@ To create compatible "*data-concealed*" ***JPG*** images for posting on the ***R
   
   When saving/downloading an image from ***Reddit*** make sure to click on the image within the post to fully expand it before saving.  
 
-https://github.com/user-attachments/assets/9f1b4607-e7f1-4c5f-8929-b42c1a85bb88  
+https://github.com/user-attachments/assets/ead3c34c-dd9a-4018-9ea3-0746fbdfdb8b
 
 To create compatible "*data-concealed*" ***JPG*** images for posting on the ***X-Twitter*** platform using the J-UNIWARD steganography method, you must use the ***-x*** option with ***conceal*** mode.
   ```console
