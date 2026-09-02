@@ -169,7 +169,7 @@ In the default and ***-b*** modes, the cover image is also losslessly optimized 
 
 For platforms such as ***X-Twitter***, ***Reddit*** & ***Tumblr***, which have small data size limits, you may want to focus on data that compresses well, such as text files, etc.  
 
-https://github.com/user-attachments/assets/c8c38e6d-ea23-4d67-98d9-cebdcd82b449
+https://github.com/user-attachments/assets/af330d09-f65d-4f75-8290-883078be34b3
 
 https://github.com/user-attachments/assets/fc454d42-0240-4864-b44b-ce5ef7cfd94c
 
