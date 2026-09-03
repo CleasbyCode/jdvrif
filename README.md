@@ -241,7 +241,7 @@ To create compatible "*file-embedded*" ***JPG*** images for posting on the ***Bl
 
   See [src/bsky/README.md](https://github.com/CleasbyCode/jdvrif/blob/main/src/bsky/README.md) for the full set of options (*multiple images, replies, quote posts, link cards*) and for what the hardened fork of the script protects against.
 
-https://github.com/user-attachments/assets/b4c72ea7-40e3-49b0-89aa-ae2dd8ccccb9   
+https://github.com/user-attachments/assets/1daef508-d304-491f-bfe2-2cdbb5d62081
 
 ## Tests
 
