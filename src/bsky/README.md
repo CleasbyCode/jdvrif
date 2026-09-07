@@ -15,13 +15,17 @@ for the full walkthrough of what it does and why.
 Requirements
 ------------
 
-Python 3.10 or newer. Dependencies are pinned in `requirements.txt` — install
-from there rather than by hand, as the SSRF/TLS layer depends on specific
-`urllib3` and `idna` behaviour:
+Python 3.10 or newer. `requirements.txt` pins the directly used packages,
+including `urllib3` and `idna`, whose behaviour the SSRF/TLS layer relies on:
 
 ```shell
-pip install -r requirements.txt
+python3 -m pip install -r requirements.txt
 ```
+
+These are selected pins, not a complete dependency lock: `certifi`,
+`charset-normalizer`, `soupsieve`, and `typing-extensions` can still vary
+within their dependencies' allowed ranges. Fully repeatable installs require
+locking those transitive dependencies and recording the target environment.
 
 The pins include urllib3 2.7.0 for bounded streaming decompression and Pillow
 12.3.0 for image inspection. Older or unrecognized urllib3 releases refuse
@@ -34,17 +38,24 @@ Credentials
 
 You need a Bluesky account and an **app password**, created at
 <https://bsky.app/settings/app-passwords>. Do *not* use your main account
-password: app passwords can be revoked individually and cannot change account
-settings.
+password: app passwords can be revoked individually and cannot change
+authentication settings, though they still grant access to publish and manage
+account content.
 
-Prefer the environment variables over `--handle`/`--password`, since command
-line arguments are visible to other local users via `ps` (the script warns you
-if you pass `--password` anyway):
+Use an interactive Bash prompt to populate the environment variable without
+typing the password into a command that shell history can retain. Passwords
+passed through `--password` are visible to other local users via `ps`, and
+the script warns about this:
 
 ```shell
 export ATP_AUTH_HANDLE='your-handle.bsky.social'
-export ATP_AUTH_PASSWORD='xxxx-xxxx-xxxx-xxxx'
+read -r -s -p 'Bluesky app password: ' ATP_AUTH_PASSWORD
+printf '\n'
+export ATP_AUTH_PASSWORD
 ```
+
+The variable remains available to processes launched from this shell; use
+`unset ATP_AUTH_PASSWORD` when you finish posting.
 
 Usage
 -----
@@ -86,6 +97,16 @@ python3 create_bsky_post.py --help
 body of a failed `createRecord` — the quickest way to inspect the facets and
 embeds the script built for you.
 
+Server error messages are escaped for terminal safety but are not redacted
+for secrets. A server could echo credentials, so check diagnostics before
+sharing them.
+
+If `createRecord` times out, the post may already have been committed. Check
+your account's recent posts and resolve the first attempt's outcome before
+retrying: the script supplies no persistent record key, and re-running it can
+create a duplicate. Timeouts in optional mentions and card thumbnails instead
+allow posting to continue with those features omitted.
+
 ### Services
 
 | Option | Environment variable | Default |
@@ -118,7 +139,8 @@ python3 create_bsky_post.py --self-test
 that suite under both normal and optimized (`python3 -O`) Python, and checks
 that no `assert` statements have crept in that optimization would strip — an
 `assert` in a self-test would silently stop testing anything under `-O`.
-It also runs the documentation-excerpt checker and verifies the Rust mirror.
+It also runs the documentation-excerpt checker, its regression tests, and the
+Rust mirror comparison.
 
 The companion walkthrough quotes this script directly, so a third check keeps
 the two from drifting apart:
@@ -127,11 +149,14 @@ the two from drifting apart:
 python3 verify_doc_excerpts.py
 ```
 
-It reports any line of any ```python block in
-[posting-via-the-bluesky-api.md](posting-via-the-bluesky-api.md) that no
-longer appears in `create_bsky_post.py`, and exits non-zero if any has. It
-uses only the standard library, so it runs without installing the posting
-script's requirements.
+It compares each Python excerpt in
+[posting-via-the-bluesky-api.md](posting-via-the-bluesky-api.md) against a
+contiguous statement sequence in the script's syntax tree, including statement
+order, nesting, exception types, and literal values. Comments and formatting
+are ignored; excerpts must contain complete statements without elisions.
+It also parses every JSON example and exits non-zero on drift or invalid
+syntax. It uses only the standard library, so it runs without installing the
+posting script's requirements.
 
 What the hardening covers
 -------------------------

@@ -5,7 +5,7 @@ A guide to creating posts via the Bluesky API, including rich-text facets
 and website cards — with the safety rails a script needs when it fetches
 untrusted content from the open web.
 
-*July 23, 2026 — updated August 19, 2026*
+*July 23, 2026 — updated September 7, 2026*
 
 This post is an updated companion to the AT Protocol team's original
 [Posting via the Bluesky API](https://atproto.com/blog/create-post)
@@ -24,13 +24,19 @@ and record-with-media embeds, and treats every network fetch as potentially
 hostile.
 
 It requires Python 3.10+ with `requests`, `beautifulsoup4`, and `pillow`.
-Dependencies are pinned in `requirements.txt` for reproducibility — it also
-pins `urllib3` and `idna`, which are transitive dependencies of `requests` but
-which the SSRF/TLS layer relies on directly:
+`requirements.txt` pins these packages and also `urllib3` and `idna`, which
+are transitive dependencies of `requests` used directly by the SSRF/TLS layer:
 
 ```bash
-pip install -r requirements.txt
+python3 -m pip install -r requirements.txt
 ```
+
+These are selected version pins, not a complete dependency lock.
+`certifi`, `charset-normalizer`, `soupsieve`, and `typing-extensions` are
+resolved within their dependencies' allowed ranges and may change between
+installs. Fully repeatable installs also require locking transitive versions
+and recording the target Python/platform environment; see
+[pip's repeatable-install guidance](https://pip.pypa.io/en/stable/topics/repeatable-installs/).
 
 ---
 
@@ -39,16 +45,23 @@ pip install -r requirements.txt
 You'll need a Bluesky account and an **app password**. Create one at
 <https://bsky.app/settings/app-passwords> — do **not** use your main account
 password. App passwords can be revoked individually and cannot change your
-account settings, so a leaked one does far less damage.
+authentication settings, though they still grant access to publish and manage
+account content.
 
-Set your credentials as environment variables rather than command-line
-arguments (arguments are visible to other local users via `ps`; the script
-warns you if you pass `--password` anyway):
+Set your credentials as environment variables. In an interactive Bash shell,
+read the password at a hidden prompt so its value is not typed into a command
+that shell history can retain. Command-line passwords are visible to other
+local users via `ps`; the script warns you if you pass `--password`:
 
 ```bash
 export ATP_AUTH_HANDLE='your-handle.bsky.social'
-export ATP_AUTH_PASSWORD='xxxx-xxxx-xxxx-xxxx'
+read -r -s -p 'Bluesky app password: ' ATP_AUTH_PASSWORD
+printf '\n'
+export ATP_AUTH_PASSWORD
 ```
+
+The environment variable remains available to processes launched from this
+shell. Run `unset ATP_AUTH_PASSWORD` when you finish posting.
 
 Then posting is a one-liner:
 
@@ -135,8 +148,12 @@ https://bsky.app/settings/app-passwords.
 
 The hint is looked up from the error name for the handful of cases with an
 actionable fix (2FA, a revoked password, rate limiting, a takedown); anything
-else just reports what the server said. The password itself never appears in
-an error message.
+else just reports what the server said. The script does not deliberately add
+your password to diagnostics, but it does not redact secrets from server
+responses. A PDS that echoes credentials in its error message can therefore
+cause them to appear in the output. Terminal escaping prevents control-sequence
+execution; it does not make diagnostic output safe to share without checking
+it for secrets.
 
 The PDS defaults to `https://bsky.social` and can be pointed elsewhere with
 `--pds-url` or the `ATP_PDS_HOST` environment variable (the record lookup
@@ -171,7 +188,11 @@ preferred trailing `Z`:
 ```python
 def _created_at_now() -> str:
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+```
 
+The required fields inside `_build_post_record()` are:
+
+```python
 post: Dict = {
     "$type": "app.bsky.feed.post",
     "text": args.text,
@@ -179,9 +200,11 @@ post: Dict = {
 }
 ```
 
-Every Python excerpt in this post is copied verbatim from the script (aside
-from elided bodies marked `...`), and `verify_doc_excerpts.py` alongside it
-checks that they have not drifted apart.
+`verify_doc_excerpts.py` compares each Python excerpt's complete statements
+with a contiguous statement sequence in the script's syntax tree. It ignores
+comments and formatting, but checks statement order, nesting, exception types,
+and literal values. Separate excerpts show code from separate locations; no
+elisions are silently accepted. The checker also parses every JSON example.
 
 The finished record goes to `com.atproto.repo.createRecord`, and the response
 contains the new post's AT URI and CID.
@@ -216,12 +239,15 @@ the registry itself is out of scope for a single-file script.
 Facets are annotations over byte ranges of the post text. The fork produces
 three kinds: **links**, **mentions**, and **tags** (hashtags and cashtags).
 
-### Byte offsets, done once
+### Byte offsets, computed once per parser
 
 Facet indices are *byte* offsets into the UTF-8 encoding of the text, not
 character offsets. The original worked around this by running regexes over
 encoded bytes. The fork instead matches on the decoded string (where Unicode
-categories are available) and converts with a precomputed offset table:
+categories are available) and converts with a precomputed offset table. Each
+of the link, mention, and tag parsers builds its own table, so parsing all
+facets makes three passes over the text. Each pass is linear, and the CLI
+limits the text to 3,000 UTF-8 bytes:
 
 ```python
 def _byte_offsets(text: str) -> List[int]:
@@ -311,13 +337,15 @@ web path to the right collection.
 
 If you combine `--embed-ref` with `--image` or `--embed-url`, the script
 produces the `app.bsky.embed.recordWithMedia` union that the original never
-supported:
+supported. This schematic shows the wrapper; the quoted placeholders stand
+for a resolved record URI and CID, and the empty image array must be populated
+with the uploaded image entries described below before posting:
 
 ```json
 {
   "$type": "app.bsky.embed.recordWithMedia",
   "record": { "$type": "app.bsky.embed.record", "record": { "uri": "…", "cid": "…" } },
-  "media": { "$type": "app.bsky.embed.images", "images": [ … ] }
+  "media": { "$type": "app.bsky.embed.images", "images": [] }
 }
 ```
 
@@ -351,7 +379,7 @@ def inspect_image(img_bytes: bytes, source: str) -> Dict[str, Any]:
         # This check runs before even starting a native decoder process.
         _preflight_image(img_bytes)
         return _inspect_image_in_worker(img_bytes)
-    except ValueError as exc:
+    except (OSError, ValueError) as exc:
         raise ValueError(f"Invalid image {source!r}: {exc}") from exc
 ```
 
@@ -410,8 +438,10 @@ points to. The fork's changes:
 * the HTML download is capped at 4 MB and the thumbnail at 1 MB;
 * `og:` properties are matched case-insensitively, since real pages do emit
   `property="OG:Title"`;
-* card titles and descriptions are trimmed to sane lengths without splitting
-  a combining character or emoji sequence at the cut point;
+* card titles and descriptions are capped at 300 and 1,000 Unicode code points
+  respectively. Truncation makes a best-effort adjustment for combining marks
+  and dangling zero-width joiners, but does not implement full Unicode grapheme
+  segmentation. A cut can split a skin-tone emoji, a joined emoji, or a flag;
 * nothing about the card can cost you the post. A failed thumbnail prints a
   warning and posts the card without a thumb; if the page itself can't be
   read at all — it exceeds the cap, times out, or returns an error — the
@@ -487,16 +517,22 @@ orphaned worker can then only ever touch connection state that nothing else
 will use again, and the code unwinding from the timeout simply leaves that
 Session alone rather than closing it underneath a live socket read.
 
-The payoff is that timeouts are ordinary, recoverable errors everywhere. A
-`resolveHandle` that hangs costs you one mention, which falls back to plain
-text; a thumbnail upload that hangs costs you the thumbnail. Neither costs
-you the post. The alternative — a single shared Session — forces the opposite
-rule, where any timeout has to terminate the process to stay safe, and that
-rule is invisible to the next person editing the file. A distinct
-`DeadlineExceeded` exception type keeps this honest: it separates "our
-deadline expired and a worker was abandoned" from requests' own
-`ConnectTimeout`/`ReadTimeout`, which leave nothing running and are safely
-retried against the host's next address.
+This lets failures in optional work degrade gracefully. A `resolveHandle`
+timeout leaves that mention as plain text; a thumbnail upload timeout omits
+the thumbnail. Required operations, such as login, reply/quote lookups, attached
+image uploads, and creating the post, still stop the command on failure.
+
+A **`createRecord` timeout leaves the posting outcome uncertain**: the PDS may
+have committed the post before its response was lost. The script does not
+supply a persistent record key or automatically retry that write. Re-running
+the command can create a duplicate, so check your account's recent posts and
+resolve whether the first attempt succeeded before retrying. Session isolation
+protects local connection state; it does not undo server-side effects.
+
+A distinct `DeadlineExceeded` exception separates an abandoned worker from
+Requests' own `ConnectTimeout`/`ReadTimeout`. The latter leave no script worker
+running that operation and permit trying the next validated address during an
+external GET. That address fallback is not a retry policy for API writes.
 
 **Size caps and content checks.** Response bodies are streamed with a byte limit
 applied to decoded data. The pinned urllib3 2.7.0 also bounds how much data is

@@ -59,16 +59,21 @@ Setup:
 
  Requires Python 3.10+: requests, beautifulsoup4, pillow (with pinned versions in
  requirements.txt alongside this script)
-    $ pip install -r requirements.txt
+    $ python3 -m pip install -r requirements.txt
 
- Set your credentials as environment variables:
+ Set credentials in an interactive Bash shell with a hidden password prompt,
+ so the password is not typed into a command saved in shell history:
     $ export ATP_AUTH_HANDLE='your-handle.bsky.social'
-    $ export ATP_AUTH_PASSWORD='xxxx-xxxx-xxxx-xxxx'
+    $ read -r -s -p 'Bluesky app password: ' ATP_AUTH_PASSWORD
+    $ printf '\\n'
+    $ export ATP_AUTH_PASSWORD
+
+ Run `unset ATP_AUTH_PASSWORD` when you finish posting.
 
  IMPORTANT: ATP_AUTH_PASSWORD should be an APP password, created at
  https://bsky.app/settings/app-passwords — do NOT use your main Bluesky
  account password. App passwords can be revoked individually and cannot
- change account settings.
+ change authentication settings, though they can publish and manage content.
 
 Examples:
 
@@ -1907,12 +1912,11 @@ def _extends_previous_cluster(character: str) -> bool:
 
 
 def _grapheme_safe_prefix(text: str, limit: int) -> str:
-    """Return at most `limit` code points without splitting a grapheme cluster.
+    """Return at most `limit` code points with best-effort boundary adjustments.
 
-    This is a conservative, stdlib-only approximation (regional-indicator flag
-    pairs, for example, are not tracked); the PDS enforces the authoritative
-    grapheme count, so this only needs to avoid emitting an obviously broken
-    cluster at the truncation boundary.
+    This stdlib-only approximation handles combining marks and dangling ZWJs.
+    It can still split emoji modifier sequences, joined emoji, and regional-
+    indicator flags; it is not full Unicode grapheme segmentation.
     """
     if len(text) <= limit:
         return text

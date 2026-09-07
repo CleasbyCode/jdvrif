@@ -1,8 +1,10 @@
 # Pinned dependencies for create_bsky_post.py.
 #
-# Versions are pinned exactly for reproducibility and supply-chain hardening:
-# this is a security-sensitive tool, so an unexpected transitive upgrade should
-# be a deliberate, reviewed change rather than something that happens silently.
+# These selected packages are pinned exactly so their upgrades are deliberate.
+# This is not a complete dependency lock: certifi, charset-normalizer, soupsieve,
+# and typing-extensions may vary within the declared dependency ranges. Fully
+# repeatable installs also require locking transitive versions and recording
+# the target Python/platform environment.
 #
 # requests / beautifulsoup4 / pillow are used directly. urllib3 and idna are
 # transitive dependencies of requests, but the SSRF/TLS pinning in
