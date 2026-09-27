@@ -154,10 +154,21 @@ void validateCoverImageLimits(std::size_t jpg_size, const ConcealFlags& flags) {
     return data_filename;
 }
 
+// Formats whose contents are already entropy-coded, so a zlib pass gains ~0%.
+// Executables (.exe) are deliberately absent: they typically deflate by 30-50%,
+// so skipping compression wasted capacity -- most of all in the -r and -x
+// modes, which consult this list at every size. Keep in step with pdvrdt.
 [[nodiscard]] bool isAlreadyCompressedFileType(const fs::path& data_file_path) {
     return hasFileExtension(data_file_path, {
-        ".zip", ".jar", ".rar", ".7z", ".bz2", ".gz", ".xz", ".lz", ".lz4", ".cab", ".rpm", ".deb",
-        ".mp4", ".mp3", ".exe", ".jpg", ".jpeg", ".jfif", ".png", ".webp", ".gif", ".ogg", ".flac"
+        // archives and compressed streams
+        ".zip", ".jar", ".apk", ".rar", ".7z", ".bz2", ".gz", ".tgz", ".xz", ".txz", ".lz",
+        ".lz4", ".zst", ".cab", ".rpm", ".deb",
+        // zip-based documents
+        ".docx", ".xlsx", ".pptx", ".odt", ".ods", ".odp", ".epub",
+        // audio / video
+        ".mp4", ".m4v", ".mov", ".mkv", ".webm", ".mp3", ".m4a", ".aac", ".ogg", ".opus", ".flac",
+        // images
+        ".jpg", ".jpeg", ".jfif", ".png", ".webp", ".gif", ".avif", ".heic", ".heif", ".jxl"
     });
 }
 
