@@ -12,8 +12,8 @@ An experimental ***Rust*** port [***jdvrif-rs***](https://github.com/CleasbyCode
 
 ***jdvrif*** partly derives from the ***[technique implemented](https://www.vice.com/en/article/bj4wxm/tiny-picture-twitter-complete-works-of-shakespeare-steganography)*** by security researcher ***[David Buchanan](https://www.da.vidbuchanan.co.uk/).***
 
-![Demo Image](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/jrif_323291.jpg)  
-*Demo Image: **"A place of concealment"** / ***PIN: 2190398302048725932****
+![Demo Image](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/jrif_043b7c551.jpg)  
+*Demo Image: **"A place of concealment"** / ***PIN: 7912872750612437051****
 
 ## How jdvrif conceals data
 
