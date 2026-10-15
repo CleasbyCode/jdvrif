@@ -118,16 +118,9 @@ def bsky_login_session(pds_url: str, handle: str, password: str) -> Dict:
         operation="waiting for createSession response headers",
         json={"identifier": handle, "password": password},
     ) as resp:
-        _reject_redirect(resp, "credential-bearing createSession")
-        if not resp.ok:
-            body = _response_body(resp)
-            error_name = (_api_error_name(body) or "").lower()
-            hint = LOGIN_ERROR_HINTS.get(error_name)
-            raise ValueError(
-                f"Login failed with HTTP {resp.status_code}"
-                f"{_api_error_summary(body)}."
-                + (f"\n{hint}" if hint else "")
-            )
+        # Surface what the PDS actually said. Without this an expired app
+        # password and an account needing a 2FA code look identical.
+        _raise_for_xrpc(resp, "createSession", label="Login", hints=LOGIN_ERROR_HINTS)
         data = _json_object(resp, "createSession")
     if not isinstance(data.get("accessJwt"), str) or not isinstance(data.get("did"), str):
         raise ValueError("createSession response is missing accessJwt or did")
@@ -138,10 +131,11 @@ Three hardening details already show up here. Redirects are disabled and
 explicitly refused: a misconfigured or malicious endpoint must never be able
 to bounce a request carrying your password somewhere else. The response is
 read through a size-capped, deadline-bounded reader rather than trusted
-blindly. And the failure path reads the XRPC error body instead of raising a
-bare `401 Client Error`, because login is where a first-time user is most
-likely to get stuck and the status code alone never says why. The output is
-two lines, the server's error and then the hint (wrapped here for width):
+blindly. And `_raise_for_xrpc`, which every API call goes through, reads the
+XRPC error body instead of raising a bare `401 Client Error`. Login is where a
+first-time user is most likely to get stuck and the status code alone never
+says why, so it also takes a table of remedies keyed by error name. The output
+is two lines, the server's error and then the hint (wrapped here for width):
 
 ```
 Error: Login failed with HTTP 401 (AuthFactorTokenRequired: A sign in code has
@@ -592,8 +586,9 @@ record, so even if the first attempt lands late, one of the two writes is
 rejected and a second lookup finds the other: at most one post is ever
 created. A definite 4xx rejection is reported as-is, without a retry. If even
 the lookups fail, the command reports an error, and the post may or may not
-exist, so check your profile before running it again, because a new run uses
-a new key.
+exist. The warning then names the record it would be
+(`at://<your DID>/app.bsky.feed.post/<key>`), so check it before running the
+command again, because a new run uses a new key.
 
 A distinct `DeadlineExceeded` exception separates an abandoned worker from
 Requests' own `ConnectTimeout`/`ReadTimeout`. The latter leave no script worker
@@ -638,7 +633,7 @@ text you are happy to post:
 python3 create_bsky_post.py "Testing my posting script #greetings" --verbose
 ```
 
-It also ships with a built-in test suite covering the facet parsers, URI
+It also ships with a test suite, `test_create_bsky_post.py`, covering the facet parsers, URI
 validation, SSRF checks (including NAT64-translated addresses), IDN
 resolution, redirect handling and limits, response size and content-encoding
 limits, image file safety, login and logout, error reporting, terminal-safe
@@ -646,7 +641,7 @@ rendering of server-supplied text, the link-card parse budget, the card and
 thumbnail degradation paths, and the settling of an ambiguous `createRecord`:
 
 ```bash
-python3 create_bsky_post.py --self-test
+python3 create_bsky_post.py --self-test   # or: python3 test_create_bsky_post.py
 ```
 
 The Python excerpts in this post are checked against the script by

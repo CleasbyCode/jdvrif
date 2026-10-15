@@ -114,7 +114,8 @@ If `createRecord` ends ambiguously (a timeout, a dropped connection, or a 5xx
 error), the script settles it itself. It chose the post's record key, so it
 looks that key up, and if the post is not there, retries once with the same
 key. A key can hold only one record, so at most one post is created. Only if
-those lookups fail too is the outcome left unknown; check your profile before
+those lookups fail too is the outcome left unknown; the warning then names the
+record (`at://<your DID>/app.bsky.feed.post/<key>`) to check before
 re-running, because a new run uses a new key. Failures in optional work
 (mention lookups, card thumbnails) instead let posting continue with those
 features omitted.
@@ -138,8 +139,8 @@ addresses.
 Tests
 -----
 
-The script carries its own test suite — facet parsers, URI and CID
-validation, SSRF and IDN handling (including NAT64-translated addresses),
+The script ships with its own test suite, `test_create_bsky_post.py` — facet
+parsers, URI and CID validation, SSRF and IDN handling (including NAT64-translated addresses),
 redirect limits, response size and content-encoding limits, image file safety,
 login, logout and error reporting, terminal-safe rendering of server-supplied
 text, the link-card metadata budget and head-only parsing, deeply nested
@@ -149,7 +150,7 @@ resolution, the settling of an ambiguous `createRecord`, and the
 card/thumbnail degradation paths:
 
 ```shell
-python3 create_bsky_post.py --self-test
+python3 create_bsky_post.py --self-test   # or: python3 test_create_bsky_post.py
 ```
 
 `run_bsky_tests.sh`, in the `tests/` directory of the C++ source tree, runs
