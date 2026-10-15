@@ -2,7 +2,11 @@
 # Opened-input bounds and deterministic PIN signal/job-control regressions.
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
+TESTS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+# ROOT is the C++ source tree. This directory may sit inside it (src/tests)
+# or beside it at the repository root (tests/).
+ROOT="$(cd "$TESTS/.." && pwd -P)"
+[[ -f "$ROOT/compile_jdvrif.sh" ]] || ROOT="$ROOT/src"
 BIN="${JDVRIF_BIN:-$ROOT/jdvrif}"
 if [[ ${1:-} == --bin && $# == 2 ]]; then
     BIN="$2"
@@ -15,7 +19,7 @@ WORK="$(mktemp -d "${TMPDIR:-/tmp}/jdvrif-io-security.XXXXXX")"
 trap 'rm -rf "$WORK"' EXIT
 
 "${CXX:-g++}" -std=c++23 -O2 -Wall -Wextra -Wpedantic -Wshadow -Wconversion \
-    -I"$ROOT" "$ROOT/tests/test_io_security.cpp" "$ROOT/file_utils.cpp" \
+    -I"$ROOT" "$TESTS/test_io_security.cpp" "$ROOT/file_utils.cpp" \
     "$ROOT/pin_input.cpp" "$ROOT/signal_utils.cpp" -lsodium \
     -Wl,--wrap=pselect -o "$WORK/test_io_security"
 

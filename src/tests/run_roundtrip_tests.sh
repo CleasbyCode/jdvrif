@@ -6,8 +6,11 @@
 # and comparing the recovered payload bytes.
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-TESTS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+TESTS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+# ROOT is the C++ source tree. This directory may sit inside it (src/tests)
+# or beside it at the repository root (tests/).
+ROOT="$(cd "$TESTS/.." && pwd -P)"
+[[ -f "$ROOT/compile_jdvrif.sh" ]] || ROOT="$ROOT/src"
 BIN="${JDVRIF_BIN:-$ROOT/jdvrif}"
 NO_BUILD=0
 

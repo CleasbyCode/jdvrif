@@ -6,7 +6,19 @@ import textwrap
 import unittest
 from pathlib import Path
 
-CHECKER_PATH = Path(__file__).resolve().parents[1] / "bsky/verify_doc_excerpts.py"
+# This file may sit in src/tests or in a repository-root tests/ directory.
+_PARENT = Path(__file__).resolve().parents[1]
+CHECKER_PATH = next(
+    (
+        candidate
+        for candidate in (
+            _PARENT / "bsky/verify_doc_excerpts.py",
+            _PARENT / "src/bsky/verify_doc_excerpts.py",
+        )
+        if candidate.is_file()
+    ),
+    _PARENT / "bsky/verify_doc_excerpts.py",
+)
 SPEC = importlib.util.spec_from_file_location("bsky_doc_checker", CHECKER_PATH)
 CHECKER = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(CHECKER)

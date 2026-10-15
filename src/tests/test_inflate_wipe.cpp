@@ -1,7 +1,7 @@
 // Include the implementation to exercise its private streaming inflater. The
 // linker wrapper observes the allocation immediately before its real delete,
 // avoiding a use-after-free or dependence on allocator reuse.
-#include "../encryption_stream_decrypt.cpp"
+#include "encryption_stream_decrypt.cpp"  // found via -I<source tree>
 
 #include <cstdio>
 

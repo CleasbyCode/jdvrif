@@ -2,8 +2,11 @@
 # Focused negative-path and boundary regression tests for jdvrif.
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
-TESTS="$ROOT/tests"
+TESTS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+# ROOT is the C++ source tree. This directory may sit inside it (src/tests)
+# or beside it at the repository root (tests/).
+ROOT="$(cd "$TESTS/.." && pwd -P)"
+[[ -f "$ROOT/compile_jdvrif.sh" ]] || ROOT="$ROOT/src"
 BIN="${JDVRIF_BIN:-$ROOT/jdvrif}"
 NO_BUILD=0
 
@@ -1009,7 +1012,7 @@ test_signal_cleans_compression_stage() {
 test_wipe_guards_unwind() {
     local dir="$WORK/wipe_guards"
     mkdir -p "$dir"
-    "${CXX:-g++}" -std=c++23 -I"$ROOT" "$ROOT/tests/test_wipe_guards.cpp" -lsodium -o "$dir/test_wipe_guards"
+    "${CXX:-g++}" -std=c++23 -I"$ROOT" "$TESTS/test_wipe_guards.cpp" -lsodium -o "$dir/test_wipe_guards"
     "$dir/test_wipe_guards"
 }
 
@@ -1017,17 +1020,17 @@ test_inflater_wipes_plaintext() {
     local dir="$WORK/inflate_wipe"
     mkdir -p "$dir"
     "${CXX:-g++}" -std=c++23 -O1 -fsized-deallocation -I"$ROOT" \
-        "$ROOT/tests/test_inflate_wipe.cpp" "$ROOT/file_utils.cpp" "$ROOT/signal_utils.cpp" \
+        "$TESTS/test_inflate_wipe.cpp" "$ROOT/file_utils.cpp" "$ROOT/signal_utils.cpp" \
         -Wl,--wrap=_ZdlPvm -lsodium -lz -o "$dir/test_inflate_wipe"
     (cd "$dir" && ./test_inflate_wipe)
 }
 
 test_jpeg_safety() {
-    bash "$ROOT/tests/run_jpeg_safety_tests.sh"
+    bash "$TESTS/run_jpeg_safety_tests.sh"
 }
 
 test_io_security() {
-    bash "$ROOT/tests/run_io_security_tests.sh" --bin "$BIN"
+    bash "$TESTS/run_io_security_tests.sh" --bin "$BIN"
 }
 
 # After the recovery PIN has been printed, the fsynced temp image is the only

@@ -1,7 +1,11 @@
 #!/bin/bash
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
+TESTS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+# ROOT is the C++ source tree. This directory may sit inside it (src/tests)
+# or beside it at the repository root (tests/).
+ROOT="$(cd "$TESTS/.." && pwd -P)"
+[[ -f "$ROOT/compile_jdvrif.sh" ]] || ROOT="$ROOT/src"
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/jdvrif-jpeg-safety.XXXXXX")"
 trap 'rm -rf "$WORK"' EXIT
 
@@ -11,7 +15,7 @@ if [[ "${JDVRIF_TEST_SANITIZE:-0}" == 1 ]]; then
 fi
 
 "${CXX:-g++}" "${FLAGS[@]}" -I"$ROOT" \
-    "$ROOT/tests/test_jpeg_safety.cpp" \
+    "$TESTS/test_jpeg_safety.cpp" \
     "$ROOT/twitter_jpeg_codec.cpp" "$ROOT/reddit_steg.cpp" \
     "$ROOT/jpeg_utils.cpp" "$ROOT/signal_utils.cpp" \
     -Wl,--wrap=jpeg_CreateDecompress,--wrap=jpeg_CreateCompress \
