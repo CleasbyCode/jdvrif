@@ -4,7 +4,7 @@
 
 Your data file is compressed with ***libdeflate/zlib***, then encrypted with ***XChaCha20-Poly1305*** (***libsodium*** secretstream) under a key derived by ***Argon2id*** from a randomly generated ***recovery PIN***, and finally embedded in the cover image. The PIN is displayed once, at the end of ***conceal***, and is never stored anywhere: without it the concealed file cannot be recovered.
 
-Using the ***default conceal mode***, you can conceal any file type up to ***2GiB***. The other platform conceal modes and the compatible social media sites (*listed below*) have their own ***much smaller*** size limits and other requirements.
+Using the ***default conceal mode***, you can conceal any file type, with the finished image capped at ***2GiB***. The other platform conceal modes and the compatible social media sites (*listed below*) have their own ***much smaller*** size limits and other requirements.
 
 There is a [***Web edition***](https://cleasbycode.co.uk/jdvrif/app/) of ***jdvrif***, which you can use immediately, as a convenient alternative to downloading and compiling the CLI source code. Web file uploads are limited to **20MiB**.
 
@@ -38,9 +38,13 @@ Quality of cover image is not important for this method and should be kept basic
 
 While the ***X-Twitter*** platform can use the default method provided by ***jdvrif***, where data is concealed within APP2/ICC segments, ***X-Twitter*** limits this to a single ICC segment with a maximum size of just **~10KiB**.
 
-To carry more than that **~10KiB**, use the ***X-Twitter*** platform conceal mode (***-x***). It abandons metadata segments entirely — nothing is written to an ICC profile — and instead uses the [***adaptive J-UNIWARD steganography method with Syndrome-Trellis Coding (STC)***](https://www.google.com/search?q=adaptive+J-UNIWARD+steganography+method+with+Syndrome-Trellis+Coding+(STC)&oq=adaptive+J-UNIWARD+steganography+method+with+Syndrome-Trellis+Coding+(STC)&gs_lcrp=EgZjaHJvbWUyBggAEEUYOTIHCAEQIRiPAtIBCDI1NDNqMGo3qAIAsAIA&sourceid=chrome&source=chrome.ob&ie=UTF-8). The cover is transcoded to progressive 4:2:0 at its source-derived quality (capped at **Q97**).
+To carry more than that **~10KiB**, use the ***X-Twitter*** platform conceal mode (***-x***). It abandons metadata segments entirely — nothing is written to an ICC profile — and instead uses the [***adaptive J-UNIWARD steganography method with Syndrome-Trellis Coding (STC)***](https://www.google.com/search?q=adaptive+J-UNIWARD+steganography+method+with+Syndrome-Trellis+Coding+(STC)). The cover is transcoded to progressive 4:2:0 at its source-derived quality (capped at **Q97**).
 
 To maximise storage capacity for the ***X-Twitter*** platform, use a high quality/detailed cover image with large dimension sizes, **1024x1024**, **2048x2048**, **4096x4096 (max)**, etc.
+
+The ***-r*** and ***-x*** carriers encrypt your data and key its location to your recovery PIN using ***Argon2id***, but embedding still alters the image's DCT statistics, so dedicated steganalysis may reveal that an image carries hidden data.
+
+***-r*** and ***-x*** images created with ***jdvrif v9.0*** remain recoverable, but ***v9.0*** cannot recover ***-r*** or ***-x*** images created with ***v9.1***.
 
 Both DCT modes carry far less data than the default mode, so use ***capsize*** to measure a cover image before choosing a payload (see [Checking capacity](#checking-capacity-with-capsize)).
 
@@ -126,7 +130,7 @@ Requirements for the cover image:
 
 Requirements for the secret data file:
 
-● The embedded filename must be no longer than **20 characters** and must not begin with `.` or `-`. The name is stored in the image and restored on ***recover***.
+● The embedded filename must be no longer than **20 bytes**, must not begin with `.` or `-` or end with a space or `.`, and must be valid UTF-8 without control or bidirectional-formatting characters or any of `/ \ : * ? " < > |`. The name is stored in the image and restored on ***recover***.
 
 ● Your data file is compressed before encryption, except for recognised already-compressed file types (`.zip`, `.7z`, `.mp4`, `.jpg`, `.png`, etc). In the default and ***-b*** modes those types skip compression only when larger than **10MiB**; in ***-r*** and ***-x*** modes they always skip it. For anything else destined for a small platform limit, consider compressing it yourself first (*zip, rar, 7z, etc.*) so that you know its exact stored size.
 
@@ -253,6 +257,8 @@ $ bash tests/run_roundtrip_tests.sh --bin ./jdvrif     # fresh conceal/recover r
 $ bash tests/run_security_smoke.sh --bin ./jdvrif      # negative-path and boundary checks
 $ bash tests/run_reddit_tests.sh --bin ./jdvrif        # -r QIM carrier
 $ bash tests/run_twitter_tests.sh --bin ./jdvrif       # -x J-UNIWARD/STC carrier
+$ bash tests/run_io_security_tests.sh --bin ./jdvrif   # input-size bounds, PIN signal/job-control handling
+$ bash tests/run_jpeg_safety_tests.sh                  # JPEG parser/decoder safety (builds its own test binary)
 $ bash tests/run_bsky_tests.sh                         # Bluesky posting helper
 ```
 
@@ -296,13 +302,6 @@ $ bash tests/run_bsky_tests.sh                         # Bluesky posting helper
 
   ### Incorporated code and assets
 
-  - [base64simd](https://github.com/WojciechMula/base64simd) — The AVX2 Base64 encoder is adapted from Wojciech Muła’s vector Base64
-    implementation.
-    
-    License: [BSD 2-Clause](https://github.com/WojciechMula/base64simd/blob/master/LICENSE)
-    
-    Copyright (c) 2015–2018, Wojciech Muła. All rights reserved.
-
   - [Compact ICC Profiles](https://github.com/saucecontrol/Compact-ICC-Profiles) — embedded Adobe-
   compatible ICC profile.
 
@@ -310,7 +309,7 @@ $ bash tests/run_bsky_tests.sh                         # Bluesky posting helper
 
   ### Optional Bluesky posting helper
 
-  - Bryan Newbold / ATProto Hacker Cookbook — create_bsky_post.py — Basis for the [forked](https://gist.github.com/CleasbyCode/1eb678ca1fa1975b1c1e20aeec33637e) Bluesky posting helper (src/bsky/bsky_post.py). 
+  - Bryan Newbold / ATProto Hacker Cookbook — create_bsky_post.py — Basis for the [forked](https://gist.github.com/CleasbyCode/1eb678ca1fa1975b1c1e20aeec33637e) Bluesky posting helper (src/bsky/create_bsky_post.py). 
     For reference see the [Cookbook copy](https://github.com/bluesky-social/cookbook/blob/main/python-bsky-post/create_bsky_post.py)
 
     License: [CC0 1.0 Universal](https://github.com/bluesky-social/cookbook/blob/main/LICENSE-CC0).
