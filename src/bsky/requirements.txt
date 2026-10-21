@@ -1,0 +1,35 @@
+# Pinned dependencies for create_bsky_post.py.
+#
+# These selected packages are pinned exactly so their upgrades are deliberate.
+# This is not a complete dependency lock: certifi, charset-normalizer, soupsieve,
+# and typing-extensions may vary within the declared dependency ranges. Fully
+# repeatable installs also require locking transitive versions and recording
+# the target Python/platform environment.
+#
+# requests / beautifulsoup4 / pillow are used directly. urllib3 and idna are
+# transitive dependencies of requests, but the SSRF/TLS pinning in
+# _PinnedHTTPSAdapter relies on urllib3 >= 2 behaviour and _ascii_hostname uses
+# the idna package directly, so both are pinned explicitly here.
+#
+# urllib3 2.8.0 is the minimum for accepting compressed responses: 2.6.0 added
+# streaming decompression safeguards, 2.7.0 closed bypasses of them, and 2.8.0
+# fixes an infinite loop in chunked deflate streaming and unbounded buffering
+# of a chunk-size line in stream()/read_chunked(), both reachable from a
+# hostile server. The decoder allowlist excludes optional content codings
+# whose installed backend may allocate without bounds.
+#
+# requests 2.34.2 includes the fixes for CVE-2024-47081 (.netrc credential
+# leak; the script also sets trust_env=False) and CVE-2026-25645 (predictable
+# temp file in extract_zipped_paths, which default usage does not reach).
+# _PinnedHTTPSAdapter relies on HTTPAdapter internals, so re-run the
+# self-tests and a live link-card fetch before changing this pin.
+#
+# idna 3.15+ fixes CVE-2026-45409 (slow processing of over-long input); the
+# script also refuses hostnames over 253 characters before calling idna.
+#
+# pillow 12 and urllib3 2.7+ require Python 3.10 or newer.
+requests==2.34.2
+beautifulsoup4==4.13.4
+pillow==12.3.0
+urllib3==2.8.0
+idna==3.20
