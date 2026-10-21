@@ -93,6 +93,16 @@ def test_parse_mentions():
     _check_equal(parse_mentions("cc:@example.com"), [
         {"start": 3, "end": 15, "handle": "example.com"}
     ])
+    # Handles are ASCII: Unicode case folding must not admit look-alikes such
+    # as the Kelvin sign (which .lower() would turn into "k.com").
+    for lookalike in ("\u212a", "\u0130", "\u0131", "\u017f"):
+        _check_equal(parse_mentions(f"hi @{lookalike}.com"), [])
+        _check(HANDLE_REGEX.fullmatch(f"{lookalike}.com") is None, lookalike)
+    _check_equal(parse_mentions("hi @Alice.Example.COM"), [
+        {"start": 3, "end": 21, "handle": "Alice.Example.COM"}
+    ])
+    # The boundary is still Unicode-aware: a letter before "@" blocks it.
+    _check_equal(parse_mentions("é@example.com"), [])
 
 
 def test_parse_urls():
@@ -1226,6 +1236,19 @@ def test_nat64_addresses_follow_their_embedded_ipv4():
             f"expected {blocked} to be refused",
         )
 
+    # Older Pythons classify 2002::/16 as global; the refusal must not rely
+    # on ipaddress, so simulate that classification.
+    class OldPythonAddress(ipaddress.IPv6Address):
+        is_global = True
+        is_private = False
+        is_reserved = False
+
+    for transition in ("2002:0808:0808::1", "2001:0:4136:e378:8000:63bf:3fff:fdd2"):
+        _check(
+            not _is_public_unicast_address(OldPythonAddress(transition)),
+            f"expected {transition} to be refused on any Python",
+        )
+
 
 def test_parse_bsky_app_uri_accepts_default_port():
     expected = {
@@ -1530,9 +1553,10 @@ def test_publish_post_names_a_post_that_may_exist():
     # Both attempts timed out and the post is not there yet: either may land.
     output = publish(timed_out, not_found)
     _check("may still have been created" in output, output)
-    # The retry was rejected outright and the lookup confirms no post exists.
+    # The retry was rejected outright and the post is not there yet, but the
+    # first attempt may still be in flight, so the warning stays.
     output = publish(timed_out, not_found, rejected_retry=True)
-    _check("may still have been created" not in output, output)
+    _check("may still have been created" in output, output)
 
 
 def test_api_errors_report_the_server_explanation():
@@ -1803,6 +1827,161 @@ def test_main_validates_images_before_logging_in():
             else:
                 raise AssertionError("main() accepted a missing image")
     _check("Could not read image file" in message, message)
+
+
+class _FakeRawResponse(_FakeJsonResponse):
+    """A streamed API response with an arbitrary raw body and headers."""
+
+    def __init__(self, status_code: int, body: bytes, headers: Optional[Dict[str, str]] = None):
+        super().__init__(status_code, None)
+        self._body = body
+        self.headers = dict(headers or {})
+
+
+def _created_ref(rkey: str = "3kabc", did: str = "did:plc:me") -> Dict:
+    return {"uri": f"at://{did}/app.bsky.feed.post/{rkey}", "cid": _TEST_CID}
+
+
+def test_create_post_record_requires_a_matching_record_reference():
+    def create(response: Any) -> Any:
+        with _patched_api_session(response):
+            return _create_post_record(
+                "https://pds.example", "token", "did:plc:me", {}, "3kabc", verbose=False
+            )
+
+    body = dict(_created_ref(), validationStatus="valid")
+    _check_equal(create(_FakeJsonResponse(200, body)), body)
+    unusable = [
+        _FakeRawResponse(200, b"<html>maintenance</html>"),
+        _FakeRawResponse(200, b"x" * 64, {"Content-Encoding": "br"}),
+        _FakeRawResponse(200, b"[" * 50_000 + b"]" * 50_000),
+        _FakeJsonResponse(200, {"uri": "at://did:plc:me/app.bsky.feed.post/3kabc"}),
+        _FakeJsonResponse(200, _created_ref(rkey="3kother")),
+        _FakeJsonResponse(200, _created_ref(did="did:plc:someone-else")),
+    ]
+    for response in unusable:
+        with _check_raises(UnusableCreateResponse, "expected an unusable success response"):
+            create(response)
+    _check(_outcome_uncertain(UnusableCreateResponse("bad body")))
+    _check(not _outcome_uncertain(requests.exceptions.InvalidJSONError("unsent")))
+
+
+def test_existing_post_rejects_a_different_record():
+    for ref in (_created_ref(rkey="3kother"), _created_ref(did="did:plc:someone-else")):
+        with _patched_api_session(_FakeJsonResponse(200, dict(ref, value={}))), _check_raises(
+            ValueError, "expected a mismatched lookup to fail", contains="different record"
+        ):
+            _existing_post("https://pds.example", "did:plc:me", "3kabc")
+
+
+def test_publish_post_settles_an_unusable_create_response():
+    lookups: List[str] = []
+
+    def unusable(*_args, **_kwargs):
+        raise UnusableCreateResponse("createRecord returned a non-JSON response")
+
+    def found(_pds, _did, rkey):
+        lookups.append(rkey)
+        return _created_ref(rkey)
+
+    with _patched_attr(sys, "stderr", io.StringIO()), _patched_globals(
+        _create_post_record=unusable, _existing_post=found
+    ):
+        result = _publish_post("https://pds.example", "token", "did:plc:me", {}, verbose=False)
+    _check_equal(len(lookups), 1)
+    _check_equal(result, _created_ref(lookups[0]))
+
+    with _patched_attr(sys, "stderr", io.StringIO()) as stderr, _patched_globals(
+        _create_post_record=unusable, _existing_post=lambda *_a: None
+    ), _check_raises(UnusableCreateResponse, "expected the failure to propagate"):
+        _publish_post("https://pds.example", "token", "did:plc:me", {}, verbose=False)
+    _check("may still have been created" in stderr.getvalue(), stderr.getvalue())
+
+
+def test_deeply_nested_json_is_a_controlled_failure():
+    nested = b"[" * 50_000 + b"]" * 50_000
+    with _check_raises(ValueError, "expected deep nesting to fail", contains="non-JSON"):
+        _json_object(_FakeRawResponse(200, nested), "test")
+    with _patched_api_session(_FakeRawResponse(200, b'{"did":' + nested + b"}")):
+        _check(_resolve_handle("https://pds.example", "alice.test") is None)
+    # An error body is only decoration: the status is still reported.
+    with _patched_api_session(_FakeRawResponse(400, nested)), _check_raises(
+        XrpcError, "expected the HTTP status to be reported", contains="HTTP 400"
+    ):
+        get_record("https://public.api.bsky.app", "at://did:plc:abc/app.bsky.feed.post/3k")
+    with _patched_api_session(_FakeRawResponse(400, b"x", {"Content-Encoding": "br"})), _check_raises(
+        XrpcError, "expected an undecodable error body to keep its status", contains="HTTP 400"
+    ):
+        get_record("https://public.api.bsky.app", "at://did:plc:abc/app.bsky.feed.post/3k")
+
+
+def test_api_error_summary_bounds_the_error_name():
+    summary = _api_error_summary({"error": "E" * 1_000_000, "message": "m"})
+    _check(len(summary) < MAX_ERROR_NAME_CHARS + MAX_ERROR_DETAIL_CHARS + 10, str(len(summary)))
+
+
+def _wait_until(condition: Callable[[], bool], what: str) -> None:
+    give_up = time.monotonic() + 5
+    while not condition():
+        if time.monotonic() > give_up:
+            raise AssertionError(f"timed out waiting for {what}")
+        time.sleep(0.01)
+
+
+def test_abandoned_body_read_closes_its_response_and_session():
+    release = threading.Event()
+    reading = threading.Event()
+
+    class SlowBody(_FakeRawResponse):
+        def iter_content(self, _chunk_size: int):
+            reading.set()
+            release.wait(5)
+            yield b"{}"
+
+    response = SlowBody(200, b"")
+    with _patched_api_session(response) as session, _check_raises(
+        DeadlineExceeded, "expected the body read to time out"
+    ):
+        with _open_api_response(
+            "GET", "https://pds.example/xrpc/test", timeout=0.2, operation="testing"
+        ) as resp:
+            _json_object(resp, "test")
+    _check(reading.is_set(), "the body read never started")
+    # Still in use by the abandoned worker, so nothing may be closed yet.
+    _check(not response.closed and not session.closed, "closed while still in use")
+    release.set()
+    _wait_until(lambda: response.closed and session.closed, "abandoned body cleanup")
+
+
+def test_abandoned_request_that_fails_late_closes_its_session():
+    release = threading.Event()
+
+    class FailingSession(_FakeApiSession):
+        def request(self, method: str, url: str, **kwargs: Any) -> Any:
+            release.wait(5)
+            raise requests.ConnectionError("reset after the deadline")
+
+    session = FailingSession(None)
+    with _patched_globals(_new_session=lambda: session), _check_raises(
+        DeadlineExceeded, "expected the request to time out"
+    ):
+        with _open_api_response(
+            "GET", "https://pds.example/xrpc/test", timeout=0.2, operation="testing"
+        ):
+            raise AssertionError("no response should be yielded")
+    _check(not session.closed, "closed while still in use")
+    release.set()
+    _wait_until(lambda: session.closed, "late-failure cleanup")
+
+    # A deadline that expired before launch starts no worker, so the caller's
+    # disposal runs at once.
+    disposed: List[Any] = []
+    with _check_raises(DeadlineExceeded, "expected an expired deadline"):
+        _run_before_download_deadline(
+            lambda: "never run", time.monotonic() - 1, "testing",
+            dispose_abandoned=disposed.append,
+        )
+    _check_equal(disposed, [None])
 
 
 def run_self_tests() -> None:

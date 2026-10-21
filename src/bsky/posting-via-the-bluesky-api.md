@@ -5,7 +5,7 @@ A guide to creating posts via the Bluesky API, including rich-text facets
 and website cards — with the safety rails a script needs when it fetches
 untrusted content from the open web.
 
-*July 23, 2026 — updated September 25, 2026*
+*July 23, 2026 — updated October 21, 2026*
 
 This post is an updated companion to the AT Protocol team's original
 [Posting via the Bluesky API](https://atproto.com/blog/create-post)
@@ -18,7 +18,7 @@ The script described here is a **security-hardened fork** of that original:
 The fork keeps the spirit of the original — a single standalone Python file
 that shows what's really going on behind the SDK abstractions — but brings it
 up to date with current lexicon limits (including the [April 2026 increase of
-the image size limit to 2 MB](https://techcrunch.com/2026/04/23/bluesky-now-supports-better-quality-photos/)),
+the image size limit to 2 MB](https://github.com/bluesky-social/atproto/discussions/4832)),
 adds hashtag/cashtag facets, per-image alt text, aspect ratios, language tags,
 and record-with-media embeds, and treats every network fetch as potentially
 hostile.
@@ -104,10 +104,10 @@ Posting requires a session. The script calls
 `com.atproto.server.createSession` with your handle and app password and
 receives an access token (`accessJwt`), a refresh token (`refreshJwt`), and
 your account DID. Since the script publishes a single post, it never refreshes
-the session. Instead, when the run ends, whether the post succeeded or not, it
-revokes the session with `com.atproto.server.deleteSession`, so the
-long-lived refresh token does not stay valid on the server after the script
-exits.
+the session. Instead, on normal cleanup, whether the post succeeded or not, it
+attempts to revoke the session with `com.atproto.server.deleteSession`. This
+is best effort: if revocation fails, the script warns, and the session may stay
+valid until it expires. A forcibly killed run skips the attempt entirely.
 
 ```python
 def bsky_login_session(pds_url: str, handle: str, password: str) -> Dict:
@@ -235,15 +235,14 @@ the registry itself is out of scope for a single-file script.
 Facets are annotations over byte ranges of the post text. The fork produces
 three kinds: **links**, **mentions**, and **tags** (hashtags and cashtags).
 
-### Byte offsets, computed once per parser
+### Byte offsets, computed once
 
 Facet indices are *byte* offsets into the UTF-8 encoding of the text, not
 character offsets. The original worked around this by running regexes over
 encoded bytes. The fork instead matches on the decoded string (where Unicode
-categories are available) and converts with a precomputed offset table. Each
-of the link, mention, and tag parsers builds its own table, so parsing all
-facets makes three passes over the text. Each pass is linear, and the CLI
-limits the text to 3,000 UTF-8 bytes:
+categories are available) and converts with a precomputed offset table.
+`parse_facets()` builds the table once and shares it with the link, mention,
+and tag parsers; each parser still builds its own when called directly:
 
 ```python
 def _byte_offsets(text: str) -> List[int]:
@@ -364,11 +363,13 @@ with the uploaded image entries described below before posting:
 
 Each post can carry up to four images. Since April 2026 each image blob may
 be up to **2,000,000 bytes**, raised from the 1 MB limit that applied when the
-original blog post was written. That limit is part of the lexicon: the
+original blog post was written
+([announcement](https://github.com/bluesky-social/atproto/discussions/4832)).
+That limit is part of the lexicon: the
 `app.bsky.embed.images` schema declares `maxSize: 2000000` on the image blob,
 and the script enforces it locally so oversized files fail fast with a clear
 message instead of being rejected when the post is created. The same
-announcement reported a higher maximum resolution (4000×4000, up from 2000px).
+announcement raised the maximum resolution (4000×4000, up from 2000×2000).
 That one is a service rule rather than a lexicon constraint, so treat it as "as
 announced in April 2026"; the script does not depend on it.
 
@@ -383,7 +384,8 @@ So a path whose final component is a symlink, or a device such as
 `/dev/stdin`, is refused. Symlinked *directories* earlier in the path are still
 followed; the check guards the file itself, not every component leading to it.
 
-All of a post's images are read and validated before the script logs in, so a
+All local images supplied with `--image` are read and validated before the
+script logs in, so a
 typo in the fourth filename fails the command before any network request is
 made and before a single blob is uploaded. Each image first passes a format
 check in the parent process. WebP RIFF canvas dimensions are checked here too,
@@ -481,8 +483,9 @@ points to. The fork's changes:
 * the HTML download is capped at 4 MB, and the thumbnail at 1 MB, which is
   also the lexicon's `maxSize` for `app.bsky.embed.external` thumbnails;
 * only the page's `<head>` is parsed (everything before `</head>`, or before
-  `<body>` when the page omits it, up to 1 MB), since that is where the
-  metadata lives;
+  `<body>` when the page omits it), since that is where the metadata lives.
+  When neither marker is found in the first 1 MB, as with UTF-16 pages, that
+  leading 1 MB is parsed instead;
 * `og:` properties are matched case-insensitively, since real pages do emit
   `property="OG:Title"`, and their values are trimmed, so an `og:image`
   padded with newlines still loads and a blank `og:title` falls back to
@@ -517,21 +520,23 @@ even if you never read the rest of the code.
 hostname is resolved once, and *every* DNS answer must be a public unicast
 address — private ranges, loopback, link-local and multicast are rejected,
 and an IPv4 address carried inside an IPv6 translation prefix is judged by
-the address it actually carries. So `64:ff9b::169.254.169.254` is refused as
+the address it actually carries. These checks build on Python's `ipaddress`
+classifications. So `64:ff9b::169.254.169.254` is refused as
 the cloud-metadata address it really is, while `64:ff9b::8.8.8.8` is allowed,
 which is what lets the script keep working on IPv6-only networks where DNS64
-synthesizes every answer into that prefix. The deprecated 6to4 and Teredo
-prefixes are refused outright, as is the local-use translation prefix
-`64:ff9b:1::/48`. The
+synthesizes every answer into that prefix. The deprecated 6to4
+(`2002::/16`) and Teredo (`2001::/32`) prefixes are refused by an explicit
+prefix check, because older Python releases classify some 6to4 addresses as
+global. The local-use translation prefix `64:ff9b:1::/48` is refused too. The
 connection is then made directly to a validated IP literal, while TLS still
 authenticates the original hostname via SNI and certificate checks. Because
 the connection goes to the address that was checked, a malicious DNS server
 can't pass validation with a public IP and then rebind the name to
 `169.254.169.254` for the actual request.
 
-Internationalized hostnames are encoded to their A-label *once*, and that
-single encoding is what gets resolved, sent as SNI, and checked against the
-certificate. Handing the raw Unicode name to `socket.getaddrinfo` would
+Internationalized hostnames are converted to their A-label with the same
+IDNA2008/UTS46 encoding everywhere: for DNS resolution, for SNI and the
+certificate check, and for the `Host` header. Handing the raw Unicode name to `socket.getaddrinfo` would
 encode it with CPython's IDNA2003 codec, which disagrees with the IDNA2008 /
 UTS46 encoding used everywhere else for labels containing (for example) `ß`
 — resolving one name while authenticating another.
@@ -554,9 +559,16 @@ and copied only up to the card-title bound, so nested markup does not recurse
 through Python's stack. Malformed metadata falls back to a URL-only card.
 `html.parser` is pure Python and slow on pathological markup, which a hostile
 page is free to serve. Parsing only the page's head (at most 1 MB) keeps real
-pages far inside the budget, and the budget still bounds a page whose head is
-stuffed with hostile markup. A page that exceeds the parse budget loses its
-card metadata; the URL remains in the post.
+pages far inside the budget, and when a page's head is stuffed with hostile
+markup, the budget still bounds how long posting waits for metadata. A page
+that exceeds the parse budget loses its card metadata; the URL remains in the
+post.
+
+The budget bounds how long posting waits, not the parse itself. A parse that
+overruns is *abandoned*, not terminated: its thread keeps running, using CPU
+and memory, while posting continues, and finishes on its own (its input is at
+most 1 MB). Image decoding is different: that runs in a separate process,
+which is killed and reaped when it overruns.
 
 This has a consequence worth spelling out. A blocking call that blows its
 deadline is *abandoned* in a daemon thread rather than cancelled — Python
@@ -565,7 +577,9 @@ still holding the `requests.Session` it was handed. So every request builds
 its own Session and hands ownership to the worker if it is abandoned: an
 orphaned worker can then only ever touch connection state that nothing else
 will use again, and the code unwinding from the timeout simply leaves that
-Session alone rather than closing it underneath a live socket read.
+Session alone rather than closing it underneath a live socket read. When the
+abandoned worker finishes, whether it succeeded or failed, it closes the
+response and Session itself, so cleanup does not wait for garbage collection.
 
 This lets failures in optional work degrade gracefully. A `resolveHandle`
 timeout leaves that mention as plain text; a thumbnail upload timeout omits
@@ -577,16 +591,19 @@ and an image upload gets 30 seconds plus one second per 32 KB, so a 2 MB image
 still fits on a slow (about 256 kbit/s) uplink.
 
 **Settling an ambiguous `createRecord`.** A timeout, a dropped connection, a
-broken response, or a 5xx from a gateway in front of the PDS leaves the
-outcome uncertain: the PDS may have committed the post before its response was
-lost. Because the script chose the record key, it can find out. It looks the
-key up with `com.atproto.repo.getRecord`; if the post exists, that is the
+broken response, a success response that is not a JSON record reference
+naming the requested repo, collection, and key, or a 5xx from a gateway in
+front of the PDS leaves the outcome uncertain: the PDS may have committed the
+post before its response was lost. Because the script chose the record key, it
+can find out. It looks the key up with `com.atproto.repo.getRecord`; if the post exists, that is the
 result. If not, it retries once with the *same* key. A key can hold only one
 record, so even if the first attempt lands late, one of the two writes is
 rejected and a second lookup finds the other: at most one post is ever
-created. A definite 4xx rejection is reported as-is, without a retry. If even
-the lookups fail, the command reports an error, and the post may or may not
-exist. The warning then names the record it would be
+created. A definite 4xx rejection of the first attempt is reported as-is,
+without a retry. If the retry fails and the second lookup still finds nothing,
+or the lookups themselves fail, the command reports an error and the post may
+or may not exist: even a rejected retry says nothing about a first attempt
+that is still in flight. The warning then names the record it would be
 (`at://<your DID>/app.bsky.feed.post/<key>`), so check it before running the
 command again, because a new run uses a new key.
 
@@ -624,8 +641,8 @@ or a hostile PDS, can do to the machine running the script.
 
 The complete script is a single file, `create_bsky_post.py`. Run
 `--help` for the full option list. `--verbose` prints the complete pending
-record before it is sent, plus the full body of a failed `createRecord`,
-which is the quickest way to see the facets and embeds this post has been
+record before it is sent and, when it is available within the response limits,
+the server's error response to a failed `createRecord`. It is the quickest way to see the facets and embeds this post has been
 describing. It is not a dry run: the post is still published, so try it with
 text you are happy to post:
 
@@ -633,12 +650,24 @@ text you are happy to post:
 python3 create_bsky_post.py "Testing my posting script #greetings" --verbose
 ```
 
-It also ships with a test suite, `test_create_bsky_post.py`, covering the facet parsers, URI
-validation, SSRF checks (including NAT64-translated addresses), IDN
-resolution, redirect handling and limits, response size and content-encoding
-limits, image file safety, login and logout, error reporting, terminal-safe
-rendering of server-supplied text, the link-card parse budget, the card and
-thumbnail degradation paths, and the settling of an ambiguous `createRecord`:
+It also ships with a test suite, `test_create_bsky_post.py`, covering:
+
+* the facet parsers, including ASCII-only handle matching;
+* URI and CID validation;
+* SSRF checks (including NAT64-translated and 6to4/Teredo addresses) and IDN
+  resolution;
+* redirect handling and limits, unread redirect bodies, and response size,
+  content-encoding, and real compressed-response allocation limits;
+* deeply nested JSON responses;
+* image file safety, bounded batch image decoding, and EXIF display
+  dimensions;
+* login, logout, and error reporting, including terminal-safe rendering of
+  server-supplied text;
+* the link-card parse budget, head-only parsing, deeply nested titles, and the
+  card and thumbnail degradation paths;
+* concurrent mention resolution, and cleanup by abandoned workers;
+* the settling of an ambiguous `createRecord`, including unusable success
+  responses and mismatched record references:
 
 ```bash
 python3 create_bsky_post.py --self-test   # or: python3 test_create_bsky_post.py

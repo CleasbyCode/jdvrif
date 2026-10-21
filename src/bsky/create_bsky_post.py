@@ -51,8 +51,8 @@ Security hardening over the original script:
    them; a Session per request, so a call abandoned at its deadline can
    never share connection state with a later one
 
- * The login session is revoked (deleteSession) when the run ends, and
-   posts use a client-chosen record key so an ambiguous createRecord
+ * The script attempts to revoke the login session (deleteSession) when
+   the run ends (best effort: a failure only warns), and posts use a client-chosen record key so an ambiguous createRecord
    timeout is settled by lookup rather than risking a duplicate post
 
  * Strict validation of AT URIs, record CIDs, handles, language tags,
@@ -141,9 +141,8 @@ MAX_POST_BYTES = 3_000
 MAX_TAG_GRAPHEMES = 64
 MAX_TAG_BYTES = 640
 MAX_LANGS = 3
-# Modern article pages routinely exceed 1 MB of HTML before compression, so keep
-# generous headroom: the cap only needs to stop a hostile page from being read
-# without bound, and exceeding it now degrades the card rather than failing.
+# Generous: real article pages often exceed 1 MB, and the cap only has to stop
+# an unbounded read.
 MAX_EMBED_HTML_BYTES = 4_000_000
 MAX_EMBED_IMAGE_BYTES = 1_000_000
 MAX_API_RESPONSE_BYTES = 8_000_000
@@ -166,19 +165,13 @@ MAX_EXTERNAL_DESCRIPTION_CHARS = 1_000
 MAX_ALT_TEXT_CHARS = 2_000
 # Server-supplied error text is echoed to the terminal, so keep it short.
 MAX_ERROR_DETAIL_CHARS = 300
-# C0 controls (including CR/LF/TAB), DEL, and the C1 block. Remote text reaches
-# the terminal on several paths -- XRPC error bodies, HTTP reason phrases,
-# library exception messages -- and any of those could otherwise carry escape
-# sequences that reposition the cursor, clear the screen, or forge a prompt.
-# Printable non-ASCII is deliberately left intact so genuine localized messages
-# still read correctly.
+MAX_ERROR_NAME_CHARS = 100
+# C0 controls (including CR/LF/TAB), DEL, and the C1 block: escaped in all
+# remote text before printing. Printable non-ASCII is left intact.
 TERMINAL_UNSAFE_CHARACTERS = re.compile(r"[\x00-\x1f\x7f-\x9f]")
-# The link-card HTML parse is CPU-bound and runs after the download deadline
-# has been released, so it needs a budget of its own. html.parser is pure
-# Python: a 4 MB page of ordinary prose parses in ~1s, but 4 MB of pathological
-# shallow markup measured ~13s, which a hostile page can choose. Real article
-# pages stay far inside this budget; exceeding it degrades the card rather than
-# failing the post.
+# The link-card parse runs after the download deadline, so it has its own
+# budget. Measured: 4 MB of prose parses in ~1s, 4 MB of hostile shallow
+# markup in ~13s.
 MAX_EMBED_PARSE_SECONDS = 5.0
 # Link-card metadata lives in <head>, so only that part of the page is parsed.
 # Pages whose head cannot be located fall back to this many leading bytes.
@@ -204,18 +197,19 @@ MAX_DOWNLOAD_ADDRESS_ATTEMPTS = 4
 USER_AGENT = "bsky-post/1.1 (+https://github.com/CleasbyCode/cookbook)"
 DOWNLOAD_CHUNK_SIZE = 64 * 1024
 
+# Handles are ASCII-only, so letters are spelled out rather than matched with
+# re.IGNORECASE: Unicode case folding would also accept "K" (Kelvin sign) or
+# "ſ" (long s). The mention boundary keeps Unicode-aware \w.
 HANDLE_REGEX = re.compile(
-    r"^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?"
-    r"(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*"
-    r"\.[a-z](?:[a-z0-9-]{0,61}[a-z0-9])?$",
-    re.IGNORECASE,
+    r"^[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?"
+    r"(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)*"
+    r"\.[A-Za-z](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?$"
 )
 MENTION_REGEX = re.compile(
     r"(?<![\w@])"
-    r"(@(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+"
-    r"[a-z](?:[a-z0-9-]{0,61}[a-z0-9])?)"
-    r"(?![a-z0-9-])",
-    re.IGNORECASE,
+    r"(@(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+"
+    r"[A-Za-z](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)"
+    r"(?![A-Za-z0-9-])"
 )
 URL_REGEX = re.compile(
     r"(?<![\w/])((?:https?://)[^\s<>'\"`]+)",
@@ -319,12 +313,7 @@ class _NoRedirectSession(requests.Session):
 
 
 def _new_session() -> requests.Session:
-    """Build a Session used by exactly one request.
-
-    Every network call gets its own Session, so a blocking call abandoned at the
-    deadline can never be sharing connection state with a later request. That is
-    what makes it safe for callers to catch a timeout and carry on.
-    """
+    """Build a Session used by exactly one request (see DeadlineExceeded)."""
     session = _NoRedirectSession()
     session.headers["User-Agent"] = USER_AGENT
     session.headers["Accept-Encoding"] = "identity"
@@ -334,6 +323,8 @@ def _new_session() -> requests.Session:
 
 def _close_quietly(*closeables: Any) -> None:
     for closeable in closeables:
+        if closeable is None:
+            continue
         try:
             closeable.close()
         except Exception:
@@ -348,12 +339,25 @@ _NETWORK_TIMEOUT_SUBJECT: ContextVar[str] = ContextVar(
     "_NETWORK_TIMEOUT_SUBJECT",
     default="External download",
 )
+# Set while a streamed response is open: closes that response and its Session.
+# A body read abandoned at the deadline hands this to its worker, because the
+# code that opened the response must then leave both open for the worker.
+_ABANDONED_RESPONSE_CLEANUP: ContextVar[Optional[Callable[[], None]]] = ContextVar(
+    "_ABANDONED_RESPONSE_CLEANUP",
+    default=None,
+)
 _IPV4_TRANSLATION_NETWORKS = (
     ipaddress.IPv6Network("64:ff9b::/96"),
     ipaddress.IPv6Network("::ffff:0:0:0/96"),
 )
 _DEPRECATED_6TO4_RELAY_NETWORK = ipaddress.IPv4Network("192.88.99.0/24")
 _LOCAL_IPV6_TRANSLATION_NETWORK = ipaddress.IPv6Network("64:ff9b:1::/48")
+# 6to4 and Teredo are refused by prefix: whether ipaddress counts 2002::/16 as
+# private depends on the Python release (3.10 and early 3.11 do not).
+_DEPRECATED_IPV6_TRANSITION_NETWORKS = (
+    ipaddress.IPv6Network("2002::/16"),
+    ipaddress.IPv6Network("2001::/32"),
+)
 # RFC 6052 well-known NAT64 prefix. Disjoint from the local-use /48 above.
 _WELL_KNOWN_NAT64_NETWORK = ipaddress.IPv6Network("64:ff9b::/96")
 
@@ -426,15 +430,9 @@ def normalize_service_url(
     service_name: str,
     allow_insecure: bool = False,
 ) -> str:
-    # Service URLs (PDS, record service) are a trusted boundary: they are
-    # operator-supplied endpoints, never attacker-influenced, so they are only
-    # scheme/host normalized and are deliberately NOT run through the public-IP
-    # SSRF check that guards attacker-influenced fetches (embed URLs, redirects,
-    # og:image). The PDS additionally receives the user's credentials; the
-    # record service carries none (getRecord is unauthenticated) but is still
-    # operator-chosen, so aiming either at a private address is a deliberate
-    # operator decision (e.g. local testing), not an SSRF vector reachable by
-    # post content. Enforce HTTPS unless explicitly opted out for loopback.
+    # Service URLs are operator-supplied, never chosen by post content, so
+    # they deliberately skip the public-address SSRF check. HTTPS is required
+    # unless explicitly opted out for loopback.
     parsed = _parse_url(service_url.strip(), schemes=("http", "https"))
     if parsed.path not in ("", "/") or parsed.params or parsed.query or parsed.fragment:
         raise ValueError(
@@ -503,9 +501,10 @@ def _run_before_download_deadline(
     Session it was handed, and because every request gets its own Session
     (_new_session), it cannot interfere with any later request. Callers may
     therefore catch a timeout and continue; they must only avoid closing the
-    Session the worker was given. `dispose_abandoned` is invoked with the
-    worker's result if it succeeds after being abandoned, so the caller can
-    release those resources once the worker is genuinely done with them.
+    Session the worker was given. Whenever this raises DeadlineExceeded,
+    `dispose_abandoned` runs exactly once: with the worker's result (or None
+    if it failed) as soon as the worker is done, so the resources it was using
+    are released only when nothing is still using them.
     """
     outcome: queue.Queue[tuple[bool, Any]] = queue.Queue(maxsize=1)
     state_lock = threading.Lock()
@@ -519,13 +518,10 @@ def _run_before_download_deadline(
                 late_outcome = outcome.get_nowait()
             except queue.Empty:
                 pass
-        if (
-            late_outcome is not None
-            and late_outcome[0]
-            and dispose_abandoned is not None
-        ):
+        # The worker already finished, so it will not dispose of anything.
+        if late_outcome is not None and dispose_abandoned is not None:
             try:
-                dispose_abandoned(late_outcome[1])
+                dispose_abandoned(late_outcome[1] if late_outcome[0] else None)
             except Exception:
                 pass
 
@@ -540,12 +536,12 @@ def _run_before_download_deadline(
         should_dispose = False
         with state_lock:
             if abandoned[0]:
-                should_dispose = succeeded and dispose_abandoned is not None
+                should_dispose = dispose_abandoned is not None
             else:
                 outcome.put_nowait((succeeded, value))
         if should_dispose and dispose_abandoned is not None:
             try:
-                dispose_abandoned(value)
+                dispose_abandoned(value if succeeded else None)
             except Exception:
                 pass
 
@@ -554,8 +550,18 @@ def _run_before_download_deadline(
         name="bsky-download-operation",
         daemon=True,
     )
-    # Do not launch work when an inherited deadline has already expired.
-    _remaining_download_time(deadline, operation)
+    # Do not launch work when an inherited deadline has already expired. The
+    # caller treats this like any other DeadlineExceeded and leaves cleanup to
+    # `dispose_abandoned`, so run it here: no worker will.
+    try:
+        _remaining_download_time(deadline, operation)
+    except DeadlineExceeded:
+        if dispose_abandoned is not None:
+            try:
+                dispose_abandoned(None)
+            except Exception:
+                pass
+        raise
     thread.start()
     try:
         succeeded, value = outcome.get(
@@ -598,7 +604,9 @@ def _is_public_unicast_address(
 ) -> bool:
     if isinstance(address, ipaddress.IPv6Address):
         # Local-use translation prefix: never a destination we should reach.
-        if address in _LOCAL_IPV6_TRANSLATION_NETWORK:
+        if address in _LOCAL_IPV6_TRANSLATION_NETWORK or any(
+            address in network for network in _DEPRECATED_IPV6_TRANSITION_NETWORKS
+        ):
             return False
         if address in _WELL_KNOWN_NAT64_NETWORK:
             # On a DNS64/NAT64 network every public host resolves into this
@@ -643,12 +651,9 @@ def _public_url_addresses(url: str) -> tuple[ParseResult, List[str]]:
         if parsed.port is not None
         else (443 if parsed.scheme.lower() == "https" else 80)
     )
-    # Resolve the exact A-label that the TLS handshake will send as SNI and
-    # authenticate against. Handing socket.getaddrinfo the raw Unicode name
-    # instead would encode it with CPython's IDNA2003 codec, which disagrees
-    # with the IDNA2008/UTS46 encoding used by _ascii_hostname for labels
-    # containing (for example) 'ß' or a ZWJ -- resolving one name while
-    # validating a certificate for another.
+    # Resolve the same A-label that TLS sends as SNI and authenticates. The raw
+    # Unicode name would go through CPython's IDNA2003 codec, which encodes
+    # some labels ('ß', ZWJ) differently.
     hostname = _ascii_hostname(parsed.hostname or "")
 
     def resolve() -> Any:
@@ -815,12 +820,19 @@ def _open_pinned_response(
             continue
 
         abandoned = False
+        cleanup_token = _ABANDONED_RESPONSE_CLEANUP.set(
+            lambda owned_response=response, owned=session: _close_quietly(
+                owned_response,
+                owned,
+            )
+        )
         try:
             yield response
         except DeadlineExceeded:
             abandoned = True
             raise
         finally:
+            _ABANDONED_RESPONSE_CLEANUP.reset(cleanup_token)
             if not abandoned:
                 response.close()
                 session.close()
@@ -895,10 +907,14 @@ def _read_response_body(resp: requests.Response, max_bytes: int) -> bytes:
     deadline = _DOWNLOAD_DEADLINE.get()
     if deadline is None:
         return read_body()
+    cleanup = _ABANDONED_RESPONSE_CLEANUP.get()
     return _run_before_download_deadline(
         read_body,
         deadline,
         "reading the response body",
+        dispose_abandoned=(
+            None if cleanup is None else lambda _late_body: cleanup()
+        ),
     )
 
 
@@ -1025,9 +1041,7 @@ def _open_api_response(
 ) -> Iterator[requests.Response]:
     """Open and close one streamed API response under a wall-clock deadline.
 
-    The Session is created here and used by this request alone, so a call
-    abandoned at the deadline cannot leave a daemon worker writing to state that
-    a later request depends on. That is why callers are free to catch a timeout
+    The Session is used by this request alone, so callers may catch a timeout
     and keep going.
     """
     with _network_deadline(timeout, subject="API request", label="API") as deadline:
@@ -1055,7 +1069,13 @@ def _open_api_response(
                         lambda late_response: _close_quietly(late_response, session)
                     ),
                 )
-                yield response
+                cleanup_token = _ABANDONED_RESPONSE_CLEANUP.set(
+                    lambda owned=response: _close_quietly(owned, session)
+                )
+                try:
+                    yield response
+                finally:
+                    _ABANDONED_RESPONSE_CLEANUP.reset(cleanup_token)
             except DeadlineExceeded:
                 # Either the request or a body read inside the caller's block was
                 # abandoned mid-flight; the daemon worker still owns `session` and
@@ -1095,20 +1115,15 @@ def _raise_for_xrpc(
 ) -> None:
     """Refuse a redirected or failed API response, reporting what the server said.
 
-    API calls are issued with allow_redirects=False, so a 3xx here means the
-    server tried to send this request -- possibly carrying credentials or a
-    blob -- somewhere we never validated. None of them is ever followed.
-
-    An error status is raised with the XRPC error name and message, which say
-    far more than a bare "400 Client Error" (RecordNotFound, BlobTooLarge, an
-    expired app password). `hints` maps lower-cased error names to a remedy
-    printed on the following line.
+    A 3xx is never followed: the request may carry credentials or a blob.
+    Errors are raised with the XRPC error name and message; `hints` maps
+    lower-cased error names to a remedy printed on the following line.
     """
     if 300 <= resp.status_code < 400:
         raise ValueError(f"Refusing redirect from {method} request")
     if resp.ok:
         return
-    body = _response_body(resp)
+    body = _error_response_body(resp)
     if verbose:
         print(json.dumps(body, indent=2), file=sys.stderr)
     error_name = _api_error_name(body)
@@ -1123,21 +1138,32 @@ def _raise_for_xrpc(
     )
 
 
-def _json_object(resp: requests.Response, context: str) -> Dict[str, Any]:
+def _decode_json(body: bytes, context: str) -> Any:
+    # The byte cap does not bound nesting depth: a few tens of KB of brackets
+    # exhaust the recursion limit, so that failure is reported like any other
+    # malformed body. (JSONDecodeError and UnicodeDecodeError are ValueErrors.)
     try:
-        data = json.loads(_read_response_body(resp, MAX_API_RESPONSE_BYTES))
-    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        return json.loads(body)
+    except (ValueError, RecursionError) as exc:
         raise ValueError(f"{context} returned a non-JSON response") from exc
+
+
+def _json_object(resp: requests.Response, context: str) -> Dict[str, Any]:
+    data = _decode_json(_read_response_body(resp, MAX_API_RESPONSE_BYTES), context)
     if not isinstance(data, dict):
         raise ValueError(f"{context} returned an unexpected JSON shape")
     return data
 
 
-def _response_body(resp: requests.Response) -> Any:
-    body = _read_response_body(resp, MAX_API_RESPONSE_BYTES)
+def _error_response_body(resp: requests.Response) -> Any:
+    """Best-effort body of an error response; never hides the status itself."""
     try:
-        return json.loads(body)
-    except (UnicodeDecodeError, json.JSONDecodeError):
+        body = _read_response_body(resp, MAX_API_RESPONSE_BYTES)
+    except ValueError:
+        return None
+    try:
+        return _decode_json(body, "error response")
+    except ValueError:
         return {"raw": body.decode("UTF-8", errors="replace")}
 
 
@@ -1153,7 +1179,7 @@ def _api_error_summary(body: Any) -> str:
     error_name = _api_error_name(body)
     if error_name is None:
         return ""
-    safe_name = _terminal_safe(error_name)
+    safe_name = _terminal_safe(_grapheme_safe_prefix(error_name, MAX_ERROR_NAME_CHARS))
     message = body.get("message") if isinstance(body, dict) else None
     if isinstance(message, str) and message.strip():
         detail = _terminal_safe(
@@ -1235,8 +1261,9 @@ def _has_wordlike_prefix(text: str, start: int) -> bool:
     return category[0] in ("L", "M", "N") or category in ("Pc", "Cf")
 
 
-def parse_mentions(text: str) -> List[Dict]:
-    byte_offsets = _byte_offsets(text)
+def parse_mentions(text: str, byte_offsets: Optional[List[int]] = None) -> List[Dict]:
+    if byte_offsets is None:
+        byte_offsets = _byte_offsets(text)
     mentions: List[Dict] = []
     for match in MENTION_REGEX.finditer(text):
         start = match.start(1)
@@ -1274,8 +1301,9 @@ def _trim_url_match(url_bytes: bytes) -> bytes:
     return url_bytes[:end]
 
 
-def parse_urls(text: str) -> List[Dict]:
-    byte_offsets = _byte_offsets(text)
+def parse_urls(text: str, byte_offsets: Optional[List[int]] = None) -> List[Dict]:
+    if byte_offsets is None:
+        byte_offsets = _byte_offsets(text)
     spans: List[Dict] = []
     for match in URL_REGEX.finditer(text):
         if _has_wordlike_prefix(text, match.start(1)):
@@ -1340,8 +1368,9 @@ def _valid_tag_value(tag: str) -> bool:
     )
 
 
-def parse_hashtags(text: str) -> List[Dict]:
-    byte_offsets = _byte_offsets(text)
+def parse_hashtags(text: str, byte_offsets: Optional[List[int]] = None) -> List[Dict]:
+    if byte_offsets is None:
+        byte_offsets = _byte_offsets(text)
     spans: List[Dict] = []
     for match in HASHTAG_REGEX.finditer(text):
         tag = _strip_tag_trailing_punctuation(match.group(3))
@@ -1399,9 +1428,7 @@ def _resolve_handle(pds_url: str, handle: str) -> Optional[str]:
             resp.raise_for_status()
             data = _json_object(resp, "resolveHandle")
     except (requests.RequestException, ValueError):
-        # An unresolvable handle just stays plain text in the post. Timeouts are
-        # included: the abandoned worker holds a Session used by this request
-        # alone, so nothing later can be affected by letting it run on.
+        # An unresolvable handle stays plain text, timeouts included.
         return None
     did = data.get("did") if isinstance(data, dict) else None
     return did if isinstance(did, str) and DID_REGEX.fullmatch(did) else None
@@ -1460,7 +1487,8 @@ def _resolve_handles(pds_url: str, handles: List[str]) -> Dict[str, Optional[str
 def parse_facets(pds_url: str, text: str) -> List[Dict]:
     facets: List[Dict] = []
     occupied: List[tuple[int, int]] = []
-    for u in parse_urls(text):
+    byte_offsets = _byte_offsets(text)
+    for u in parse_urls(text, byte_offsets):
         if _reserve_span(u, occupied):
             facets.append(
                 make_facet(
@@ -1470,7 +1498,7 @@ def parse_facets(pds_url: str, text: str) -> List[Dict]:
             )
     # Handles are case-insensitive, so each distinct one is looked up once.
     mentions = [
-        m for m in parse_mentions(text)
+        m for m in parse_mentions(text, byte_offsets)
         if not _span_insert_index(m["start"], m["end"], occupied)[1]
     ]
     resolved_handles = _resolve_handles(
@@ -1499,7 +1527,7 @@ def parse_facets(pds_url: str, text: str) -> List[Dict]:
             )
     facets.extend(
         make_facet(h, {"$type": "app.bsky.richtext.facet#tag", "tag": h["tag"]})
-        for h in parse_hashtags(text)
+        for h in parse_hashtags(text, byte_offsets)
         if _reserve_span(h, occupied)
     )
     return sorted(facets, key=lambda facet: facet["index"]["byteStart"])
@@ -1617,8 +1645,12 @@ def parse_uri(uri: str) -> Dict:
     raise ValueError(f"Unhandled URI format: {uri}")
 
 
-def _check_record_matches_request(requested: Dict, returned_uri: str) -> None:
-    """Refuse a getRecord answer that names a different record than was asked.
+def _check_record_matches_request(
+    requested: Dict,
+    returned_uri: str,
+    context: str = "getRecord",
+) -> None:
+    """Refuse an answer that names a different record than was asked for.
 
     A handle-addressed request is answered with the account's DID, which cannot
     be compared without a separate resolution, so the repo is only compared
@@ -1633,7 +1665,21 @@ def _check_record_matches_request(requested: Dict, returned_uri: str) -> None:
             and returned["repo"] != requested["repo"]
         )
     ):
-        raise ValueError("getRecord returned a different record than was requested")
+        raise ValueError(f"{context} returned a different record than was requested")
+
+
+def _validated_record_response(data: Dict, requested: Dict, context: str) -> Dict:
+    """Return {uri, cid} from a response that must name the requested record."""
+    if not isinstance(data.get("uri"), str) or not isinstance(data.get("cid"), str):
+        raise ValueError(f"{context} response is missing uri or cid")
+    try:
+        ref = record_ref(data)
+    except ValueError as exc:
+        raise ValueError(
+            f"{context} response contains an invalid record reference"
+        ) from exc
+    _check_record_matches_request(requested, ref["uri"], context)
+    return ref
 
 
 def get_record(record_service_url: str, uri: str) -> Dict:
@@ -1647,15 +1693,7 @@ def get_record(record_service_url: str, uri: str) -> Dict:
     ) as resp:
         _raise_for_xrpc(resp, "getRecord")
         data = _json_object(resp, "getRecord")
-    if not isinstance(data.get("uri"), str) or not isinstance(data.get("cid"), str):
-        raise ValueError("getRecord response is missing uri or cid")
-    try:
-        record_ref(data)
-    except ValueError as exc:
-        raise ValueError(
-            "getRecord response contains an invalid record reference"
-        ) from exc
-    _check_record_matches_request(requested, data["uri"])
+    _validated_record_response(data, requested, "getRecord")
     return data
 
 
@@ -2273,9 +2311,7 @@ def _attach_external_thumb(
         img_bytes, _, _ = _safe_download(img_url, MAX_EMBED_IMAGE_BYTES)
         image_info = inspect_image(img_bytes, img_url)
     except (requests.RequestException, ValueError) as exc:
-        # A failed thumbnail must not abort an otherwise valid post, and it
-        # cannot: every request owns its Session, so even an abandoned
-        # timed-out worker is isolated from the createRecord call that follows.
+        # A failed thumbnail never aborts the post.
         warn_and_skip_thumb(exc)
         return
 
@@ -2320,10 +2356,8 @@ def _parse_embed_metadata(
     by MAX_EMBED_HEAD_BYTES, and is a daemon so it never delays exit.
     """
     def parse() -> tuple[Dict[str, Any], str]:
-        # Prefer the server-declared charset; BeautifulSoup still falls back to
-        # a BOM, an in-document <meta charset>, and byte sniffing when it is
-        # absent or wrong, so a page served in a non-UTF-8 encoding is decoded
-        # correctly.
+        # Prefer the server-declared charset; BeautifulSoup falls back to a
+        # BOM, <meta charset>, and sniffing.
         from bs4 import BeautifulSoup
 
         soup = BeautifulSoup(
@@ -2345,10 +2379,7 @@ def _parse_embed_metadata(
 
 
 def fetch_embed_url_card(pds_url: str, access_token: str, url: str) -> Dict:
-    # A link card is a decoration on the post, so no failure reading the remote
-    # page is worth discarding the user's text. Anything that goes wrong past
-    # this point degrades to a bare card carrying just the URL, which clients
-    # still render as a link.
+    # From here on, any failure degrades to a bare card carrying just the URL.
     card: Dict[str, Any] = {"uri": url, "title": "", "description": ""}
     try:
         html_bytes, final_url, content_type = _safe_download(
@@ -2432,6 +2463,18 @@ def _new_tid() -> str:
     )
 
 
+class UnusableCreateResponse(ValueError):
+    """createRecord answered with success, but its body could not be accepted.
+
+    The PDS may well have created the post, so this is settled like a timeout
+    rather than reported as a definite failure.
+    """
+
+
+def _post_record_key(did: str, rkey: str) -> Dict[str, str]:
+    return {"repo": did, "collection": "app.bsky.feed.post", "rkey": rkey}
+
+
 def _create_post_record(
     pds_url: str,
     access_token: str,
@@ -2440,32 +2483,34 @@ def _create_post_record(
     rkey: str,
     *,
     verbose: bool,
-) -> Any:
+) -> Dict:
+    requested = _post_record_key(did, rkey)
     with _open_api_response(
         "POST",
         _api_url(pds_url, "com.atproto.repo.createRecord"),
         timeout=30,
         operation="waiting for createRecord response headers",
         headers={"Authorization": "Bearer " + access_token},
-        json={
-            "repo": did,
-            "collection": "app.bsky.feed.post",
-            "rkey": rkey,
-            "record": post,
-        },
+        json=dict(requested, record=post),
     ) as resp:
         _raise_for_xrpc(resp, "createRecord", verbose=verbose)
-        return _response_body(resp)
+        try:
+            data = _json_object(resp, "createRecord")
+            _validated_record_response(data, requested, "createRecord")
+        except ValueError as exc:
+            raise UnusableCreateResponse(str(exc)) from exc
+    return data
 
 
 def _existing_post(pds_url: str, did: str, rkey: str) -> Optional[Dict]:
     """Return {uri, cid} if the post with this record key exists, else None."""
+    requested = _post_record_key(did, rkey)
     with _open_api_response(
         "GET",
         _api_url(pds_url, "com.atproto.repo.getRecord"),
         timeout=15,
         operation="waiting for getRecord response headers",
-        params={"repo": did, "collection": "app.bsky.feed.post", "rkey": rkey},
+        params=requested,
     ) as resp:
         try:
             _raise_for_xrpc(resp, "getRecord")
@@ -2474,15 +2519,28 @@ def _existing_post(pds_url: str, did: str, rkey: str) -> Optional[Dict]:
                 return None
             raise
         data = _json_object(resp, "getRecord")
-    return record_ref(data)
+    return _validated_record_response(data, requested, "getRecord")
 
 
-def _outcome_uncertain(exc: requests.RequestException) -> bool:
+# Raised by Requests before anything is sent, so the post cannot exist.
+_UNSENT_REQUEST_ERRORS = (
+    requests.exceptions.InvalidJSONError,
+    requests.exceptions.InvalidHeader,
+    requests.exceptions.InvalidURL,
+    requests.exceptions.InvalidSchema,
+    requests.exceptions.MissingSchema,
+)
+
+
+def _outcome_uncertain(exc: Exception) -> bool:
     """Whether a failed createRecord may nonetheless have created the post.
 
-    A definite 4xx rejection did not; a timeout, a dropped connection, a broken
-    response body, or a 5xx from a gateway in front of the PDS all might have.
+    A definite 4xx rejection or a request that was never sent did not; a
+    timeout, a dropped connection, an unusable success response, or a 5xx
+    from a gateway in front of the PDS all might have.
     """
+    if isinstance(exc, _UNSENT_REQUEST_ERRORS):
+        return False
     if isinstance(exc, requests.HTTPError):
         response = exc.response
         return response is None or response.status_code >= 500
@@ -2507,7 +2565,7 @@ def _publish_post(
     rkey = _new_tid()
     try:
         return _create_post_record(pds_url, access_token, did, post, rkey, verbose=verbose)
-    except requests.RequestException as exc:
+    except (requests.RequestException, UnusableCreateResponse) as exc:
         if not _outcome_uncertain(exc):
             raise
         print(
@@ -2535,7 +2593,7 @@ def _publish_post(
         )
         try:
             return _create_post_record(pds_url, access_token, did, post, rkey, verbose=verbose)
-        except requests.RequestException as exc:
+        except (requests.RequestException, UnusableCreateResponse) as exc:
             retry_error = exc
         existing = _existing_post(pds_url, did, rkey)
     except (requests.RequestException, ValueError):
@@ -2543,10 +2601,9 @@ def _publish_post(
         raise
     if existing is not None:
         return existing
-    # Only a definite rejection of the retry, confirmed by the lookup, means
-    # neither attempt can still land.
-    if _outcome_uncertain(retry_error):
-        warn_post_may_exist()
+    # Even a definite rejection of the retry says nothing about the first
+    # attempt, which may still be in flight and land after this lookup.
+    warn_post_may_exist()
     raise retry_error
 
 
