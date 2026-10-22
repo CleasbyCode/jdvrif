@@ -61,7 +61,7 @@ Security hardening over the original script:
 
 Setup:
 
- Requires Python 3.10+: requests, beautifulsoup4, pillow (with pinned versions in
+ Requires Python 3.11+: requests, beautifulsoup4, pillow (with pinned versions in
  requirements.txt alongside this script)
     $ python3 -m pip install -r requirements.txt
 

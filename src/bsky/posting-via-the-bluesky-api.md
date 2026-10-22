@@ -23,7 +23,7 @@ adds hashtag/cashtag facets, per-image alt text, aspect ratios, language tags,
 and record-with-media embeds, and treats every network fetch as potentially
 hostile.
 
-It requires Python 3.10+ with `requests`, `beautifulsoup4`, and `pillow`.
+It requires Python 3.11+ with `requests`, `beautifulsoup4`, and `pillow`.
 `requirements.txt` pins these packages and also `urllib3` and `idna`, which
 are transitive dependencies of `requests` used directly by the SSRF/TLS layer:
 

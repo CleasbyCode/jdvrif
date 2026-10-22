@@ -15,7 +15,7 @@ for the full walkthrough of what it does and why.
 Requirements
 ------------
 
-Python 3.10 or newer. `requirements.txt` pins the directly used packages,
+Python 3.11 or newer. `requirements.txt` pins the directly used packages,
 including `urllib3` and `idna`, whose behaviour the SSRF/TLS layer relies on:
 
 ```shell
@@ -29,7 +29,8 @@ locking those transitive dependencies and recording the target environment.
 
 The pins include urllib3 2.8.0 for bounded streaming decompression and safe
 chunked reads, requests 2.34.2 and idna 3.20 with their security fixes, and
-Pillow 12.3.0 for image inspection. Older or unrecognized urllib3 releases
+Pillow 13.0.0, whose image-decoder security fixes cover the og:image
+thumbnails fetched from linked sites. Older or unrecognized urllib3 releases
 refuse compressed responses before reading them. Accepted response codings are
 identity, gzip/x-gzip and deflate; unsupported codings use the existing error
 or link-card fallback path.
