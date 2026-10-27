@@ -1,7 +1,0 @@
-#pragma once
-
-#include "common.h"
-
-void concealData(vBytes& jpg_vec, Option option, const fs::path& data_file_path);
-void displayRedditCapacity(vBytes& jpg_vec);
-void displayTwitterCapacity(vBytes& jpg_vec);
