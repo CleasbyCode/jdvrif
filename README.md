@@ -1,6 +1,6 @@
 # jdvrif
 
-***jdvrif*** (*JPG Data Vehicle*) is a fast, easy-to-use steganography command-line tool for concealing and extracting any file type via a **JPG** image. ***Linux only***.
+***jdvrif*** is a fast, easy-to-use steganography command-line tool for concealing and extracting any file type via a **JPG** image.
 
 ![Demo Image](https://github.com/CleasbyCode/jdvrif/blob/main/demo_image/jrif_fd123e565.jpg)  
 ***Demo Image -*** ***KEY: Wtub-TzgD-VCvf-aLHW-UwY2-UBoF***
