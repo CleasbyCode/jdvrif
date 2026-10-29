@@ -25,10 +25,10 @@ Unlike the common [***LSB***](https://ctf101.org/forensics/what-is-stegonagraphy
 
 | Conceal&nbsp;Mode | Storage Method | Compatible Platforms |
 | :---: | :---: | :---: |
-| *(no option)* | APP2/ICC profile segments | X-Twitter, Tumblr, Mastodon,<br>Pixelfed, PostImage, ImgBB,<br>ImgPile, Flickr |
-| ***-b*** | Framed EXIF / Photoshop / XMP segments | ***Bluesky*** only |
-| ***-r*** | JPEG DCT coefficients (***QIM***) | ***Reddit*** only |
-| ***-x*** | JPEG DCT coefficients (***J-UNIWARD/STC***) | ***X-Twitter*** only |
+| *(no option)* | APP2/ICC Profile Segments | X-Twitter, Tumblr, Mastodon,<br>Pixelfed, PostImage, ImgBB,<br>ImgPile, Flickr |
+| ***-b*** | Framed EXIF / Photoshop / XMP Segments | ***Bluesky*** only |
+| ***-r*** | JPEG DCT Coefficients (***QIM***) | ***Reddit*** only |
+| ***-x*** | JPEG DCT Coefficients (***J-UNIWARD/STC***) | ***X-Twitter*** only |
 
 The two platform exceptions to the default segment storage method are ***Reddit*** and ***X-Twitter***. Both have their own conceal mode, and neither of those modes uses metadata segments at all: ***-r*** and ***-x*** carry the payload in the ***JPG*** image's DCT coefficients instead.  
 
