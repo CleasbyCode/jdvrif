@@ -9,8 +9,6 @@ Your data file is compressed with ***libdeflate/zlib***, then encrypted with ***
 
 The KEY is displayed once, at the end of conceal, printed as 24 Base58 characters (*letters and digits*) in six groups of four (*XXXX-XXXX-XXXX-XXXX-XXXX-XXXX*) and is not saved by the program. Without it, the concealed file cannot be recovered. Its last two characters form a checksum, so most typing mistakes are reported straight away.
 
-Images created before ***jdvrif v10*** used a numeric ***recovery PIN*** instead. They remain recoverable with that PIN: ***recover*** detects the image's version where it can and prompts for a ***KEY*** or ***PIN*** to match (*see [Usage](#usage)*).
-
 Using the ***default conceal mode***, you can conceal any file type, with the finished image capped at ***2GiB***. The other platform conceal modes and the compatible social media sites (*listed below*) have their own ***much smaller*** size limits and other requirements.
 
 There is a [***Web edition***](https://cleasbycode.co.uk/jdvrif/app/) of ***jdvrif***, which you can use immediately, as a convenient alternative to downloading and compiling the CLI source code. Web file uploads are limited to **20MiB**.
@@ -48,7 +46,7 @@ To maximise storage capacity for the ***X-Twitter*** platform, use a high qualit
 
 The ***-r*** and ***-x*** carriers encrypt your data and key its location to your recovery KEY using ***Argon2id***, but embedding still alters the image's DCT statistics, so dedicated steganalysis may reveal that an image carries hidden data.
 
-Images created with ***jdvrif v9.x***, including ***-r*** and ***-x*** images from ***v9.0*** and ***v9.1***, remain recoverable with their numeric PINs, but ***v9.x*** cannot recover images created with ***v10***.
+This release reads only images made by ***jdvrif v10*** or later. Images made with ***jdvrif v9.x*** or earlier (*numeric PINs*) need the legacy ***jdvrif*** release to recover.
 
 Both DCT modes carry far less data than the default mode, so use ***capsize*** to measure a cover image before choosing a payload (see [Checking capacity](#checking-capacity-with-capsize)).
 
@@ -120,18 +118,8 @@ Complete! Please check your file.
 jdvrif ***mode*** arguments:
 
   ***conceal*** - Compresses, encrypts and embeds your secret data file within a ***JPG*** cover image.  
-  ***recover*** - Decrypts, uncompresses and extracts the concealed data file from a ***JPG*** cover image (*recovery KEY/PIN required*).  
+  ***recover*** - Decrypts, uncompresses and extracts the concealed data file from a ***JPG*** cover image (*recovery KEY required*).  
   ***capsize*** - Reports the carrier capacity of a cover image for ***-r*** or ***-x*** mode. No image is saved.
-
-The ***recover*** prompt matches the image where it can:
-
-| Image | Prompt |
-| --- | --- |
-| Default or ***-b*** image made with ***v10*** or later | `KEY:` |
-| Default or ***-b*** image made before ***v10*** | `PIN:` |
-| ***-r*** or ***-x*** image (*any version*) | `KEY/PIN:` |
-
-The ***-r*** and ***-x*** carriers cannot be identified until the KEY or PIN has been entered, because it is what locates the hidden data. Error messages follow the same rule.
 
 Requirements for the cover image:
 
@@ -276,7 +264,7 @@ This section is for anyone writing a compatible implementation. Everything below
    ```
 3. ***Display*** — the 24 characters in six groups of four, joined with `-`.
 
-When a KEY is entered, spaces, tabs and `-` are ignored and letters are case-sensitive. A numeric entry of 1–20 digits (*no leading zero, at most 18446744073709551615*) is an old (*pre-v10*) PIN.
+When a KEY is entered, spaces, tabs and `-` are ignored and letters are case-sensitive.
 
 | Key bytes (hex) | KEY |
 | --- | --- |
@@ -309,13 +297,12 @@ The first `count` items are the positions used, in order (*-x: the header's posi
 The test scripts in `src/tests` each take the binary to exercise:
 
 ```console
-$ bash tests/run_golden_tests.sh --bin ./jdvrif        # recover pre-built images with known PINs
+$ bash tests/run_golden_tests.sh --bin ./jdvrif        # recover pre-built images with known KEYs
 $ bash tests/run_roundtrip_tests.sh --bin ./jdvrif     # fresh conceal/recover round-trips
 $ bash tests/run_security_smoke.sh --bin ./jdvrif      # negative-path and boundary checks
 $ bash tests/run_reddit_tests.sh --bin ./jdvrif        # -r QIM carrier
 $ bash tests/run_twitter_tests.sh --bin ./jdvrif       # -x J-UNIWARD/STC carrier
-$ bash tests/run_legacy_fixture_tests.sh --bin ./jdvrif # recover v9.0/v9.1 images with their numeric PINs
-$ bash tests/run_io_security_tests.sh --bin ./jdvrif   # input-size bounds, KEY/PIN entry signal/job-control handling
+$ bash tests/run_io_security_tests.sh --bin ./jdvrif   # input-size bounds, KEY entry signal/job-control handling
 $ bash tests/run_jpeg_safety_tests.sh                  # JPEG parser/decoder safety (builds its own test binary)
 $ bash tests/run_bsky_tests.sh                         # Bluesky posting helper
 ```
