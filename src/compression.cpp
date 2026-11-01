@@ -1,0 +1,210 @@
+#include "compression.h"
+#include "common.h"
+#include "file_utils.h"
+#include "signal_utils.h"
+#include "zlib_wipe_alloc.h"
+
+#include <libdeflate.h>
+#include <zlib.h>
+
+#include <algorithm>
+#include <array>
+#include <format>
+#include <span>
+#include <stdexcept>
+#include <string>
+
+namespace {
+// Two tiers. The "maximum compression" tier that used to sit here is not worth
+// paying for on either back end: measured on a 150 MB mixed-binary corpus,
+// zlib level 9 took 19.4 s for 58,100,237 bytes against 6.3 s for 58,360,140 at
+// level 6 -- 3.1x the time for 0.45% smaller output. libdeflate shows the same
+// shape (see libdeflateLevelFor). Very large inputs drop to fastest so a
+// conceal stays bounded in time.
+[[nodiscard]] int selectCompressionLevel(std::size_t input_size) {
+    constexpr std::size_t THRESHOLD_BEST_SPEED = 500 * 1024 * 1024;
+
+    return (input_size > THRESHOLD_BEST_SPEED) ? Z_BEST_SPEED : Z_DEFAULT_COMPRESSION;
+}
+
+inline constexpr std::size_t
+    ZLIB_IN_CHUNK_SIZE  = 2 * 1024 * 1024,
+    ZLIB_OUT_CHUNK_SIZE = 2 * 1024 * 1024,
+    // OutputFile buffer for the deflated stream: whole chunks bypass it, short
+    // tails pass through and are zeroed with it.
+    COMPRESSED_OUTPUT_BUFFER_SIZE = 64 * 1024;
+
+// Files at or below this size are compressed in a single whole-buffer
+// libdeflate call. That call is also the one place a conceal cannot react to
+// Ctrl+C, because libdeflate has no incremental API to check cancellation from,
+// so the cap bounds two things at once: peak RSS (input + compress_bound, ~2x
+// input while compressing) and the uninterruptible window (~2 s at 61 MB/s,
+// measured). Larger inputs fall back to the zlib streaming deflate below, which
+// holds only fixed chunks and checks for cancellation every chunk.
+//
+// The cost of the cap is real -- libdeflate ran 2.7x faster than streaming zlib
+// at the same level on the same corpus -- so it is set where payloads stop
+// being plausible for any supported platform (the largest, Flickr, is 200 MB
+// total and every other site is 100 MB or less) rather than lower.
+inline constexpr std::size_t LIBDEFLATE_WHOLE_BUFFER_LIMIT = 128 * 1024 * 1024;
+
+// --------------------------- libdeflate fast path ---------------------------
+
+// Map the zlib level the heuristic above picks onto a libdeflate level.
+// Measured (bench/compress_levels) on real corpora, libdeflate L9 costs ~2.6-2.9x
+// the time of L6 for only ~1-2% smaller output; L10-12 are far worse (an "ultra"
+// tier with marginal gains). L6 is the ratio/time sweet spot — compression is
+// the dominant cost in a conceal, and a 1-2% larger payload practically never
+// changes platform fit.
+// Do NOT raise this back toward 9-12 without re-running the level sweep.
+[[nodiscard]] int libdeflateLevelFor(std::size_t input_size) {
+    return (selectCompressionLevel(input_size) == Z_BEST_SPEED) ? 1 : 6;
+}
+
+struct CompressorGuard {
+    libdeflate_compressor* c{nullptr};
+    explicit CompressorGuard(int level) : c(libdeflate_alloc_compressor(level)) {}
+    ~CompressorGuard() { if (c) libdeflate_free_compressor(c); }
+    CompressorGuard(const CompressorGuard&) = delete;
+    CompressorGuard& operator=(const CompressorGuard&) = delete;
+};
+
+[[nodiscard]] vBytes readWholeFile(const fs::path& path, std::size_t expected_size) {
+    throwIfSignalCancellationRequested();
+    InputFile input(path, std::format("Failed to open file for compression: {}", path.string()));
+    vBytes buffer(expected_size);
+    // A throw between here and the return -- a short read, a file that changed
+    // under us, Ctrl+C -- would otherwise free a buffer holding some or all of
+    // the plaintext. The success path hands ownership to the caller (which
+    // wipes it), so the guard cannot simply cover the whole scope.
+    try {
+        input.readExact(buffer, "Read Error: Failed while reading input file.");
+        input.requireEnd("Read Error: Input file changed while compressing.");
+        throwIfSignalCancellationRequested();
+    } catch (...) {
+        wipeContainerCapacity(buffer);
+        throw;
+    }
+    return buffer;
+}
+
+void libdeflateCompressFileToPath(const fs::path& input_path, const fs::path& output_path, std::size_t expected_input_size) {
+    vBytes output;
+    // Deflate is not encryption: this buffer holds the payload in a form that
+    // is plaintext-equivalent, so it is zeroed rather than merely freed --
+    // including on the throwing paths below. Same reasoning as the link-free
+    // StagingFile the compressed bytes are written to (see conceal.cpp).
+    WipeBytesGuard output_wipe{output};
+    std::size_t produced = 0;
+
+    {
+        // Scoped so the plaintext input is released (and its pages returned)
+        // before the output is written: the write can be slow on a slow disk,
+        // and there is no reason to hold both buffers across it.
+        vBytes input = readWholeFile(input_path, expected_input_size);
+        WipeBytesGuard input_wipe{input};
+
+        CompressorGuard compressor(libdeflateLevelFor(expected_input_size));
+        throwIf(!compressor.c, "libdeflate: failed to allocate compressor");
+
+        output.resize(libdeflate_zlib_compress_bound(compressor.c, input.size()));
+
+        produced = libdeflate_zlib_compress(compressor.c, input.data(), input.size(), output.data(), output.size());
+        throwIfSignalCancellationRequested();
+        if (produced == 0) {
+            // Only happens if the bound-sized buffer was somehow insufficient.
+            throw std::runtime_error("libdeflate: zlib compression failed");
+        }
+    }
+
+    // output_path is a StagingFile: link-free already, so a failure part way
+    // through leaves nothing behind for a cleanup guard to remove.
+    OutputFile out_file(output_path, COMPRESSED_OUTPUT_BUFFER_SIZE, OutputCreate::existing_staging);
+    out_file.write(std::span<const Byte>(output.data(), produced), WRITE_COMPLETE_ERROR);
+    out_file.close(WRITE_COMPLETE_ERROR);
+}
+
+// ------------------------- zlib streaming fallback --------------------------
+
+template<typename WriteChunkFn>
+void deflateFromInputFile(InputFile& input, std::size_t expected_input_size, WriteChunkFn&& write_chunk) {
+    // Plaintext and plaintext-equivalent windows: zeroed on every exit path,
+    // for the same reason as the whole-buffer path above.
+    vBytes in_chunk(ZLIB_IN_CHUNK_SIZE);
+    WipeBytesGuard in_chunk_wipe{in_chunk};
+    vBytes out_chunk(ZLIB_OUT_CHUNK_SIZE);
+    WipeBytesGuard out_chunk_wipe{out_chunk};
+
+    z_stream strm{};
+    // deflate's window and pending output hold plaintext; wipe them on release.
+    zlib_wipe_alloc::install(strm);
+    throwIf(deflateInit(&strm, selectCompressionLevel(expected_input_size)) != Z_OK, "zlib: deflateInit failed");
+    struct DeflateGuard {
+        z_stream* stream;
+        ~DeflateGuard() { deflateEnd(stream); }
+    } guard{&strm};
+
+    std::size_t input_left = expected_input_size;
+    bool finished = false;
+    while (!finished) {
+        throwIfSignalCancellationRequested();
+        const std::size_t to_read = std::min(input_left, in_chunk.size());
+        const std::size_t read_count = input.readSome(
+            std::span<Byte>(in_chunk).first(to_read),
+            "Read Error: Failed while reading input file.");
+        throwIf(read_count != to_read, "Read Error: Input file changed while compressing.");
+        input_left -= to_read;
+
+        strm.next_in  = in_chunk.data();
+        strm.avail_in = static_cast<uInt>(read_count);
+
+        const int flush = (input_left == 0) ? Z_FINISH : Z_NO_FLUSH;
+        do {
+            strm.next_out  = out_chunk.data();
+            strm.avail_out = static_cast<uInt>(out_chunk.size());
+
+            const int ret = deflate(&strm, flush);
+            throwIfSignalCancellationRequested();
+            if (ret != Z_OK && ret != Z_STREAM_END) {
+                throw std::runtime_error(std::format(
+                    "zlib deflate error: {}",
+                    strm.msg ? strm.msg : std::to_string(ret)));
+            }
+
+            const std::size_t produced = out_chunk.size() - strm.avail_out;
+            if (produced > 0) {
+                write_chunk(std::span<const Byte>(out_chunk.data(), produced));
+            }
+
+            if (ret == Z_STREAM_END) {
+                finished = true;
+                break;
+            }
+        } while (strm.avail_out == 0);
+    }
+
+    input.requireEnd("Read Error: Input file changed while compressing.");
+}
+
+void zlibStreamCompressFileToPath(const fs::path& input_path, const fs::path& output_path, std::size_t expected_input_size) {
+    InputFile input(input_path, std::format("Failed to open file for compression: {}", input_path.string()));
+    OutputFile output(output_path, COMPRESSED_OUTPUT_BUFFER_SIZE, OutputCreate::existing_staging);
+    deflateFromInputFile(input, expected_input_size, [&](std::span<const Byte> chunk) {
+        output.write(chunk, WRITE_COMPLETE_ERROR);
+    });
+    output.close(WRITE_COMPLETE_ERROR);
+}
+
+} // namespace
+
+void zlibCompressFileToPath(const fs::path& input_path, const fs::path& output_path, std::size_t expected_input_size) {
+    // Both paths emit a standard RFC 1950 zlib stream, so the recover-side
+    // zlib inflate decodes either one. libdeflate handles the common (smaller)
+    // case far faster; the streaming zlib path keeps memory bounded for very
+    // large inputs.
+    if (expected_input_size <= LIBDEFLATE_WHOLE_BUFFER_LIMIT) {
+        libdeflateCompressFileToPath(input_path, output_path, expected_input_size);
+    } else {
+        zlibStreamCompressFileToPath(input_path, output_path, expected_input_size);
+    }
+}
