@@ -86,6 +86,20 @@ Run `jdvrif --info` for the full built-in guide to modes, platform options and s
 ```console
 $ jdvrif conceal your_cover_image.jpg your_secret_file.doc
 
+Cover image: your_cover_image.jpg (36KiB).
+Data file:   your_secret_file.doc (6KiB).
+
+Preparing cover image...
+ ✓ 1280x960, Progressive YCbCr 4:2:0, Source-derived Q65 quantization, metadata removed.
+Compressing data file...
+ ✓ 6KiB -> 998 bytes (83% smaller).
+Encrypting...
+ ✓ XChaCha20-Poly1305, 256-bit key derived by Argon2id from the 128-bit recovery KEY.
+Embedding...
+ ✓ 1 ICC_PROFILE (APP2) segment.
+Writing output image...
+ ✓ 36.4KiB.
+
 Platform compatibility for output image:-
 
  ✓ X-Twitter
@@ -101,7 +115,7 @@ Recovery KEY: [***Jgoe-TsV4-hWLD-SMP9-PJt7-nPTd***]
 
 Important: Keep your KEY safe, so that you can extract the hidden file.
 
-Saved "file-embedded" JPG image: jrif_4e87c566c.jpg (143029 bytes).
+Saved "file-embedded" JPG image: jrif_4e87c566c.jpg (37703 bytes).
 
 Complete!
 
@@ -133,7 +147,7 @@ Requirements for the secret data file:
 
 ● The embedded filename must be no longer than **20 bytes**, must not begin with `.` or `-` or end with a space or `.`, and must be valid UTF-8 without control or bidirectional-formatting characters or any of `/ \ : * ? " < > |`. The name is stored in the image and restored on ***recover***.
 
-● Your data file is compressed before encryption, except for recognised already-compressed file types (`.zip`, `.7z`, `.mp4`, `.jpg`, `.png`, etc). In the default and ***-b*** modes those types skip compression only when larger than **10MiB**; in ***-r*** and ***-x*** modes they always skip it. For anything else destined for a small platform limit, consider compressing it yourself first (*zip, rar, 7z, etc.*) so that you know its exact stored size.
+● Your data file is compressed before encryption, and the compressed form is kept only when it is smaller than the original; otherwise the file is stored as-is. In the default and ***-b*** modes, a data file larger than **10MiB** skips the compression attempt when its header shows an already-compressed format (*ZIP, 7-Zip, RAR, gzip, MP4, MKV, MP3, JPG, PNG, etc*). The file's contents decide, not its extension, so a renamed archive is still recognised. ***-b*** mode always stores the compressed form. For anything destined for a small platform limit, consider compressing it yourself first (*zip, rar, 7z, etc.*) so that you know its exact stored size.
 
 ## Compatible Platforms
 
@@ -291,6 +305,16 @@ for i = 0 .. min(count, n - 1) - 1:
 ```
 
 The first `count` items are the positions used, in order (*-x: the header's positions, then the payload's, from one shuffle; -r: one shuffle each for header and payload*). Each draw depends on the full 128-bit carrier key. Position draws use their own domain constants, separate from those for whitening and dither, so no position draw reuses a whitening or dither value. This hides *where* the data is. It does not stop statistical steganalysis from detecting that an image carries hidden data.
+
+## Security limitations
+
+***jdvrif*** encrypts and authenticates your data, but some exposure is outside what the program can control:
+
+● **Deleted temporary files are not wiped.** The intermediate files (*compressed, encrypted and decrypted data*) never get a visible name and are released when ***jdvrif*** exits, but releasing a file frees its disk blocks without overwriting them, so the data can stay on the disk until that space is reused. On SSDs, journalling or copy-on-write filesystems, or with snapshots, overwriting would not reliably erase it either. Use full-disk encryption if this matters to you.
+
+● **Memory.** Keys and plaintext buffers are wiped after use, and ***jdvrif*** tries to turn off core dumps for itself and block other processes running as your user from reading its memory (*`PR_SET_DUMPABLE 0` and `RLIMIT_CORE 0`, for that run only*). This is best effort: if the system refuses either setting (*a seccomp filter in a sandbox or container, for example*), ***jdvrif*** prints a warning and carries on without it. It does not lock its memory, so data in use can still be written to swap: use encrypted swap (*or none*) to cover that. A root user can read any process's memory.
+
+● **Interrupted recovery on some filesystems.** Where the filesystem lacks `O_TMPFILE` or hard links, the recovered file is first copied to a hidden `.jdvrif_publish_*.tmp` file (*mode 0600*) beside the output, then renamed into place. If ***jdvrif*** is killed, crashes or loses power during that copy, the hidden file can be left behind holding some or all of the recovered data, so delete it. Ordinary errors and Ctrl+C remove it.
 
 ## Tests
 
