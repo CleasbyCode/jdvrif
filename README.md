@@ -32,7 +32,7 @@ The two platform exceptions to the default segment storage method are ***Reddit*
 
 ***Reddit*** re-encodes uploaded images and discards the metadata segments the default mode relies on, so ***-r*** is the only mode that works there. ***X-Twitter*** does preserve a single, small ICC segment, so the default mode still works on that platform, but only for a tiny payload.
 
-For the ***Reddit*** conceal mode (***-r***), we use the [***QIM steganography method***](https://www.google.com/search?q=QIM+steganography+method&sourceid=chrome&ie=UTF-8&source=chrome.ctxt) (*JPEG DCT-domain Quantization Index Modulation*), as this is the only storage method that currently works for ***Reddit***. The cover is transcoded to baseline Q75 4:2:0 and the payload is carried in its luminance DCT blocks.
+For the ***Reddit*** conceal mode (***-r***), we use the [***QIM steganography method***](https://ieeexplore.ieee.org/document/923725) (*JPEG DCT-domain Quantization Index Modulation*), as this is the only storage method that currently works for ***Reddit***. The cover is transcoded to baseline Q75 4:2:0 and the payload is carried in its luminance DCT blocks.
 
 To maximise storage capacity for the ***Reddit*** platform, use a cover image with large dimension sizes, **2048x2048**, **4096x4096**, **8192x8192 (max)**, etc.  
 
@@ -121,9 +121,21 @@ Complete!
 
 $ jdvrif recover jrif_4e87c566c.jpg
 
+Image file: jrif_4e87c566c.jpg (36.8KiB).
+
+Locating hidden data...
+ ✓ Default mode, 1 ICC_PROFILE (APP2) segment.
+
 KEY: ****-****-****-****-****-****
 
-Extracted hidden file: your_secret_file.doc (6165 bytes).
+Deriving key...
+ ✓ Argon2id from the 128-bit recovery KEY.
+Decrypting...
+ ✓ XChaCha20-Poly1305, authenticated.
+Decompressing...
+ ✓ 998 bytes -> 6KiB.
+Writing output file...
+ ✓ your_secret_file.doc (6KiB).
 
 Complete! Please check your file.
 
@@ -204,11 +216,11 @@ Reddit capacity check for conceal -r mode only.
 Cover Image: 384KiB, 8192x8192, Baseline YCbCr 4:2:0, Standard Q75 quantization (C3).
 
 Theoretical C3 capacity limit for this cover image:                    436906 bytes (~426KiB).
-Conservative maximum compressed capacity with a 20-character filename: 436792 bytes (~426KiB).
-Recommended  maximum compressed capacity with a 20-character filename: 435768 bytes (~425KiB).
+Conservative maximum stored payload capacity with a 20-byte filename:  436792 bytes (~426KiB).
+Recommended  maximum stored payload capacity with a 20-byte filename:  435768 bytes (~425KiB).
 ```
 
-The figure reported is the total encrypted ***envelope*** capacity, not a raw secret-file limit: the filename, encryption and recovery metadata consume 95 to 114 bytes for a single-frame payload, and larger payloads add framing overhead. Don't aim at the theoretical limit — where capacity allows, keep the compressed payload at least **1KiB** below the conservative maximum. The size check performed by ***conceal*** is the authoritative one.
+The figure reported is the total encrypted ***envelope*** capacity, not a raw secret-file limit: the filename, encryption and recovery metadata consume 95 to 114 bytes for a single-frame payload, and larger payloads add framing overhead. Don't aim at the theoretical limit — where capacity allows, keep the stored payload at least **1KiB** below the conservative maximum. The size check performed by ***conceal*** is the authoritative one.
 
 ## Conceal mode platform options
 
