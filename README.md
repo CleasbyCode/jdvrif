@@ -36,7 +36,7 @@ For the ***Reddit*** conceal mode (***-r***), we use the [***QIM steganography m
 
 To maximise storage capacity for the ***Reddit*** platform, use a cover image with large dimension sizes, **2048x2048**, **4096x4096**, **8192x8192 (max)**, etc.  
 
-Quality of cover image is not important for this method and should be kept basic for the largest dimensions to help minimise cover image file size. This steganography method is also compatible for posting on Mastodon, as long as the output image does not exceed 16MiB and the dimension do not exceed 3840x2160. 
+Quality of cover image is not important for this method and should be kept basic for the largest dimensions to help minimise cover image file size. This steganography method is also compatible for posting on Mastodon, as long as the output image does not exceed 16MiB and the image dimensions do not exceed 3840x2160. 
 
 While the ***X-Twitter*** platform can use the default method provided by ***jdvrif***, where data is concealed within APP2/ICC segments, ***X-Twitter*** limits this to a single ICC segment with a maximum size of just **~10KiB**.
 
