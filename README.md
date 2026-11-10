@@ -25,7 +25,7 @@ Unlike the common [***LSB***](https://ctf101.org/forensics/what-is-stegonagraphy
 | :---: | :---: | :---: |
 | *(no option)* | APP2/ICC Profile Segments | X-Twitter, Tumblr, Mastodon,<br>Pixelfed, PostImage, ImgBB,<br>ImgPile, Flickr |
 | ***-b*** | Framed EXIF / Photoshop / XMP Segments | ***Bluesky*** only |
-| ***-r*** | JPEG DCT Coefficients (***QIM***) | ***Reddit*** only |
+| ***-r*** | JPEG DCT Coefficients (***QIM***) | ***Reddit***, also ***Mastodon***<br>(output ≤ 16MiB and ≤ 3840x2160 pixels) |
 | ***-x*** | JPEG DCT Coefficients (***J-UNIWARD/STC***) | ***X-Twitter*** only |
 
 The two platform exceptions to the default segment storage method are ***Reddit*** and ***X-Twitter***. Both have their own conceal mode, and neither of those modes uses metadata segments at all: ***-r*** and ***-x*** carry the payload in the ***JPG*** image's DCT coefficients instead.  
@@ -229,7 +229,7 @@ To create compatible "*data-concealed*" ***JPG*** images for posting on the ***R
   $ jdvrif conceal -r my_image.jpg hidden.doc
 ```
 
-  These images are only compatible for posting on ***Reddit***. Your embedded data file will be lost if posted on a different platform.  
+  These images are compatible for posting on ***Reddit***. They also work on ***Mastodon*** when the output image is no larger than **16MiB** and has no more than **8.3 megapixels** (*3840x2160 pixels*); the platform compatibility report after conceal tells you which applies. Your embedded data file will be lost if posted on any other platform.  
   
   When saving/downloading an image from ***Reddit*** make sure to click on the image within the post to fully expand it before saving.  
 
