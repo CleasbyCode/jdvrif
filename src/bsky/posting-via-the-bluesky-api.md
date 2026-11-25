@@ -14,6 +14,7 @@ The script described here is a **security-hardened fork** of that original:
 
 * Original: <https://github.com/bluesky-social/cookbook/blob/main/python-bsky-post/create_bsky_post.py>
 * Fork: <https://github.com/CleasbyCode/cookbook/blob/main/python-bsky-post/create_bsky_post.py>
+* Fork (gist): <https://gist.github.com/CleasbyCode/1eb678ca1fa1975b1c1e20aeec33637e>
 
 The fork keeps the spirit of the original — a single standalone Python file
 that shows what's really going on behind the SDK abstractions — but brings it
