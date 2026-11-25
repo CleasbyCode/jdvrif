@@ -1,0 +1,14 @@
+#pragma once
+
+#include "common.h"
+
+#include <optional>
+
+struct ProgramArgs {
+    Mode mode{Mode::conceal};
+    Option option{Option::None};
+    fs::path image_file_path;
+    fs::path data_file_path;
+
+    static std::optional<ProgramArgs> parse(int argc, char** argv);
+};
