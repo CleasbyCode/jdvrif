@@ -25,7 +25,7 @@ Unlike the common [***LSB***](https://ctf101.org/forensics/what-is-stegonagraphy
 | :---: | :---: | :---: |
 | *(no option)* | APP2/ICC Profile Segments | X-Twitter, Tumblr, Mastodon,<br>Pixelfed, PostImage, ImgBB,<br>ImgPile, Flickr |
 | ***-b*** | Framed EXIF / Photoshop / XMP Segments | ***Bluesky*** only |
-| ***-r*** | JPEG DCT Coefficients (***QIM***) | ***Reddit***, also ***\*Mastodon***<br>*(output ≤ 16MiB and ≤ 3840x2160 pixels) |
+| ***-r*** | JPEG DCT Coefficients (***QIM***) | ***Reddit***, also ***Mastodon***<br>*(output ≤ 16MiB and ≤ 8.3 megapixels)* |
 | ***-x*** | JPEG DCT Coefficients (***J-UNIWARD/STC***) | ***X-Twitter*** only |
 
 The two platform exceptions to the default segment storage method are ***Reddit*** and ***X-Twitter***. Both have their own conceal mode, and neither of those modes uses metadata segments at all: ***-r*** and ***-x*** carry the payload in the ***JPG*** image's DCT coefficients instead.  
@@ -36,7 +36,7 @@ For the ***Reddit*** conceal mode (***-r***), we use the [***QIM steganography m
 
 To maximise storage capacity for the ***Reddit*** platform, use a cover image with large dimension sizes, **2048x2048**, **4096x4096**, **8192x8192 (max)**, etc.  
 
-Quality of cover image is not important for this method and should be kept basic for the largest dimensions to help minimise cover image file size. This steganography method is also compatible for posting on Mastodon, as long as the output image does not exceed 16MiB and the image dimensions do not exceed 3840x2160. 
+Quality of cover image is not important for this method and should be kept basic for the largest dimensions to help minimise cover image file size. This steganography method is also compatible for posting on Mastodon, as long as the output image does not exceed 16MiB and has no more than 8.3 megapixels (3840x2160 worth of pixels, in any shape: 2160x3840 and 2880x2880 also pass). 
 
 While the ***X-Twitter*** platform can use the default method provided by ***jdvrif***, where data is concealed within APP2/ICC segments, ***X-Twitter*** limits this to a single ICC segment with a maximum size of just **~10KiB**.
 
@@ -52,13 +52,16 @@ Both DCT modes carry far less data than the default mode, so use ***capsize*** t
 
 ## Requirements & Compilation (Linux)
 
-Building requires **CMake 3.20 or newer**, `flock` from **util-linux**, and either **Ninja** (preferred) or **Make**. The compiler must be **GCC 14 or newer**, or **Clang 18 or newer** paired with a C++23 standard library that implements features such as `std::format` and `std::print`. The native libraries required are **libsodium**, **libjpeg-turbo** (*both the `turbojpeg` and `libjpeg` APIs*), **zlib** and **libdeflate**. **OpenMP** is optional: when present it parallelises the ***-x*** J-UNIWARD cost pass.
+Building requires **CMake 3.20 or newer**, `flock` from **util-linux**, and either **Ninja** (preferred) or **Make**. The compiler must be **GCC 14 or newer**, or **Clang 18 or newer** paired with **libstdc++ 14 or newer** (libc++ is not supported: it lacks `std::out_ptr` before release 19 and `std::views::zip`, `chunk` and `enumerate`). The native libraries required are **libsodium**, **libjpeg-turbo** (*both the `turbojpeg` and `libjpeg` APIs*), **zlib** and **libdeflate**. No OpenMP is needed: the ***-x*** and ***-r*** carrier stages, and, given enough CPUs, the compression of inputs of 16 MiB or more run on standard C++ threads. The carrier stages size their thread count by the CPUs the process may use, honouring `OMP_NUM_THREADS` and `OMP_THREAD_LIMIT` if set; configuring with `-DJDVRIF_SERIAL_CARRIERS=ON` (or `JDVRIF_SERIAL_CARRIERS=ON ./compile_jdvrif.sh`) runs them on one thread.
 
 ```console
 $ sudo apt update
 $ sudo apt install g++ cmake ninja-build util-linux libsodium-dev libturbojpeg0-dev libjpeg-dev zlib1g-dev libdeflate-dev
 
 $ g++ --version   # confirm the reported version is 14 or newer
+
+$ git clone https://github.com/CleasbyCode/jdvrif.git
+$ cd jdvrif/src
 
 $ chmod +x compile_jdvrif.sh
 $ ./compile_jdvrif.sh
@@ -98,7 +101,7 @@ Encrypting...
 Embedding...
  ✓ 1 ICC_PROFILE (APP2) segment.
 Writing output image...
- ✓ 36.4KiB.
+ ✓ 36.8KiB.
 
 Platform compatibility for output image:-
 
@@ -149,7 +152,7 @@ jdvrif ***mode*** arguments:
 
 Requirements for the cover image:
 
-● JPEG only, at least **400x400** pixels, and either grayscale or YCbCr colour — CMYK/YCCK images must be converted to RGB first.
+● JPEG only, at least **400x400** pixels, and grayscale, YCbCr or RGB colour — CMYK/YCCK images must be converted to RGB first. ***-r*** also needs at least **3,264** 8x8 pixel blocks (**464x464** for a square cover), one per copy of its carrier header bit.
 
 ● Default and ***-b*** upper dimensions are **4096x4096px**; ***-r*** uses **8192x8192px**, while ***-x*** is also capped at **4096x4096px**.
 
@@ -159,7 +162,7 @@ Requirements for the secret data file:
 
 ● The embedded filename must be no longer than **20 bytes**, must not begin with `.` or `-` or end with a space or `.`, and must be valid UTF-8 without control or bidirectional-formatting characters or any of `/ \ : * ? " < > |`. The name is stored in the image and restored on ***recover***.
 
-● Your data file is compressed before encryption, and the compressed form is kept only when it is smaller than the original; otherwise the file is stored as-is. In the default and ***-b*** modes, a data file larger than **10MiB** skips the compression attempt when its header shows an already-compressed format (*ZIP, 7-Zip, RAR, gzip, MP4, MKV, MP3, JPG, PNG, etc*). The file's contents decide, not its extension, so a renamed archive is still recognised. ***-b*** mode always stores the compressed form. For anything destined for a small platform limit, consider compressing it yourself first (*zip, rar, 7z, etc.*) so that you know its exact stored size.
+● Your data file is compressed before encryption. In the default, ***-r*** and ***-x*** modes the compressed form is kept only when it is smaller than the original; otherwise the file is stored as-is. ***-b*** mode always compresses and always stores the compressed form. In the default mode only, a data file larger than **10MiB** skips the compression attempt when its header shows an already-compressed format (*ZIP, 7-Zip, RAR, gzip, MP4, MKV, MP3, JPG, PNG, etc*) or, failing that, when 32 sampled 32 KiB windows of it do not compress by at least 1%. The file's contents decide, not its extension, so a renamed archive is still recognised. For anything destined for a small platform limit, consider compressing it yourself first (*zip, rar, 7z, etc.*) so that you know its exact stored size.
 
 ## Compatible Platforms
 
@@ -196,7 +199,7 @@ For example, with ***Mastodon***, if your cover image is **1MiB** you can still 
 
 ● ***X-Twitter*** (***-x option***). The cover image and the data file must each be no larger than **5MiB**, and the cover must not exceed **4096x4096** pixels. The actual carrier capacity is ***much smaller*** and depends on image quality and dimension sizes. Use `jdvrif capsize -x` to measure it.
 
-In the default and ***-b*** modes, the cover image is also losslessly optimized before use and must not exceed **4MiB** after that step.
+In the default and ***-b*** modes, the cover image file may be up to **8MiB**; it is then losslessly optimized, and the optimized cover must not exceed **4MiB** in the default mode or **2,000,000 bytes** in ***-b*** mode.
 
 For platforms such as ***X-Twitter***, ***Reddit*** & ***Tumblr***, which have small data size limits, you may want to focus on data that compresses well, such as text files, etc.  
 
@@ -206,7 +209,7 @@ https://github.com/user-attachments/assets/fc454d42-0240-4864-b44b-ce5ef7cfd94c
 
 ## Checking capacity with capsize
 
-***capsize*** prepares the cover image exactly as ***conceal*** would, then reports how much encrypted payload it can carry. Nothing is written to disk. Use ***-r*** for the ***Reddit*** carrier and ***-x*** for the ***X-Twitter*** carrier (***-x*** is the default if no option is given).
+***capsize*** reports how much encrypted payload a cover image can carry. Nothing is written to disk. With ***-x*** it prepares the cover exactly as ***conceal*** would and counts the capacity from the resulting carrier. With ***-r*** it validates the cover and fully decodes its scans, then computes the capacity from its dimensions without transcoding it to the Q75 carrier, so it cannot check the transcoded image against ***Reddit***'s 20MiB upload limit: ***conceal -r*** still makes that check. Use ***-r*** for the ***Reddit*** carrier and ***-x*** for the ***X-Twitter*** carrier (***-x*** is the default if no option is given).
 
 ```console
 $ jdvrif capsize -r basic_img_large_dims.jpg
@@ -254,7 +257,7 @@ To create compatible "*file-embedded*" ***JPG*** images for posting on the ***Bl
   You are also required to use the Python script [create_bsky_post.py](https://github.com/CleasbyCode/jdvrif/blob/main/src/bsky/create_bsky_post.py) (found in the repo ***src/bsky*** folder) to post the image to ***Bluesky***.
   It will not work if you post images to ***Bluesky*** via the browser site or mobile app.  
 
-  To use the script, you will need to create an [***app password***](https://bsky.app/settings/app-passwords) from your ***Bluesky*** account. Pass your credentials through the environment rather than on the command line, where they would be visible to other local users via tools such as `ps`:
+  To use the script, you will need to create an [***app password***](https://bsky.app/settings/app-passwords) from your ***Bluesky*** account. Pass your credentials through the environment rather than on the command line, where they would be visible to other local users via tools such as `ps`. The paths below are relative to the repo's ***src*** folder:
 
   ```console
   $ pip install -r bsky/requirements.txt
@@ -265,7 +268,7 @@ To create compatible "*file-embedded*" ***JPG*** images for posting on the ***Bl
   $ python3 bsky/create_bsky_post.py \
       --image jrif_4e87c566c.jpg \
       --alt-text "alt-text here [optional]" \
-      "standard post text here [required]"
+      "standard post text here [optional]"
 
   $ unset ATP_AUTH_PASSWORD
 ```
@@ -330,7 +333,7 @@ The first `count` items are the positions used, in order (*-x: the header's posi
 
 ## Tests
 
-The test scripts in `src/tests` each take the binary to exercise:
+The test scripts live in `src/tests`; run them from `src` after building. Most take the binary to exercise with `--bin`:
 
 ```console
 $ bash tests/run_golden_tests.sh --bin ./jdvrif        # recover pre-built images with known KEYs
@@ -339,16 +342,19 @@ $ bash tests/run_security_smoke.sh --bin ./jdvrif      # negative-path and bound
 $ bash tests/run_reddit_tests.sh --bin ./jdvrif        # -r QIM carrier
 $ bash tests/run_twitter_tests.sh --bin ./jdvrif       # -x J-UNIWARD/STC carrier
 $ bash tests/run_io_security_tests.sh --bin ./jdvrif   # input-size bounds, KEY entry signal/job-control handling
+$ bash tests/run_output_interrupt_tests.sh --bin ./jdvrif  # interrupted fsync/stdout around output commit and KEY delivery
 $ bash tests/run_jpeg_safety_tests.sh                  # JPEG parser/decoder safety (builds its own test binary)
 $ bash tests/run_bsky_tests.sh                         # Bluesky posting helper
 ```
+
+The rest build and run their own C++ unit and regression tests, and need no arguments: `run_build_hardening_tests.sh`, `run_carrier_thread_tests.sh`, `run_codec_preparation_tests.sh`, `run_deflate_thread_tests.sh`, `run_filename_safety_tests.sh`, `run_signal_thread_tests.sh` and `run_worker_team_tests.sh`.
 
 ## Third-Party Software and Assets
 
   ### Core applications
 
   - [libsodium](https://github.com/jedisct1/libsodium) — cryptographic random generation, Argon2id
-  key derivation and XChaCha20-Poly1305 secret streams. Dynamically linked as a system library.
+  key derivation, XChaCha20-Poly1305 secret streams, the BLAKE2b recovery KEY checksum, Base64 and secure memory wiping. Dynamically linked as a system library.
       
       License: [ISC License](https://github.com/jedisct1/libsodium/blob/master/LICENSE)
     
@@ -367,13 +373,13 @@ $ bash tests/run_bsky_tests.sh                         # Bluesky posting helper
    
       Copyright © 2015 Viktor Szathmáry. All Rights Reserved.
    
-  - [zlib](https://github.com/madler/zlib) — Streaming zlib compression and decompression. Dynamically linked as a system library.
+  - [zlib](https://github.com/madler/zlib) — Streaming zlib compression and decompression, including the multithreaded sliced compression of large inputs. Dynamically linked as a system library.
 
     License: [zlib License](https://github.com/madler/zlib/blob/develop/LICENSE)
     
     Copyright (C) 1995–2026 Jean-loup Gailly and Mark Adler.
 
-  - [libdeflate](https://github.com/ebiggers/libdeflate) — Fast whole-buffer zlib-format compression. Dynamically linked as a system library.
+  - [libdeflate](https://github.com/ebiggers/libdeflate) — Fast whole-buffer zlib-format compression, and the raw-DEFLATE trial that samples large default-mode inputs for compressibility. Dynamically linked as a system library.
 
     License: [MIT](https://github.com/ebiggers/libdeflate/blob/master/COPYING)
     
@@ -388,9 +394,13 @@ $ bash tests/run_bsky_tests.sh                         # Bluesky posting helper
 
     License: [CC0 1.0 Universal](https://github.com/saucecontrol/Compact-ICC-Profiles/blob/master/license)
 
+  - J-UNIWARD reference implementation (Digital Data Embedding Laboratory, Binghamton University) — source of the Daubechies-8 wavelet filter coefficients (`twitter_juniward.cpp`) and the constraint-height-7 STC submatrix constants (`twitter_stc.cpp`) used by ***-x***.
+
+    See [src/THIRD_PARTY_NOTICES.md](https://github.com/CleasbyCode/jdvrif/blob/main/src/THIRD_PARTY_NOTICES.md) for attribution and the publications they come from.
+
   ### Optional Bluesky posting helper
 
-  - Bryan Newbold / ATProto Hacker Cookbook — create_bsky_post.py — Basis for the [forked](https://gist.github.com/CleasbyCode/1eb678ca1fa1975b1c1e20aeec33637e) Bluesky posting helper (src/bsky/create_bsky_post.py). 
+  - Bryan Newbold / ATProto Hacker Cookbook — create_bsky_post.py — Basis for the [forked](https://gist.github.com/CleasbyCode/1eb678ca1fa1975b1c1e20aeec33637e) Bluesky posting helper ([src/bsky/create_bsky_post.py](https://github.com/CleasbyCode/jdvrif/blob/main/src/bsky/create_bsky_post.py)). 
     For reference see the [Cookbook copy](https://github.com/bluesky-social/cookbook/blob/main/python-bsky-post/create_bsky_post.py)
 
     License: [CC0 1.0 Universal](https://github.com/bluesky-social/cookbook/blob/main/LICENSE-CC0).
@@ -401,11 +411,23 @@ $ bash tests/run_bsky_tests.sh                         # Bluesky posting helper
     
     Copyright 2019 Kenneth Reitz.
 
-  - Beautiful Soup 4 — HTML and Open Graph metadata parsing.
+  - urllib3 — HTTP transport under Requests; pinned for bounded decompression and safe chunked reads.
 
-    License: [MIT](https://pypi.org/project/beautifulsoup4/)
-    
-    Copyright (c) Leonard Richardson.
+    License: [MIT](https://github.com/urllib3/urllib3/blob/main/LICENSE.txt)
+
+    Copyright (c) 2008-2020 Andrey Petrov and contributors.
+
+  - idna — IDNA2008/UTS46 encoding of internationalized hostnames.
+
+    License: [BSD 3-Clause](https://github.com/kjd/idna/blob/master/LICENSE.md)
+
+    Copyright (c) 2013-2026, Kim Davies and contributors.
+
+  - chardet — charset detection for link-card pages that declare none.
+
+    License: [0BSD](https://github.com/chardet/chardet/blob/main/LICENSE)
+
+    Copyright (c) 2026 Dan Blanchard.
 
   - Pillow — Image validation, dimensions, and aspect-ratio handling.
 
@@ -414,5 +436,3 @@ $ bash tests/run_bsky_tests.sh                         # Bluesky posting helper
     PIL copyright © 1997–2011 Secret Labs AB and © 1995–2011 Fredrik Lundh and contributors.
     
     Pillow copyright © 2010 Jeffrey “Alex” Clark and contributors.
-    
-##
